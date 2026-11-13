@@ -1,0 +1,1920 @@
+%% Beginning of file 'main.tex'
+%%
+\documentclass[linenumbers,trackchanges,twocolumn]{aastex701}
+%%
+\newcommand{\vdag}{(v)^\dagger}
+\newcommand\aastex{AAS\TeX}
+\newcommand\latex{La\TeX}
+
+
+\usepackage{amsmath}
+\usepackage{rotating}
+\graphicspath{{Figures/}{./}{../}}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{placeins} % For \FloatBarrier
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\lstdefinelanguage{SQL}{
+  keywords={SELECT, FROM, WHERE, AND, OR, INSERT, INTO, VALUES, UPDATE, SET, DELETE, JOIN, ON, CREATE, TABLE, AS, DISTINCT, GROUP, BY, ORDER, DESC, ASC, INNER, LEFT, RIGHT, OUTER, LIMIT},
+  sensitive=false,
+  comment=[l]{--},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+  language=SQL,
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray},
+  stringstyle=\color{orange},
+  showstringspaces=false,
+  breaklines=true
+}
+
+\begin{document}
+
+\title{A Bayesian Approach to Prioritizing the Follow-Up of Near-Earth Objects}
+
+
+
+
+\author[0009-0004-0059-3229]{Devanshi Singh}
+\affiliation{DiRAC Institute and the Department of Astronomy, University of Washington, 3910 15th Ave NE, Seattle, WA, 98195, U.S.A.}
+\email{ds2004@uw.edu}
+
+\author[orcid=0000-0003-1996-9252]{Mario Juri\'{c}}
+\affiliation{DiRAC Institute and the Department of Astronomy, University of Washington, 3910 15th Ave NE, Seattle, WA, 98195, U.S.A.}
+\email{mjuric@astro.washington.edu}
+
+
+\author[orcid=0000-0001-5250-2633]{\v{Z}eljko Ivezi\'{c}}
+\affiliation{DiRAC Institute and the Department of Astronomy, University of Washington, 3910 15th Ave NE, Seattle, WA, 98195, U.S.A.}
+\email{ivezic@astro.washington.edu}
+
+
+
+%\input{auth}
+
+
+\begin{abstract}
+
+We present ds42, a Bayesian classifier that estimates the probability that a newly detected object is an NEO using only the sky position, angular motion, and apparent magnitude measured from a single tracklet. Because a short observational arc does not determine the object’s distance or radial velocity, ds42 considers the full range of physically allowed distance and range-rate solutions. Each possible solution corresponds to a candidate orbit which is evaluated against population models of NEOs and non-NEOs. The contributions from all possible orbits are then combined, accounting for how the sampled distance-velocity space maps into orbital element space, to produce a calibrated posterior probability of NEO membership. The relative abundances of NEOs and contaminants are incorporated directly from the population model rather than through a separately tuned prior.
+
+Tests on simulated tracklets show that ds42 produces well-calibrated NEO probabilities and improves candidate ranking relative to digest2. These results are also supported by an initial test on real Minor Planet Center NEO Confirmation Page discovery tracklets, where ds42 remains well calibrated and reduces contamination at comparable NEO recovery. The classifier is robust to Rubin-like astrometric uncertainties and is fast enough to operate at Rubin survey scale. ds42 will be used within Rubin Observatory pipelines to provide a NEO probability score for newly detected candidates, enabling more efficient prioritization of objects for rapid follow-up.
+
+
+\end{abstract}
+
+
+\keywords{\uat{Small Solar System bodies}{1469} --- \uat{Main belt asteroids}{2036}}
+
+
+
+\section{Introduction}
+\label{sec:intro}
+
+Near-Earth Objects (NEOs) include any asteroid or comet whose perihelion lies
+within 1.3~AU, close enough that its orbit can carry it into Earth's
+neighbourhood over long timescales. Assessing whether an object poses an
+impact risk, and characterizing the size and orbital structure of the NEO
+population, both depend on accurate orbits derived from repeated astrometric
+observations. For a newly discovered candidate, this process often begins on
+the Minor Planet Center's NEO Confirmation Page
+\citep[NEOCP;][]{marsden1998,spoto2021}. The candidate remains there until
+follow-up astrometry either secures an orbit, earning it a designation, or
+shows it to belong to another population, such as the main belt.
+
+A discovery tracklet constrains an object's sky position and motion, but not
+its distance, so its predicted position becomes uncertain quickly. Follow-up
+must therefore happen soon after discovery, yet telescope time is limited and
+many NEOCP candidates compete for it. Observatories need a reliable way to
+rank candidates by how likely they are to be NEOs, so limited follow-up time
+can be directed toward the most promising objects.
+
+The Vera C. Rubin Observatory's Legacy Survey of Space and Time
+\citep[LSST;][]{ivezic2019} will make this prioritization much harder. Today,
+roughly 5--27 candidates are added to the NEOCP each night, depending on lunar
+phase \citep{wagg2025}. Simulating the first year of LSST under the current
+posting criterion, a digest2 score of at least 65, \citet{wagg2025} predict
+that Rubin alone will submit about 129 candidates per night, around eight
+times the present rate. This is expected to fall to about 95 per night once
+much of the main belt has been catalogued, but only 8.3\% of the candidates
+are NEOs. Most of the remainder are faint, previously undiscovered main-belt
+asteroids. Even removing candidates that Rubin is likely to recover on its
+own reduces the list only to about 64 per night, with the NEO fraction still
+just 8.4\%.
+
+Follow-up capacity will not grow at the same rate. \citet{wagg2025} therefore
+conclude that LSST-era follow-up will have to be highly selective, making the
+initial triage step important both for recovering NEOs and for avoiding
+unnecessary follow-up of contaminants.
+
+The tool currently used to prioritize tracklets for the NEOCP is digest2
+\citep{keys2019}, recently extended to read ADES astrometry
+\citep{veres2023}. For each tracklet, digest2 samples possible topocentric
+distances, constructs trial orbits, and compares them with a population model
+divided into orbital classes. It returns a score from 0 to 100; candidates are
+normally posted when the NEO score, computed using the undiscovered
+(``NoID'') population, reaches 65, subject to MPC review
+\citep{veres2025ml}.
+
+digest2 is useful for ranking candidates, but its score has no fixed
+probabilistic interpretation. \citet{keys2019} describe it as a
+``pseudo-probability.'' For example, \citet{veres2018} found that among
+objects posted to the NEOCP, a score of 100 corresponded to $93\pm1\%$ NEAs,
+while a score of 95 corresponded to only $37\pm7\%$. Thus the numerical score
+does not directly give the expected fraction of true NEOs.
+
+A calibrated $P(\mathrm{NEO})$ would provide that interpretation directly:
+among tracklets assigned probability $p$, a fraction $p$ should be NEOs.
+Follow-up programs could then choose thresholds based on the expected NEO
+yield and contamination, rather than calibrating a ranking score empirically.
+
+Short-arc orbit inference is a well-studied problem. The admissible region of
+\citet{milani2004} reduces the unknown orbit to topocentric distance $\rho$
+and range-rate $\dot\rho$, which systematic and statistical ranging methods
+explore to identify orbits consistent with the observations
+\citep{virtanen2001,muinonen2006,chesley2005,farnocchia2015,spoto2018}.
+Existing methods either characterize this orbital uncertainty or use
+population information for classification. ds42 combines both by integrating
+an absolute population model over the admissible region with the appropriate
+change of measure between the ranging coordinates and orbital elements.
+
+We present ds42, which uses this framework to estimate $P(\mathrm{NEO})$ from
+a single-night tracklet and its apparent brightness. Because the population
+model retains the absolute abundance of NEOs and non-NEOs, no additional
+class prior is required.
+
+We validate ds42 on simulated tracklets and on real NEOCP and Rubin
+data. Its probabilities are well calibrated, and at comparable NEO recovery
+ds42 produces substantially fewer false positives than digest2.
+
+\section{Methods}
+\label{sec:methods}
+
+\subsection{Observables and the two unknowns}
+\label{sec:observables}
+
+For each candidate, a survey reports a tracklet consisting of two or more
+detections of the same moving source within one night. Each detection provides
+a right ascension $\alpha$, declination $\delta$, observation time $t$, and
+an apparent magnitude in the survey's photometric band (for LSST, one of
+$u,g,r,i,z,y$). We assume linear motion over the tracklet and fit
+$\alpha(t)$ and $\delta(t)$ to estimate the position and angular rates
+$\dot\alpha$ and $\dot\delta$ at the epoch of the first detection. Following
+\citet{milani2004}, we define the attributable
+$A=(\alpha,\delta,\dot\alpha,\dot\delta)$, where
+$\dot\alpha=d\alpha/dt$ is the rate of change of the right-ascension
+coordinate itself rather than the on-sky rate $\dot\alpha\cos\delta$.
+The photometry is converted to a single Johnson $V$ magnitude
+(Section~\ref{sec:photometry}), while the
+observer's heliocentric position $\mathbf{R}$ and velocity
+$\dot{\mathbf{R}}$ are computed from the JPL DE440s planetary ephemeris
+\citep{park2021} and the observatory's location, taken from the MPC list of
+observatory codes.
+
+\subsection{From a hypothesis to an orbit}
+\label{sec:geometry}
+
+A short tracklet does not determine the object's topocentric distance
+$\rho$ or range-rate $\dot\rho$. Different choices of
+$(\rho,\dot\rho)$ can therefore reproduce the same attributable while
+corresponding to different heliocentric orbits. We call each particular
+choice of $(\rho,\dot\rho)$ a node.
+
+Let
+$\hat{\mathbf{u}}=(\cos\delta\cos\alpha,\cos\delta\sin\alpha,\sin\delta)$
+be the line-of-sight unit vector, with
+$\hat{\mathbf{u}}_\alpha=\partial\hat{\mathbf{u}}/\partial\alpha$ and
+$\hat{\mathbf{u}}_\delta=\partial\hat{\mathbf{u}}/\partial\delta$. The
+heliocentric position and velocity implied by a node are
+\begin{align}
+\mathbf{r} &= \mathbf{R} + \rho\,\hat{\mathbf{u}}, \label{eq:r}\\
+\mathbf{v} &= \dot{\mathbf{R}} + \dot{\rho}\,\hat{\mathbf{u}}
++ \rho\left(\dot{\alpha}\,\hat{\mathbf{u}}_\alpha +
+\dot{\delta}\,\hat{\mathbf{u}}_\delta\right). \label{eq:v}
+\end{align}
+
+Standard two-body relations then give the osculating heliocentric ecliptic elements at the tracklet epoch: semimajor axis $a$, eccentricity $e$,
+inclination $i$, longitude of the ascending node $\Omega$, argument of
+perihelion $\omega$, and mean anomaly $M$. We denote these collectively by
+$E=(a,e,i,\Omega,\omega,M)$. Together, Equations~(\ref{eq:r}) and
+(\ref{eq:v}) define the map
+$\Phi:(A,\rho,\dot\rho)\mapsto E$, so each node corresponds to one possible, bound
+orbit consistent with the tracklet.Nodes that imply unbound heliocentric orbits are excluded
+(Section~\ref{sec:ar}). Both population components contain only bound
+orbits, so the prior density is zero at these nodes and excluding them does
+not change $P(\mathrm{NEO})$; it also keeps $\Phi$ defined, since $a$ and
+$M$ are not defined for $e\geq1$.
+
+Each node therefore specifies a possible orbit, but evaluating that hypothesis
+against the population model also requires its absolute magnitude $H$. The
+observed apparent magnitude provides this additional constraint because the
+implied $H$ depends on the distance and viewing geometry of the node.
+
+
+\subsection{Photometry}
+\label{sec:photometry}
+
+We convert each detection magnitude to Johnson $V$ using the fixed band
+offsets adopted by digest2 \citep{keys2019}, and use the median converted
+magnitude for the tracklet. At each node, the heliocentric distance
+$r=|\mathbf{r}|$ and phase angle $\alpha_{\rm ph}$, defined by the
+Sun--object--observer geometry, follow from Equation~(\ref{eq:r}). Using the
+$H,G$ phase function of \citet{bowell1989}, the implied absolute magnitude is
+\begin{equation}
+H(V,\rho) = V - 5\log_{10}(\rho r) + 2.5\log_{10}\Phi_{HG}(\alpha_{\rm ph};G),
+\label{eq:H}
+\end{equation}
+with $G=0.15$ for all objects. Thus the same apparent magnitude corresponds
+to a larger $H$ at a nearby node and a smaller $H$ at a distant one; for a
+fixed albedo, these correspond to smaller and larger objects, respectively.
+
+\subsection{Population densities and the marginal likelihood}
+\label{sec:likelihood}
+
+We divide the population into two classes,
+$C\in\{\mathrm{NEO},\mathrm{other}\}$, with NEOs defined by
+$q=a(1-e)<1.3$~AU. Each class is represented by an intrinsic number density
+$n_C(E,H)$. By intrinsic, we mean the underlying Solar System population
+rather than the subset of objects already discovered. The densities retain
+their absolute normalization, so integrating $n_C$ over the full model
+returns the total number of objects in that class. The relative abundance of
+NEOs and non-NEOs is therefore already contained in the population model
+(Section~\ref{sec:posterior}).
+
+In ds42, both densities are derived from the S3M-based model used by digest2
+(Section~\ref{sec:population}). The model is tabulated in $(q,e,i,H)$ and
+assumes uniform $\Omega$, $\omega$, and $M$. This is an approximation:
+NEOs show modest departures from uniformity in $\Omega$ and $\omega$
+\citep{jeongahn2014} but we keep it at this stage to make comparisons to digest2 more straightforward. Outside the
+adopted model support, $n_C=0$ (Section~\ref{sec:truncation}).
+
+The integration grid is defined in $(A,\rho,\dot\rho,V)$ rather than directly
+in orbital elements. Equal-sized cells in this grid generally map to
+different volumes of element space, so the population density must be
+multiplied by the appropriate change-of-variables factor. For a small cell
+around one node, the expected number of class-$C$ objects is
+
+\begin{equation}
+ N_C = n_C(E,H)\,
+\left|\det\frac{\partial E}{\partial(A,\rho,\dot\rho)}\right|\,
+ A\,\rho\,\dot\rho\, V .
+\label{eq:dN}
+\end{equation}
+
+The determinant (Section~\ref{sec:jacobian}) converts the grid volume into orbital-element
+volume. The transformation from $V$ to $H$ contributes no additional factor
+because $\partial H/\partial V=1$.
+
+By integrating over the admissible region $\mathcal{AR}$ of bound orbits
+(Section~\ref{sec:ar}),
+The expected number of asteroids in a class is obtained:
+\begin{multline}
+\Lambda_C(A,V) = \iint_{\mathcal{AR}}
+n_C\bigl(\Phi(A,\rho,\dot\rho),H(V,\rho)\bigr)\\
+\times\left|\det\frac{\partial E}{\partial(A,\rho,\dot\rho)}\right|
+\rho\,\dot\rho ,
+\label{eq:lambda}
+\end{multline}
+which we evaluate numerically as
+$\Lambda_C\approx\sum_k n_C(E_k,H_k)\,|J_k|\,w_k$ over grid nodes $k$ with
+cell areas $w_k$.
+
+$\Lambda_C$ is the class marginal likelihood. It measures how
+much of the class-$C$ population is consistent with the observed tracklet
+after marginalizing over distance and range-rate. More precisely, it is a
+differential number density in observable space: the expected number of
+objects per unit $\dd A\,\dd V$ around the measured values.
+
+\subsection{The change of measure}
+\label{sec:jacobian}
+
+The Jacobian in Equation~(\ref{eq:lambda}) can be factored through the
+heliocentric state vector,
+$\partial E/\partial(A,\rho,\dot\rho)=
+[\partial E/\partial(\mathbf{r},\mathbf{v})]\,
+[\partial(\mathbf{r},\mathbf{v})/\partial(A,\rho,\dot\rho)]$.
+Both factors have exact closed forms, derived in
+Appendix~\ref{app:jacobian}. The transformation from observables to
+Cartesian state contributes $\rho^4\cos^2\delta$, while the transformation
+from Cartesian state to orbital elements contributes
+$2/(\mu^{3/2}\sqrt{a}\,e\sin i)$, where $\mu$ is the Sun's gravitational
+parameter. Because the population density for ds42 is tabulated in $q$ rather than
+$a$, we express it in those same coordinates, introducing
+the additional factor $\partial q/\partial a=1-e$:
+\begin{align}
+&\left|\det\frac{\partial(q,e,i,\Omega,\omega,M)}
+{\partial(A,\rho,\dot\rho)}\right|
+\nonumber\\
+&\qquad = \rho^4\cos^2\delta\,
+\frac{2(1-e)}{\mu^{3/2}\sqrt{a}\,e\sin i}.
+\label{eq:jacqei}
+\end{align}
+
+
+The $\rho^4$ factor can be understood as a phase-space volume effect. At
+distance $\rho$, a fixed angular patch on the sky corresponds to a physical
+area proportional to $\rho^2$. The same is true in velocity space: a fixed
+range of angular rates corresponds to transverse velocities proportional to
+$\rho$, giving another factor of $\rho^2$. Thus a small cell in the observed
+position and motion represents a phase-space volume proportional to
+$\rho^4$. Doubling the distance increases that volume by a factor of 16.
+Without this weighting, nearby and distant nodes would be treated as
+representing equal volumes, which gives too much relative weight to nearby,
+often NEO-like solutions. The remaining factors account for the orbital
+coordinate system: $(1-e)$ follows from $q=a(1-e)$, while
+$1/(e\sin i)$ is an integrable coordinate singularity rather than a physical
+concentration of objects.
+
+\subsection{The posterior}
+\label{sec:posterior}
+
+Since the two populations do not overlap, their marginal
+likelihoods can be normalized to obtain the posterior probability of NEO
+membership:
+\begin{equation}
+P(\mathrm{NEO}\mid A,V)
+= \frac{\Lambda_{\rm NEO}}
+{\Lambda_{\rm NEO}+\Lambda_{\rm other}}.
+\label{eq:posterior}
+\end{equation}
+If the population model
+approximates the real sky well, the resulting probabilities will be calibrated: among a
+large set of tracklets assigned $P(\mathrm{NEO})=0.8$, approximately 80\%
+should be NEOs.
+
+
+$P(\mathrm{NEO})$ is formally the posterior probability of membership in the
+NEO population component. For ds42, this is also equal to the posterior mass of
+nodes with $q<1.3$~AU because the two components are obtained by splitting a
+single model exactly at that boundary (Section~\ref{sec:split}). If one $\Lambda_C$ vanishes, the posterior is exactly 0 or 1;
+if both vanish, it is undefined (Section~\ref{sec:truncation}).
+
+\subsection{Admissible region and quadrature}
+\label{sec:ar}
+
+The integration domain is the admissible region of \citet{milani2004}: the
+set of $(\rho,\dot\rho)$ values that produce a bound heliocentric orbit,
+$\tfrac12|\mathbf{v}|^2-\mu/r<0$, within
+$0.01\le\rho\le100$~AU. The lower limit excludes the immediate vicinity of
+the observer, while the upper limit matches the outer extent of the adopted
+population model; both limits are configurable. Hyperbolic solutions are
+excluded because interstellar objects are outside the scope of this work and
+both population components contain only bound Solar System orbits. However, we empirically find interstellar objects frequently get classified as NEOs.
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figures/hypothesis_space_ranging_figs.png}
+\caption{Posterior over the hypothesis space for two tracklets from the self-consistency sample
+(Section~\ref{sec:selfconsistency}), re-observed from the Rubin Observatory site (X05):
+(a) a NEO ($a=2.35$~AU, $e=0.54$, $q=1.08$~AU, $H=23.3$) and
+(b) a main-belt asteroid ($a=2.88$~AU, $e=0.35$, $i=37.8^\circ$, $q=1.87$~AU, $H=16.6$).
+Each panel shows the admissible region, every topocentric distance $\rho$ and range-rate $\dot\rho$
+consistent with the tracklet that gives a bound heliocentric orbit, drawn cell by cell on the
+$1200\times50$ quadrature grid.
+Colour is the posterior density per unit $\ln\rho$ and $\dot\rho$, on one scale for both panels, so
+colour times displayed area is probability.
+Pale cells hold less than $10^{-4}$ of the peak density; grey cells imply orbits that no catalogued
+object occupies (in panel a this includes the band at $\rho<0.018$~AU, where $H>30$).
+The dashed curve is $q=1.3$~AU: cells below it imply NEO orbits.
+The star marks the true $(\rho,\dot\rho)$.
+ds42 gives $P(\mathrm{NEO})=0.894$ for the NEO and $0.104$ for the main-belt asteroid; in both, 97\%
+of the posterior lies within a factor of two of the true distance.}
+\label{fig:hypothesis}
+\end{figure*}
+
+Figure~\ref{fig:hypothesis} shows the resulting posterior over the admissible region for one NEO and one main-belt tracklet.
+
+\subsection{Approximating the high-H population}
+\label{sec:truncation}
+
+Outside the adopted population-model support we set $n_C=0$, so nodes beyond
+the modeled range contribute no likelihood. The population model ends at $H=25.5$.
+At $V\le24$, ordinary main-belt solutions do not reach such faint absolute
+magnitudes (Appendix~\ref{app:truncation}), but nearby objects can. Among 499
+real NEOCP discovery tracklets (Section~\ref{sec:neocp}), 11 objects (2.2\%)
+had their entire admissible region at $H>25.5$. In these cases both
+$\Lambda_C$ vanished and the posterior was undefined. All 11 were NEOs, with
+median sky motion $6.8^\circ$\,day$^{-1}$ and median $V=20.7$, consistent
+with nearby, intrinsically faint objects. digest2 does not encounter the same
+hard boundary because its highest-$H$ bin extends to infinity
+\citep{keys2019}.
+
+We adopt a similar fix, extending each $(q,e,i)$ cell with one additional bin,
+$25.5\le H<30$, assigning it the same density per magnitude as the original
+highest bin, $24\le H<25.5$. We continue to set $n_C=0$ for $H\ge30$. This
+leaves the original model unchanged below $H=25.5$ while giving the
+extrapolated population finite total mass.
+
+With this extension, all 11 NEOCP boundary
+cases receive a likelihood-based $P(\mathrm{NEO})=1$. Unless stated
+otherwise, all results use the extended model
+
+
+A tracklet can still fall entirely beyond the extended support. If both
+$\Lambda_C$ vanish and at least 95\% of its admissible measure lies at
+$H\ge30$, ds42 assigns $P(\mathrm{NEO})=1$ as an explicitly flagged triage
+rule rather than a posterior. These assignments are excluded from all
+calibration tests. Other cases in which both likelihoods vanish return no
+posterior. The rule is motivated by the 11 NEOCP boundary objects above. In
+the 800\,000 simulated tracklets of Section~\ref{sec:validation} it fires for
+five, all of them NEOs with $q<0.003$~AU, and never for a non-NEO
+(Appendix~\ref{app:truncation}).
+
+\subsection{Measurement uncertainty}
+\label{sec:noise}
+
+We treat $A$ and $V$ as exact.
+Measurement uncertainty can be included by marginalizing the class likelihood
+over the unknown true observables,
+$\int\Lambda_C(A',V')\,p(\mathrm{data}\mid A',V')\, A'\, V'$.
+The software interface already supports this form: an attributable may carry
+a covariance, and the compiled kernel accepts a weighted set of
+attributables. We find this additional marginalization is not necessary in typical case. 
+
+The approximation is adequate when the uncertainties in the angular rates
+are small compared with the measured motion. For endpoint position
+uncertainties $\sigma$ and an arc length $\Delta t$, the characteristic rate
+uncertainty is approximately $\sqrt{2}\sigma/\Delta t$. For high precision
+astrometry (such as Rubin) over a 45-minute arc, this is about 0.2\% of the median tracklet
+motion in our test sample. Injecting the Rubin astrometric error model leaves
+both calibration and ranking essentially unchanged at 45 minutes. The
+approximation becomes unreliable for very short arcs: calibration degrades at
+5 minute tracklet arcs and is stable from approximately 15 minutes onward
+(Section~\ref{sec:robustness}). We therefore recommend using ds42 for
+tracklets spanning at least 15 minutes. Photometric uncertainty, which shifts
+the implied $H$ at every node by the same amount, has not yet been tested
+separately.
+
+
+\section{Population model}
+\label{sec:population}
+
+\subsection{The input model}
+\label{sec:popmodel}
+
+We use the population model maintained by the Minor Planet Center for digest2
+\citep{keys2019,veres2023}. It is a histogram in $(q,e,i,H)$ based on the
+Synthetic Solar System Model (S3M) of \citet{grav2011}, with the angular
+elements taken to be uniform (Table~\ref{tab:model}). Using the same model in
+ds42 and digest2 ensures that comparisons between them reflect the
+classification method rather than different population assumptions.
+
+The model file contains two populations. ``All'' is the full modeled
+population, while ``Unk'' removes objects already present in the MPC catalog
+and therefore represents the population remaining to be discovered.
+Figure~\ref{fig:allunk} shows how the two differ in absolute magnitude. The
+largest differences occur where a substantial fraction of the modeled
+population has already been discovered, while All and Unk become increasingly
+similar toward the faint end.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{figures/population_all_unk_lines.png}
+\caption{Absolute-magnitude distributions of NEOs ($q<1.3$~AU) and
+non-NEOs in the digest2 population model. Solid lines show the full modeled
+population (All), while dashed lines show the population remaining after
+catalogued objects are removed (Unk). The separation between All and Unk
+shows the portion of each population that is already known.}
+\label{fig:allunk}
+\end{figure}
+
+digest2's ``raw'' score uses All, while its ``NoID'' score uses Unk. We use
+the corresponding names ds42 All and ds42 Unk. In the simulated validation
+and digest2 comparison (Sections~\ref{sec:validation}
+and~\ref{sec:comparison}), tracklets are drawn from Unk and scored with
+ds42 Unk and digest2 NoID. The Rubin tests instead use ds42 All and digest2
+raw because those samples include catalogued objects.
+
+The historical NEOCP sample requires a caveat: the Unk population used here
+is based on a catalog more recent than the 2019--2021 postings in that sample,
+so some objects that were undiscovered at the time have since been removed
+from Unk. We discuss this mismatch in Section~\ref{sec:neocp}.
+
+%% All - Unk computed from data/digest2.model.csv (2026-10-14).
+
+
+\begin{table}
+\centering
+\caption{The ds42 population model.}
+\label{tab:model}
+\begin{tabular}{lrl}
+\hline
+Dimension & Bins & Range \\
+\hline
+$q$ & 29 & 0--100 AU \\
+$e$ & 8  & 0--1.1 \\
+$i$ & 11 & 0--180$^\circ$ \\
+$H$ & 18 & 0--25.5 (+1 bin to 30, \S\ref{sec:truncation}) \\
+\hline
+ & \multicolumn{2}{l}{Objects (NEO fraction)} \\
+\hline
+Total     & \multicolumn{2}{l}{14\,542\,147 \;(1.9\%)} \\
+NEO       & \multicolumn{2}{l}{277\,469} \\
+Other     & \multicolumn{2}{l}{14\,264\,678} \\
+Extended  & \multicolumn{2}{l}{742\,145 NEO, 14\,868\,899 other \;(4.8\%)} \\
+\hline
+\end{tabular}
+\tablecomments{45\,936 cells in total. Counts are after the un-scaling
+described in Section~\ref{sec:muk}. ``Extended'' includes the synthetic bin
+$25.5\le H<30$.}
+\end{table}
+
+\subsection{Recovering absolute counts}
+\label{sec:muk}
+
+The digest2 model file does not store the number of objects in each cell
+directly. During construction of the model, each cell count is rescaled as
+\begin{equation}
+\mathrm{cell}=\mathrm{count}\Big/
+\sqrt{\Delta q\,\frac{\Delta e}{(1-e_0)+(1-e_1)}\,\Delta i\,\Delta H},
+\label{eq:muk}
+\end{equation}
+where $e_0$ and $e_1$ are the eccentricity-bin edges, $i$ is measured in
+degrees, and $1-e$ is set to zero for $e\ge1$.
+
+This scaling is sufficient for digest2, which uses the relative values of the
+model cells. ds42 instead requires the absolute population in each cell,
+because the relative abundance of the two classes enters the posterior
+through the population densities (Section~\ref{sec:posterior}). We therefore
+invert Equation~(\ref{eq:muk}) to recover the original counts.
+
+The inversion is strongly constrained by the file itself. All
+$45\,936\times32$ recovered values are integers to within $10^{-9}$, as
+expected for underlying object counts. The recovered population contains
+14\,542\,147 objects in total; by contrast, simply summing the rescaled values
+in the file gives $6.3\times10^7$, which has no interpretation as an object
+count.
+
+\subsection{The NEO/other split}
+\label{sec:split}
+
+The 15 orbit classes used by digest2 do not form a disjoint partition of the
+population. Some classes overlap---for example, ``N18'' and ``N22'' are
+subsets of ``NEO''---while the belt classes both leave gaps and overlap with
+one another. Summing those classes would therefore either omit or double-count
+objects.
+
+Instead, we construct two complementary components directly from the model:
+NEO $=$ \texttt{NEO}, and other $=$ \texttt{SS}-\texttt{NEO}, where
+\texttt{SS} denotes the full Solar System population in the file. Because
+$q=1.3$~AU is exactly a bin edge, this split is unambiguous. The NEO component
+is zero above the boundary and the other component is zero below it. This is
+the complementarity assumed in the definition of
+$P(\mathrm{NEO})$ in Section~\ref{sec:posterior}. If the NEO boundary fell
+inside a $q$ bin, that bin would contain objects from both classes and the
+split would no longer be exact.
+
+\subsection{Limitations}
+\label{sec:popcaveats}
+
+The population model has several limitations. First, it is based on the
+original S3M population rather than a more recent debiased model. S3M
+overpredicts the known population by about 25\% in the range discussed above,
+and its NEO component has since been superseded by models such as NEOMOD3.
+Second, the population is represented by a coarse four-dimensional histogram.
+Structure within a bin is not modeled, and the flat lowest-$e$ and lowest-$i$
+bins interact with the $1/(e\sin i)$ Jacobian factor discussed in
+Appendix~\ref{app:jacobian}.
+
+Third, the original magnitude distribution ends at $H=25.5$, with 55.8\% of
+the NEO component already contained in the highest-$H$ bin. We address this
+finite support with the extension described in
+Section~\ref{sec:truncation}. Finally, the highest eccentricity bin,
+$0.9\le e<1.1$, crosses the bound-orbit limit at $e=1$. This does not affect
+classification, because the admissible region contains only bound solutions
+and the population density is never evaluated at $e\ge1$. It does affect
+sampling from the histogram: 1.93\% of NEO draws and approximately
+$2\times10^{-6}$ of other draws are formally unbound. The treatment of these
+draws in the validation population is described in
+Section~\ref{sec:validation}.
+
+These limitations are properties of the ds42 population model rather than of
+the classification framework itself. Replacing the population model changes
+only the population module, as discussed in Section~\ref{sec:discussion}.
+%% unbound-draw fractions: DESIGN.md Sec 4.1; 55.8%: computed from file.
+
+
+\section{Implementation}
+\label{sec:implementation}
+
+ds42 provides a Python reference implementation of the full calculation and
+a compiled Rust implementation of the computationally intensive quadrature.
+The Rust code is exposed to Python through PyO3 and parallelized with Rayon.
+Both implementations use the same interface and give consistent results: over
+the 20\,000 tracklets of the simulated comparison
+(Section~\ref{sec:comparison}), their $P(\mathrm{NEO})$ values differ by at
+most $1.2\times10^{-12}$.
+
+The two implementations evaluate the Jacobian differently. The Rust kernel
+uses the closed form of Equation~(\ref{eq:jacqei}), so no $6\times6$ matrix
+is built or inverted at any node. The Python reference instead constructs the
+full Jacobian from analytic derivatives of each step and takes its
+determinant numerically. Over 17\,522 nodes drawn from 40 randomized
+observing geometries, the two determinants agree to a median relative
+difference of $10^{-15}$ and a maximum of $1.2\times10^{-11}$.
+
+Building that matrix accounts for 88\% of the reference implementation's run
+time, and avoiding it is the main source of the kernel's speed. On a single
+core of an AMD EPYC 7401, the Rust implementation scores one tracklet on the
+default $1200\times50$ grid in about 12~ms, roughly 40 times faster than the
+Python reference. Processed in batches across the 96 threads of a
+two-processor node, it averages 0.24~ms per tracklet, about
+$1.5\times10^{7}$ tracklets per hour. These timings exclude the computation
+of the observer's state.
+
+The population model is implemented separately from the classifier. Each
+population component provides its density, orbital-element coordinates, and
+domain of support, allowing a different population model to be used without
+changing the ranging or posterior calculation. ds42 can be used either as a
+Python library, for individual tracklets or batches, or through a
+command-line interface that accepts ADES PSV and MPC 80-column astrometry.
+
+The software is released under the BSD 3-Clause License.
+\todo{repository URL, PyPI release, and Zenodo DOI once public}
+
+
+
+\section{Validation I: Calibration and Correctness}
+\label{sec:validation}
+
+\subsection{Test design}
+\label{sec:selfconsistency}
+
+A correctly implemented classifier should be calibrated when classifying data generated from
+the same population model used to compute its posterior. In that case, among
+objects assigned $P(\mathrm{NEO})=p$, a fraction $p$ should in fact be NEOs.
+We test this directly by drawing objects from the same population model used
+by ds42 (Section~\ref{sec:population}) and then classifying the resulting
+tracklets.
+
+Because the population model is correct by construction in this experiment,
+a systematic failure of calibration would point to the calculation itself,
+including the change of measure, admissible-region integration, numerical
+quadrature, or implementation. Selection on the measured observables does not
+invalidate the test: for example, a magnitude cut multiplies the two class
+likelihoods by the same selection function and cancels from the posterior
+(Section~\ref{sec:posterior}). This test therefore checks the internal
+self-consistency of ds42. Whether the adopted population model is an adequate
+description of the real Solar System is tested separately in
+Section~\ref{sec:neocp}.
+
+\subsection{Test population}
+\label{sec:generator}
+
+We draw $(q,e,i,H)$ from the extended Unk population model and draw the three angular elements uniformly. Each object is placed at a random epoch in 2026, and its attributable and apparent magnitude $V$ are calculated for a geocentric observer. We retain objects with $14\leq V<24$.
+
+The highest eccentricity bin of the population model extends beyond $e=1$, so 2.2\% of NEO draws are formally unbound (Section~\ref{sec:popcaveats}). We discard these draws, since the classifier's admissible region contains only bound heliocentric orbits. A rejected object is replaced by a new draw from the full population mixture rather than from the same class, preserving the class proportions of the selected sample. After the magnitude cut, only 1.3\% of accepted tracklets are NEOs, reflecting the prevalence of non-NEO orbits. We also repeat the test on the All population, with the same results (Section~\ref{sec:gateresults}).
+
+\subsection{Calibration tests}
+\label{sec:gatestats}
+
+We test whether the reported $P(\mathrm{NEO})$ values behave as calibrated
+probabilities. If $P_j$ is the posterior probability for tracklet $j$ and
+$y_j=1$ for an NEO and 0 otherwise, calibration requires the observed count
+$\sum_j y_j$ to agree with the posterior expectation $\sum_j P_j$. We
+summarize their difference with
+\begin{equation}
+Z_{\rm tot} =
+\frac{\sum_j (y_j-P_j)}
+{\sqrt{\sum_j P_j(1-P_j)}} ,
+\label{eq:ztot}
+\end{equation}
+which should be of order unity for a calibrated classifier.
+
+We also fit an odds-scale parameter $\hat c$, defined such that the true odds
+are $\hat c$ times the predicted odds; $\hat c=1$ corresponds to correct
+calibration. A reliability diagram provides a complementary check across the
+full range of $P(\mathrm{NEO})$ by comparing the observed NEO fraction with
+the mean predicted probability in bins of width 0.1
+(Figure~\ref{fig:reliability_unk}).
+
+Finally, because the true $(\rho,\dot\rho)$ is known for simulated tracklets,
+we check the inference in the hidden ranging dimensions directly. We verify
+that the true solution lies inside the admissible region and examine its
+location within the posterior over the $(\rho,\dot\rho)$ plane.
+
+The statistical precision is set mainly by the number of NEOs in the sample.
+A run of $2\times10^5$ Unk tracklets contains about 2\,600 NEOs and
+constrains $\hat c$ to about $\pm14\%$; combining four independent runs
+improves this to about $\pm7\%$.
+
+
+\subsection{Results}
+\label{sec:gateresults}
+
+\begin{table}
+\centering
+\caption{Self-consistency results for the extended population model.}
+\label{tab:gate}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccc}
+\hline
+Run & NEOs obs./exp. & $Z_{\rm tot}$ & $\hat c$ [95\%] \\
+\hline
+Unk 1       & 2591 / 2599.2 & $-0.55$ & 0.96 [0.84, 1.10] \\
+Unk 2       & 2675 / 2654.6 & $+1.40$ & 1.10 [0.96, 1.25] \\
+Unk 3       & 2642 / 2650.3 & $-0.57$ & 0.96 [0.84, 1.10] \\
+Unk 4$^a$   & 2642 / 2638.6 & $+0.23$ & 1.02 [0.89, 1.16] \\
+Unk pooled  & 10\,550 / 10\,542.6 & $+0.25$ & 1.01 [0.94, 1.08] \\
+\hline
+All A + B   & 1719 / 1743.8 & $-1.42$ & 0.92 [0.82, 1.03] \\
+\hline
+\end{tabular}
+\tablecomments{Each Unk run simulates $2\times10^5$ tracklets with a
+different random seed; All A + B is two runs of $10^5$. $^a$Epochs in 2027;
+the other runs use 2026. We exclude tracklets whose true distance lies
+beyond the 100~AU integration limit (52 Unk, 5 All), tracklets with no
+posterior (37 Unk, 3 All), and five Unk tracklets assigned
+$P(\mathrm{NEO})=1$ by the triage policy.}
+\end{table}
+
+The results are consistent with calibration in every run
+(Table~\ref{tab:gate}; Figure~\ref{fig:reliability_unk}). Pooling the four
+Unk samples, 10\,550 NEOs are observed compared with 10\,542.6 predicted,
+giving $Z_{\rm tot}=0.25$ and an odds scale of
+$\hat c=1.01$ with a 95\% interval of $[0.94,1.08]$. All four individual
+runs have $|Z_{\rm tot}|<1.5$, and their fitted odds scales are consistent
+with unity. The All-population test is likewise consistent with calibration.
+
+The calibration sample excludes 52 Unk tracklets whose simulated objects lie
+beyond the 100~AU integration limit (Section~\ref{sec:ar}). These include
+all 20 non-NEOs that would otherwise receive $P(\mathrm{NEO})=1$: bright
+objects ($H<4$) with $q>30$~AU for which the true non-NEO solution lies
+outside the integration domain. Among tracklets within the domain, 8\,828
+receive exactly $P(\mathrm{NEO})=1$ because no non-NEO solution has
+population support, and all 8\,828 are NEOs.
+
+A further 37 Unk tracklets, all NEOs, receive no posterior because both class
+likelihoods vanish; all are sungrazers with $q<0.004$~AU. The triage policy
+of Section~\ref{sec:truncation} assigns $P(\mathrm{NEO})=1$ to five other
+NEOs, also with $q<0.003$~AU. We exclude both groups, together with the 52
+tracklets beyond 100~AU, leaving 799\,906 tracklets in the pooled Unk
+calibration sample.
+
+The ranging diagnostics also behave as expected. For every simulated
+tracklet within the integration domain, the true $(\rho,\dot\rho)$ lies
+inside the admissible region. For the median tracklet, 99.98\% of the
+ranging posterior lies within a factor of two of the true distance, and the
+posterior ranks of the true solutions are consistent with uniformity under
+the adopted criterion (Kolmogorov--Smirnov $D\leq0.064$ in every Unk run,
+compared with a limit of 0.075). These checks directly test the distance
+dependence of the change of measure.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{figures/calibration_hext30_reliability_linear_noid_unk800k_indomain.png}
+\caption{Reliability of $P(\mathrm{NEO})$ for tracklets drawn from and
+scored with the undiscovered (``Unk'') population, combining four
+independent samples for a total of 799\,906 tracklets. Tracklets are grouped
+into bins of width 0.1 in predicted $P(\mathrm{NEO})$. Top: observed NEO
+fraction versus mean predicted probability in each bin, with 68\% intervals;
+the dotted line shows perfect calibration. Numbers beside the points give the
+number of tracklets in each bin. The final bin contains 9\,288 tracklets,
+including 8\,828 with $P(\mathrm{NEO})=1$ exactly. Bottom: ratio of the
+observed to expected NEO count in each bin, where the expected count is
+$\sum P(\mathrm{NEO})$; the dotted line marks unity and the error bars show
+the 68\% scatter expected for a calibrated classifier. Overall, 10\,550 NEOs
+are observed compared with 10\,542.6 expected, with
+$\hat c=1.01$ [0.94, 1.08].}
+\label{fig:reliability_unk}
+\end{figure}
+
+
+\section{Validation II: comparison with digest2}
+\label{sec:comparison}
+
+\subsection{Shared inputs}
+\label{sec:premise}
+
+We compare ds42 with digest2 (version 2.8.2;
+\citealt{keys2019,veres2023}) on 19\,999 tracklets drawn from the Unk
+population in the same way as in Section~\ref{sec:validation}. The sample
+contains 287 NEOs; one additional tracklet could not be written for digest2
+and is excluded from both methods.
+
+Both classifiers use the same underlying population model. ds42 is evaluated
+with the Unk population, while digest2 uses its NoID score, which is computed
+from that same population (Section~\ref{sec:population}). The simulated
+tracklets are also drawn from Unk, so the population used to generate the
+sample is the same one used by both classifiers. The comparison therefore
+isolates differences in the classification method rather than differences in
+the assumed population.
+
+For digest2, each tracklet is supplied as two detections separated by
+45 minutes, written in ADES format at full numerical precision and observed
+from a geocentric site. The two methods use the same effective population
+support through $H=30$. About 2\% of tracklets place more than 1\% of their
+admissible measure beyond this limit, where digest2's highest-$H$ bin
+continues indefinitely.
+%% validation/EXTENDED_RERUN.md; output/digest2_comparison_hext30/
+
+\subsection{Calibration}
+\label{sec:calibration}
+
+We first ask whether each score can be read as a probability. Summed over
+all 19\,999 tracklets, with no threshold, the ds42 posteriors predict 284.0
+NEOs and 287 are present. Interpreting the digest2 NoID score divided by 100
+as a probability would instead predict 1349 NEOs, 4.7 times the observed
+number. The excess is present at every score: among the 17\,263 tracklets
+with a digest2 score below 10, the scores predict 290.5 NEOs and 9 are
+present, and among the 2\,736 with a score of 10 or more they predict 1058
+against 278 present. For ds42 the corresponding numbers are 14.1 predicted
+against 17 observed below $P=0.1$, and 269.9 against 270 above it.
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figures/d2cmp_unk_counts_p01.png}
+\caption{Predicted and observed NEO counts for the same 19\,999 tracklets
+drawn from the undiscovered (``Unk'') population, including 287 NEOs, for
+the bins with predicted $P(\mathrm{NEO})\geq0.1$. Both classifiers use the
+same Unk population model, with digest2's NoID score divided by 100. Bars
+show the predicted number of NEOs in each bin ($\sum P$) and points the
+observed number, with error bars giving the $\pm1\sigma$ spread expected if
+the predictions were calibrated. $P=1$ exactly is shown separately. Within
+the bins shown, ds42 predicts 269.9 NEOs and 270 are observed, and digest2
+predicts 1058 and 278 are observed; over all tracklets, the totals are
+284.0 and 1349 predicted against 287 observed.}
+\label{fig:d2counts}
+\end{figure*}
+
+Figure~\ref{fig:d2counts} shows where these totals arise. The two methods are
+shown in the same probability bins, with bars giving the predicted number of
+NEOs ($\sum P$) and points the number actually observed; the vertical axis is
+logarithmic. For a calibrated probability, the observed points should agree
+with the predicted bars within the expected scatter. This is approximately
+the case for ds42 across the plotted range, whereas interpreting digest2/100
+as a probability substantially overpredicts the number of NEOs in the
+intermediate-score bins. At exactly $P=1$, all 237 ds42 tracklets are NEOs.
+
+This is not a failure of digest2: its score is designed for ranking and
+prioritization, not as a calibrated probability. The comparison shows only
+that the digest2 score cannot be read directly as an NEO probability, while
+the ds42 posterior can.
+
+
+
+\subsection{Ranking performance}
+\label{sec:ranking}
+
+For follow-up, the second question is how many NEOs can be recovered for a
+given level of contamination. We compare the methods using completeness, the
+fraction of all NEOs selected above a threshold, and purity, the fraction of
+selected tracklets that are NEOs. Varying the threshold gives the
+purity--completeness curves in Figure~\ref{fig:d2pr}.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/d2cmp_unk_pr.png}
+\caption{Purity (the fraction of selected tracklets that are NEOs) against
+completeness for ds42 and digest2, evaluated on the same 19\,999 tracklets
+drawn from the undiscovered (``Unk'') population, including 287 NEOs. Both
+classifiers use the same Unk population model, with digest2 evaluated using
+its NoID score. Circles mark the digest2 NEOCP threshold of 65, which is
+48.4\% pure at 93.7\% completeness, and ds42 at the same completeness, which
+is 96.1\% pure. The square marks ds42 $P(\mathrm{NEO})\geq0.5$, 98.9\% pure
+at 92.0\% completeness.}
+\label{fig:d2pr}
+\end{figure}
+
+Non-NEOs outnumber NEOs by about 69 to 1 in this sample, so even a small
+number of highly ranked non-NEOs can strongly reduce purity. At the digest2
+NEOCP threshold of 65, the selected sample is 48.4\% pure at 93.7\%
+completeness. At the same completeness, ds42 reaches 96.1\% purity, and at
+$P(\mathrm{NEO})\geq0.5$ it reaches 98.9\% purity at 92.0\% completeness.
+The corresponding numbers of selected tracklets are given in
+Section~\ref{sec:operational} and Table~\ref{tab:ops}.
+
+As a threshold-independent summary, we also report the area under the
+receiver operating characteristic curve (ROC AUC), the probability that a
+randomly chosen NEO receives a higher score than a randomly chosen non-NEO.
+ds42 has an ROC AUC of 0.9945, compared with 0.9846 for digest2, giving
+$\Delta\mathrm{AUC}=+0.0099$ with a 95\% interval of
+$[+0.0040,+0.0176]$ from a paired bootstrap over tracklets.
+
+
+
+\subsection{Thresholds}
+\label{sec:operational}
+
+The NEO Confirmation Page uses a digest2 NoID score of 65 as its posting
+threshold. On this sample, that cut selects 556 tracklets, including 269 of
+the 287 NEOs (93.7\% completeness) and 287 non-NEOs (51.6\% contamination;
+Table~\ref{tab:ops}).
+
+For a direct comparison, we choose the ds42 threshold that gives the same
+93.7\% completeness. A cut of $P(\mathrm{NEO})\geq0.30$ also recovers 269
+NEOs, but selects only 280 tracklets, including 11 non-NEOs (3.9\%
+contamination). Because the two cuts recover the same number of NEOs, the
+difference in the number of selected tracklets comes entirely from
+non-NEOs. The recovered NEO sets also largely overlap: 267 are selected by
+both cuts, while each selects two that the other misses.
+
+At the more direct probability threshold $P(\mathrm{NEO})\geq0.5$, ds42
+selects 267 tracklets, including 264 NEOs and three non-NEOs, corresponding
+to 92.0\% completeness and 1.1\% contamination.
+
+\begin{table}
+\centering
+\caption{Operating points on the shared sample of 287 NEOs.}
+\label{tab:ops}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrcc}
+\hline
+Cut & NEO & Non-NEO & Compl. & Contam. \\
+\hline
+digest2 NoID $\geq65$   & 269 & 287 & 93.7\% & 51.6\% \\
+ds42 $P\geq0.30$$^a$    & 269 & 11  & 93.7\% & 3.9\% \\
+ds42 $P\geq0.5$         & 264 & 3   & 92.0\% & 1.1\% \\
+\hline
+\end{tabular}
+\tablecomments{NEO and Non-NEO give the numbers of selected tracklets of
+each class; Compl.: completeness; Contam.: contamination. $^a$Threshold
+chosen to match the 93.7\% completeness of the digest2 NoID $\geq65$ cut.}
+\end{table}
+
+
+
+
+\subsection{Where the classifiers disagree}
+\label{sec:disagreement}
+
+
+The largest differences occur for distant non-NEO solutions (Figure~\ref{fig:d2scatter}). Of the 287 non-NEOs selected by digest2 $\ge65$, 213 have $q\ge4.5$~AU and 145 have $q\ge10$~AU, with heliocentric distances of 13--89~AU. ds42 assigns all 213 objects with $q\ge4.5$~AU $P(\mathrm{NEO})<0.1$, and most of them below $10^{-4}$.
+
+The remaining ds42 false positives lie much closer to the NEO boundary: ten of its 11 false positives are Mars-crossers with $1.3\le q<1.67$~AU. On the All sample with digest2's raw score, the difference is not explained by the astrometric error that digest2 assumes for the observer: using $0.1''$, the value digest2 assigns to Rubin, rather than its default $1''$, increases digest2's false positives from 221 to 276, and 73\% still have $q\ge4.5$~AU.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.88\textwidth]
+{figures/digest2_vs_ds42_20k_unk.png}
+
+\caption{digest2 NoID score versus ds42 $P(\mathrm{NEO})$ for 19\,999
+tracklets drawn from the undiscovered (``Unk'') population, including 287
+NEOs. Both classifiers use the same Unk population model. Points are colored
+by true class, with non-NEOs separated at $q=4.5$~AU. The horizontal dashed
+line marks the digest2 NEOCP threshold of 65, and the vertical dotted line
+marks $P(\mathrm{NEO})=0.1$. At the digest2 threshold, 556 tracklets are
+selected, including 287 non-NEOs, 213 of them with $q\ge4.5$~AU. At the same
+93.7\% NEO completeness, ds42 selects 280 tracklets, including 11 non-NEOs
+and no objects with $q\ge4.5$~AU. Probabilities below $10^{-8}$ are plotted
+at $10^{-8}$.}
+\label{fig:d2scatter}
+\end{figure*}
+
+This comparison is deliberately controlled: both classifiers use the same
+population model, the same geocentric observing geometry, exact astrometry,
+and the same two-detection tracklets. It therefore tests differences between
+the classification methods rather than differences in their population
+assumptions. Section~\ref{sec:neocp} compares the two classifiers on real
+discovery tracklets.
+%% Optional 4th figure, if space allows:
+%% figures/d2cmp_hext30_reliability.pdf
+%% (same bins, logit axes). The counts figure carries the same information.
+
+\section{Robustness to astrometric noise}
+\label{sec:robustness}
+
+ds42 treats the attributable as exact (Section~\ref{sec:noise}). To test the
+effect of this approximation at Rubin's astrometric precision, we perturb
+both detections of every tracklet in the All self-consistency sample
+(20\,000 tracklets, 170 NEOs) using the astrometric error model adopted by
+the Sorcha survey simulator for Rubin observations \citep{merritt2025}. We
+apply the Sorcha error prescription directly to our simulated detections
+rather than generating the tracklets with Sorcha itself. In this model, the
+uncertainty in each coordinate is
+\[
+\sigma=\sqrt{\sigma_{\rm sys}^2+(0.6\,\theta/\mathrm{SNR})^2},
+\]
+where $\sigma_{\rm sys}=10$~mas is the systematic floor from the LSST science
+requirements, $\theta$ is the seeing, and the signal-to-noise ratio is
+determined from the object's magnitude and the $5\sigma$ limiting magnitude
+$m_5$ using the LSST photometric model \citep{ivezic2019}, including trailing
+losses for fast-moving objects \citep{veres2017}. We adopt $m_5=24$, the faint
+limit of our simulated sample, and $0.7''$ seeing. This gives per-coordinate
+uncertainties of approximately 10--85~mas over $V=18$--24, with a median of
+35~mas. We then recompute the angular rates from the perturbed positions and
+rescore the tracklets without otherwise changing the classifier.
+
+For a 45-minute tracklet, the effect is small: 99\% of tracklets change
+$P(\mathrm{NEO})$ by less than $7\times10^{-4}$, and only one of the
+20\,000 crosses the triage threshold, an NEO whose probability changes from
+0.703 to 0.698. 
+
+\begin{table}
+\centering
+\caption{Scores with Rubin-like astrometric noise as the arc shortens.}
+\label{tab:arclength}
+\begin{tabular}{rcccc}
+\hline
+Arc & Rate error$^a$ & $\sum P$ & $Z_{\rm tot}$ & Contam.$^b$ \\
+(min) & & (170 NEOs) & & \\
+\hline
+none$^c$ & --        & 166.1 & $+0.71$ & 6.3\% \\
+60       & 0.14\%    & 166.2 & $+0.69$ & 6.4\% \\
+30       & 0.28\%    & 166.3 & $+0.67$ & 6.4\% \\
+15       & 0.57\%    & 170.2 & $-0.04$ & 8.7\% \\
+10       & 0.85\%    & 176.0 & $-1.06$ & 12.5\% \\
+5        & 1.70\%    & 197.9 & $-4.49$ & 25.6\% \\
+\hline
+\end{tabular}
+\tablecomments{$^a$Median rate error as a fraction of the tracklet's own
+motion. $^b$Contamination at the fixed cut $P\ge0.214$, the cut that matches digest2's completeness on the All sample; completeness stays at 86.5--87.1\% in every row.
+$^c$Noiseless scores.}
+\end{table}
+
+As the arc shortens, the same positional uncertainty produces a larger rate
+error, scaling approximately as $1/\Delta t$
+(Table~\ref{tab:arclength}). For arcs of 15~minutes or longer, the results
+remain close to the noiseless case: the predicted number of NEOs stays within
+4 of the 170 present ($|Z_{\rm tot}|<0.8$, with $Z_{\rm tot}$ defined in
+Equation~\ref{eq:ztot}), while contamination at the fixed threshold increases
+from 6.3\% to at most 8.7\%. At 10~minutes, the total count remains consistent
+with calibration ($Z_{\rm tot}=-1.06$), but contamination rises to 12.5\%.
+At 5~minutes, the classifier is no longer calibrated: it predicts 197.9 NEOs
+in a sample containing 170 ($Z_{\rm tot}=-4.49$), and contamination rises to
+25.6\%.
+
+The main effect of shorter arcs is therefore increased contamination rather
+than reduced completeness. At the fixed threshold, the 5-minute case
+introduces 41 additional false positives, 36 of which are trans-Neptunian
+objects at 31--58~AU. These objects move about ten times more slowly than the
+median tracklet, so the same astrometric perturbation produces a much larger
+fractional change in their inferred angular motion, about 40\%. Their
+perturbed rates can then become more consistent with nearby orbital
+solutions, increasing their inferred NEO probabilities.
+
+These arc lengths overlap the range expected for Rubin. In the first year of
+the Rubin Observatory LSST baseline survey cadence simulation v5.3.7
+(Rubin Observatory Survey Cadence Optimization Committee; see also
+\citealt{bianco2022} and \citealt{PSTN-056}), the median time between the
+first and last visit to a point on the sky within one night is 23~minutes; 70\% of such tracklets span at least 15~minutes, while
+15\% span less than 10~minutes. Treating the attributable as exact is
+therefore adequate for most Rubin tracklets. For shorter arcs, the
+measurement uncertainty should instead be marginalized as described in
+Section~\ref{sec:noise}, although the inference is ultimately limited by the
+precision with which the angular rates can be measured.
+
+%% validation/astrometric_noise.py (Sorcha error model transcription, PPAddUncertainties.py v1.2.1);
+%% validation/output/astrometric_noise_hext30/REPORT.md (45 min); astrometric_noise_arclength_hext30/REPORT.md (sweep);
+%% cadence: baseline_v5.3.7_10yrs.db, nights < 365, 3000 random points (dec < +20 deg), 1.75 deg field radius;
+%% first-to-last same-night arc percentiles 10/25/50/75/90 = 6.8/13.9/23.2/30.6/41.6 min (2026-11-08).
+
+\section{the NEO Confirmation Page}
+\label{sec:neocp}
+
+We test ds42 on real discovery tracklets from the NEO Confirmation Page
+(NEOCP). The MPC's archive of past NEOCP postings\footnote{\url{https://www.minorplanetcenter.net/iau/NEO/elsewhere.csv}}
+lists 17\,901 postings between 2019 March 21 and 2021 December 21. We keep
+the 13\,471 that later received a designation, are not comets, and were
+discovered from a ground-based station, and draw 500 of them at random. For
+each object we retrieve the astrometry reported on the discovery night from
+the MPC observations service\footnote{\url{https://data.minorplanetcenter.net/api/get-obs}},
+using the detections from the discovering station only; 499 objects yield a
+usable tracklet, with a median of four detections spanning 35~minutes.
+Objects are labeled using their current orbits, with $q<1.3$~AU defining an
+NEO, taking $q$ from the MPC's list of near-Earth asteroids and checking it
+against the JPL Small-Body Database; the sample contains 305 NEOs and 194
+non-NEOs.
+
+This is not an unbiased sample of newly detected moving objects. Every object
+reached the NEOCP after receiving a sufficiently high digest2 score at the MPC
+and passing operator review, so the sample is already strongly selected toward
+NEO-like tracklets.
+%% validation/NEOCP_PILOT.md (sample, selection accounting)
+
+\paragraph{Calibration.}
+As in Sections~\ref{sec:validation} and~\ref{sec:comparison}, we score the
+sample with ds42 Unk and compare with digest2's NoID score. Across the 499
+tracklets, ds42 predicts 312.0 NEOs and 305 are observed. Interpreting the
+digest2 NoID score divided by 100 as a probability would instead predict 436
+NEOs.
+
+\begin{table}
+\centering
+\caption{Operating points on the NEOCP sample of 305 NEOs (ds42 Unk,
+digest2 NoID).}
+\label{tab:neocp}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lrrcc}
+\hline
+Cut & NEO & Non-NEO & Compl. & Contam. \\
+\hline
+digest2 NoID $\geq65$   & 300 & 140 & 98.4\% & 31.8\% \\
+ds42 $P\geq0.030$$^a$   & 300 & 85  & 98.4\% & 22.1\% \\
+ds42 $P\geq0.5$         & 286 & 22  & 93.8\% & 7.1\% \\
+\hline
+\end{tabular}
+\tablecomments{NEO and Non-NEO give the numbers of selected tracklets of
+each class. digest2 is re-run locally on the reconstructed discovery
+tracklets, so 11.8\% of the sample falls below 65. Completeness is relative
+to the NEOs in the NEOCP sample. $^a$Threshold chosen to match the
+completeness of the digest2 $\geq65$ cut.}
+\end{table}
+
+\paragraph{Ranking.}
+The ROC areas are 0.9663 for ds42 and 0.9539 for digest2, giving
+$\Delta\mathrm{AUC}=+0.0123$ with a 95\% interval of
+$[+0.0050,+0.0211]$ from a paired, label-stratified bootstrap. The difference
+has the same sign as in the controlled comparison of
+Section~\ref{sec:ranking}.
+
+The head-to-head ranking comparison is also limited by the way the sample was
+constructed. Objects that received low digest2 scores at discovery were much
+less likely to reach the NEOCP and are therefore largely absent, removing
+precisely the cases in which digest2 might rank a true NEO poorly. The real
+sample should consequently not be interpreted as an unbiased comparison of
+the two classifiers.
+
+At the completeness reached by digest2 $\ge65$ cut, ds42 selects
+55 fewer tracklets (Table~\ref{tab:neocp}). Its false positives also remain
+close to the NEO boundary: all 22 non-NEOs with
+$P(\mathrm{NEO})\ge0.5$ have $q<2.3$~AU, and 17 have
+$q<1.55$~AU. The digest2 false positives in this real sample are likewise
+mostly nearby in orbital-element space, with 91 of 140 having
+$q<1.67$~AU and only four having $q\ge4.5$~AU. This differs from the
+synthetic comparison, where many of the high-scoring digest2 false positives
+were much more distant objects.
+
+\paragraph{Why the NEOCP contains few distant false positives.}
+In the simulated comparison, 213 of digest2's 287 false positives have
+$q\geq4.5$~AU, and its contamination at the NEOCP threshold is 51.6\%
+against 3.9\% for ds42 at the same completeness (Table~\ref{tab:ops}).
+Two things separate the NEOCP sample from the simulated one: the surveys
+that fed it were shallower, and their observers remove objects that are
+already catalogued before submitting candidates. To test whether these
+account for the difference, we drew a second simulated sample from the Unk
+population limited to $V<21.2$, 0.1~mag fainter than the median of the NEOCP
+sample, and scored it with both classifiers (3\,498 tracklets, 215 NEOs). The
+brightness limit alone does not reproduce the NEOCP: at digest2 $\ge65$ the
+contamination is still 54.2\%, with 143 false positives at $q\geq4.5$~AU
+(Table~\ref{tab:neocpbright}). We then removed the distant objects
+($q\geq4.5$~AU) that are bright enough to be catalogued, taken as those with
+$H$ brighter than the peak of the $H$ distribution of known objects in the
+same range in the MPC orbit catalog ($H=14.75$ for $4.5\le q<10$~AU and
+$H=7.25$ for $q\geq10$~AU). This removes all but one of the distant false
+positives and gives 33.9\% contamination at 98.1\% completeness, close to
+the 31.8\% at 98.4\% measured on the NEOCP
+(Figure~\ref{fig:neocpbright}; Table~\ref{tab:neocpbright}). ds42's
+contamination at the same completeness, 17.3\%, is likewise close to the
+22.1\% on the NEOCP.
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{figures/neocp_bright_scatter.png}
+\caption{digest2 NoID score against ds42 $P(\mathrm{NEO})$ for a simulated
+Unk sample limited to $V<21.2$, after removing distant objects ($q\geq4.5$~AU)
+bright enough to be catalogued (Figure~\ref{fig:neocphdist}). The dashed line
+marks the digest2 NEOCP threshold of 65 and the dotted line
+$P(\mathrm{NEO})=0.1$. At digest2 $\ge65$ the sample has 33.9\% contamination
+at 98.1\% completeness, against 31.8\% at 98.4\% on the real NEOCP sample.}
+\label{fig:neocpbright}
+\end{figure}
+
+\begin{table}
+\centering
+\caption{The NEOCP operating point reproduced in simulation (digest2 NoID
+$\ge65$; ds42 Unk).}
+\label{tab:neocpbright}
+\begin{tabular}{lccc}
+\hline
+Sample & Complete & Contam. & FP, $q\geq4.5$ \\
+\hline
+Simulated, $V<24$              & 93.7\% & 51.6\% & 213 \\
+Simulated, $V<21.2$            & 98.1\% & 54.2\% & 143 \\
+\quad known distant removed    & 98.1\% & 33.9\% & 1 \\
+NEOCP (real)                   & 98.4\% & 31.8\% & 4 \\
+\hline
+\end{tabular}
+\tablecomments{Contamination of the digest2 $\ge65$ selection; FP: its false
+positives with $q\geq4.5$~AU. ds42 at the same completeness has 3.9\%, 17.6\%,
+17.3\% and 22.1\% contamination in the four rows.}
+\end{table}
+
+The removed objects are catalogued in reality. Of the 143 distant false
+positives at $V<21.2$, 142 are brighter than the peak of the known
+population in their range, with median $H=11.5$ for $4.5\le q<10$~AU and
+$H=2.8$ for $q\geq10$~AU (Figure~\ref{fig:neocphdist}); objects this bright
+are essentially all known. The simulation contains them because the S3M
+population, and its Unk version, place many more bright distant objects than
+exist: in the brightest bins, where the real catalog is complete, MPCORB holds
+only 14--30\% of the number the model predicts. digest2's distant false
+positives in the simulated comparison (Section~\ref{sec:disagreement}) are
+therefore an overestimate for the sky as it is, but they mark where the two
+classifiers differ, and Rubin's own association can miss such objects
+(Section~\ref{sec:alerts}).
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figures/neocp_bright_hdist.png}
+\caption{Absolute magnitude of digest2's false positives with $q\geq4.5$~AU
+in the simulated $V<21.2$ sample (outline), against known objects in the
+MPC orbit catalog in the same perihelion range (filled). Dashed lines mark the
+peak of the known distribution, used as the limit brighter than which an
+object is taken to be catalogued. (a) $4.5\le q<10$~AU (Trojans, Centaurs);
+(b) $q\geq10$~AU (trans-Neptunian objects).}
+\label{fig:neocphdist}
+\end{figure*}
+
+
+%% validation/EXTENDED_RERUN.md section 8 (extended model, all 499 scored;
+%% operating points and binned counts recomputed 2026-10-15 from
+%% output/h_extension/neocp_delta_all.json + output/neocp_pilot/scores.npz)
+
+\section{Real data: The LSST Alert Stream}
+\label{sec:alerts}
+
+The NEO Confirmation Page sample of Section~\ref{sec:neocp} is already
+filtered by digest2. To test ds42 without this filtration, we use
+detections from the Vera C.\ Rubin Observatory alert stream
+\citep{todo_rubin_alerts}. We score all single-night tracklets and compare how
+well ds42 and digest2 separate NEOs from the rest of the population.
+
+We use three samples from the same observing nights: detections Rubin
+associated with known asteroids, unassociated detections that can be matched
+afterwards to objects in the MPC catalogue, and the remaining unassociated
+detections, which we search for previously unknown NEOs.
+Section~\ref{sec:dp2} repeats the analysis on Rubin Data Preview~2.
+
+\subsection{Data}
+\label{sec:lsstdata}
+
+We downloaded alerts through the Fink broker's Data Transfer service
+\citep{moller2021} for 2026 July 5--13 and October 29--30. A June 30 night
+included in the transfer is excluded. The unfiltered transfer contains
+3\,789\,349 alerts: 291\,305 associated by Rubin with known Solar System
+objects, 2\,141\,791 on newly created diaObjects, and 1\,356\,253 on
+previously existing diaObjects.
+
+\paragraph{Known objects.}
+The associated alerts cover 113\,687 objects. After removing the June night
+and 17 detections with non-positive flux, 288\,728 detections remain.
+Magnitudes are computed from the PSF flux as
+$m=31.4-2.5\log_{10}(F/\mathrm{nJy})$ in the Rubin band and converted to
+Johnson $V$ using the digest2 colour table.
+
+\paragraph{Unassociated detections.}
+For detections without a known-object association, we require positive flux,
+no dipole, glint, or streak flag, and real/bogus reliability $\geq0.9$.
+These cuts leave 291\,177 detections: 190\,192 on new diaObjects and
+100\,985 on repeat diaObjects. The reliability threshold retains 95.4\% of
+the known-object detections.
+
+Repeat diaObjects are often variable stars, nuclear transients, or persistent
+artefacts. We therefore remove detections whose diaObject has more than two
+detections ($n_{\rm DiaSources}>2$; Section~\ref{sec:lsstcut}), leaving
+217\,663 detections.
+
+\subsection{Tracklets}
+\label{sec:lsstlink}
+
+We link detections blindly into single-night tracklets with HelioLinC's
+\texttt{make\_tracklets} \citep{heinze2022AAS}. Two detections on
+overlapping exposures (assumed image radius $2^\circ$) are paired if they
+are at most 1.5~h apart and imply a sky motion of at most
+$5^\circ\,\mathrm{day}^{-1}$; pairs are extended into longer tracklets when
+all detections lie within $0.5''$ of a great-circle fit. Increasing the speed limit to
+$10^\circ\,\mathrm{day}^{-1}$ adds no correctly linked tracklets in the known
+sample and only increases links between unrelated objects. Object identities,
+where available, are attached only after linking.
+
+Among known objects, 78\,657 of 79\,048 object-nights with at least two
+detections (99.5\%) are recovered as pure tracklets. For NEOs the recovery is
+111 of 112; the missed object has only two detections separated by 2.3~h. We
+retain arcs of at least 15~minutes, the shortest duration for which ds42
+remains calibrated in Section~\ref{sec:robustness}.
+
+Because \texttt{make\_tracklets} has no minimum speed, repeated detections of
+a stationary source can link to one another. We remove tracklets that move less than $0.5''$ in total. These have median
+motion $0.07''$, compared with $0.65''$ for catalogued asteroids whose
+detections Rubin placed on a single diaObject. A more aggressive $2''$ cut
+would also remove 35 distant asteroids ($q\geq4.5$~AU), so we do not use it.
+
+
+\subsection{Labels}
+\label{sec:lsstlabels}
+
+Known-object tracklets are labelled from their MPC designation and the MPC
+orbit catalogue \citep{todo_mpcorb}, with NEOs defined by $q<1.3$~AU. All
+but one of the 113\,687 Rubin-associated objects match the catalogue; 213 are
+NEOs. We call a tracklet \emph{pure} when all detections belong to the same
+object and \emph{mixed} otherwise.
+
+For unassociated tracklets, we propagate all 1\,578\,692 MPC orbits from the
+2026 November 2 catalogue to the time of each detection, including light time
+and Rubin's topocentric position. On known detections, the propagated
+positions agree with the observations to 0.2--$1.3''$. We assign a label only
+when every detection in a tracklet lies within $10''$ of the same object,
+which suppresses chance single-detection matches. Rubin observations from
+these nights had not yet reached the MPC when this matching was performed and
+therefore cannot be used as labels.
+
+\subsection{Scoring}
+
+Each tracklet is written to ADES format using observatory code X05, with
+times converted from TAI to UTC. We score every tracklet with ds42 using both
+the All and Unk priors and with digest2 2.8.2 using its raw and NoID scores.
+ds42 uses the operational settings described above: the $H=30$ extension and
+the $1200\times50$ grid of Section~\ref{sec:ar}. Every tracklet receives all
+four scores.
+
+For the 273\,406 known-sample tracklets, ds42 requires about 5~minutes per
+prior on 90 threads of an AMD EPYC 7401, while digest2 requires about
+3~minutes.
+
+\subsection{Known objects}
+\label{sec:lsstknown}
+
+After the 15-minute cut, the known sample contains 273\,406 tracklets:
+64\,938 pure tracklets, including 81 NEO tracklets, and 208\,468 mixed
+tracklets. Table~\ref{tab:lsstknown} gives results for the pure sample.
+
+\begin{table}
+\centering
+\caption{Known objects in Rubin alerts for pure tracklets with arcs
+$\geq15$~min. ``Predicted'' is $\sum P$ for ds42 All. Flagged counts are
+NEO / non-NEO / non-NEO with $q\geq4.5$~AU.}
+\label{tab:lsstknown}
+\begin{tabular}{lcc}
+\hline
+ & 2+ detections & 3+ detections \\
+\hline
+Tracklets / NEOs & 64\,938 / 81 & 10\,266 / 12 \\
+ds42 All predicted & 68.9 & 13.0 \\
+AUC ds42 All & 0.981 & 0.99996 \\
+AUC digest2 raw & 0.944 & 0.99998 \\
+digest2 raw $\geq65$ & 57 / 69 / 19 & 12 / 7 / 1 \\
+ds42 All $P\geq0.1$ & 56 / 17 / 0 & 12 / 2 / 0 \\
+ds42 All $P\geq0.5$ & 47 / 4 / 0 & 8 / 0 / 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+Using all pure tracklets, ds42 ranks NEOs better than digest2,
+with $\Delta\mathrm{AUC}=+0.037$ and a 95\% interval of
+$[0.013,0.065]$. At $P\geq0.1$, ds42 selects 56 NEOs and 17 non-NEOs,
+none with $q\geq4.5$~AU. digest2 $\geq65$ selects a similar 57 NEOs but
+69 non-NEOs, including 19 distant objects.
+
+ds42 predicts 68.9 NEOs compared with 81 observed. The NEOs it misses are
+mostly distant Amors whose slow motion resembles that of main-belt
+asteroids: of the 21 NEO tracklets with $P<0.01$, 13 are Amors, with
+semimajor axes as large as 3.1~AU. For tracklets with at least three detections, both classifiers rank
+the 12 NEOs almost perfectly. ds42 predicts 13.0 NEOs and produces two false
+positives at $P\geq0.1$, compared with seven for digest2.
+
+\paragraph{Mixed tracklets.}
+Mixed tracklets cannot be classified reliably from the tracklet alone.
+digest2 raw $\geq65$ flags 99.5\% of them and ds42
+$P\geq0.5$ flags 98.7\%. Their median apparent motion is
+$3.5^\circ\,\mathrm{day}^{-1}$, compared with
+$0.13^\circ\,\mathrm{day}^{-1}$ for pure tracklets, because a pair of
+detections from different objects resembles a fast mover. A simple rate cut
+would also reject genuine NEOs. Nearly every mixed tracklet has only two
+detections; only 12 of 208\,468 have three or more. We therefore require at
+least three detections for the candidate search below.
+
+\subsection{Unassociated detections with labels}
+\label{sec:lsstunknown}
+
+The unassociated sample contains 171\,859 moving tracklets. Of these, 3\,345
+can be matched afterwards to catalogued objects, including 22 NEO tracklets.
+These provide a test closer to discovery conditions because Rubin did not
+associate them at the alert stage. Among them, 208 tracklets, of 165 objects, belong to objects designated only
+after the alert, including 12 NEO tracklets.
+
+ds42 All predicts 22.8 NEOs, compared with 22 observed
+(Table~\ref{tab:lsstunk}). At $P\geq0.1$, it selects 14 non-NEOs and no
+distant objects. digest2 raw $\geq65$ selects 29 non-NEOs, including 17 with
+$q\geq4.5$~AU; all 17 receive ds42 $P<0.01$. For the 208 tracklets of objects designated after the alert, ds42 predicts
+11.3 NEOs compared with 12 observed.
+
+
+\begin{table}
+\centering
+\caption{Unassociated Rubin detections later matched to catalogued objects,
+for arcs $\geq15$~min. Flagged counts are NEO / non-NEO / non-NEO with
+$q\geq4.5$~AU.}
+\label{tab:lsstunk}
+\begin{tabular}{lcc}
+\hline
+ & 2+ detections & 3+ detections \\
+\hline
+Tracklets / NEOs & 3\,345 / 22 & 538 / 7 \\
+ds42 All predicted & 22.8 & 4.8 \\
+digest2 raw $\geq65$ & 20 / 29 / 17 & 7 / 2 / 2 \\
+ds42 All $P\geq0.1$ & 21 / 14 / 0 & 7 / 1 / 0 \\
+ds42 All $P\geq0.5$ & 16 / 2 / 0 & 4 / 0 / 0 \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Removing static sources}
+\label{sec:lsstcut}
+
+Our initial candidate list was dominated by static sources. A variable star
+detected several times in one night, or an unrelated detection near such a
+source, can form a plausible-looking tracklet that neither classifier can
+distinguish from a slow mover.
+
+Rubin normally assigns a moving asteroid to a new diaObject as its position
+changes. Among 6\,793 unassociated detections within $2''$ of a catalogued
+asteroid, only four (0.06\%) belong to diaObjects with more than two
+detections, compared with 25.2\% of all unassociated detections. We therefore
+remove detections with $n_{\rm DiaSources}>2$.
+
+This cut removes 33 of 73 candidates from the initial search, including 30
+with independent static-source signatures. It retains all nine candidates
+later confirmed as moving objects in the images and removes five of six
+objects identified as variables, supernovae, or artefacts. It does not change
+the labelled results.
+
+
+
+\subsection{Searching for unknown NEOs}
+\label{sec:lsstcand}
+
+After the cuts above, 3\,213 moving tracklets have at least three detections.
+Of these, 2\,666 match no catalogued object. We select 44 candidates with
+ds42 All $P\geq0.1$, including 31 with $P\geq0.5$
+(Figure~\ref{fig:lsstcand}), and examine them with several independent tests.
+
+\paragraph{Static-source tests.}
+We use two diagnostics available directly from the alerts. First, for
+detections separated by less than 5~minutes, we compare the measured
+displacement with that predicted by the fitted rate and flag cases moving
+less than half as far as expected. This test does not flag any known asteroid.
+Second, we examine the template flux and flag tracklets with a source detected
+at SNR $>5$ in the template at two or more positions. This flags one of 60
+labelled tracklets on which it can be tested. Together, these tests flag 22 of
+the 44 candidates: 16 by pair motion and six by template flux.
+
+\paragraph{Known objects.}
+We propagate all 1.58 million MPC asteroid orbits and 966 comet orbits with
+ASSIST \citep{holman2024} to each candidate detection, including Rubin's
+topocentric position and light time. On 200 labelled tracklets this procedure
+recovers the correct object in every case, 185 within $5''$.
+
+One candidate matches the distant resonant object 2025~NB54, at a nearly
+constant $46''$ offset consistent with its short-arc orbit; ds42 assigns it
+$P=0.22$. No other candidate appears among Rubin's MPC submissions, except
+one that was submitted only as an unlinked tracklet.
+
+\paragraph{Multi-night linking.}
+We also run HelioLinC \citep{heinze2022AAS} across the July nights using NEO
+and main-belt hypothesis grids. On known objects, recovered linkages are pure, and fitted perihelia agree
+with the catalogued values to 0.2\% at the median (1.6--1.9\% at the 90th
+percentile). However, HelioLinC requires
+tracklets on at least three nights, while 59 of the 73 known NEOs observed in
+July appear on only one. None of the candidates links successfully, and all
+NEO-like linkages among the unassociated tracklets produce unbound fitted
+orbits. Failure to link is therefore weak evidence against a candidate seen
+on only one night.
+
+\paragraph{Images.}
+Before the $n_{\rm DiaSources}$ cut, we inspected the science, template, and
+difference-image cutouts for 15 isolated candidates away from the Galactic
+plane (Figure~\ref{fig:lsstcutouts}). Nine are genuine moving objects and
+six are variable stars, supernovae, or artefacts; the
+$n_{\rm DiaSources}$ cut removes five of the six contaminants.
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figures/lsst_mover_cutouts.png}
+\caption{Rubin alert cutouts of the nine candidates confirmed as real moving
+objects, at each tracklet's highest signal-to-noise detection: science,
+template and difference images from the ALeRCE broker. The source appears in
+the science and difference images but not in the template. Arrows show the
+direction of motion over the tracklet; labels give the candidate, ds42
+$P(\mathrm{NEO})$, digest2 raw score, sky rate and band. The first panel
+shows north and east.}
+\label{fig:lsstcutouts}
+\end{figure*}
+
+\begin{figure}
+\centering
+\includegraphics[width=\columnwidth]{figures/lsst_unknown_scatter_movers.png}
+\caption{digest2 score versus ds42 $P(\mathrm{NEO})$ for unassociated Rubin
+tracklets with at least three detections, after removing sources rejected by
+the static-source tests or image inspection. Stars mark the nine candidates
+confirmed as real moving objects. The dashed line marks digest2 $=65$ and the
+dotted line ds42 $P=0.1$.}
+\label{fig:lsstcand}
+\end{figure}
+
+\paragraph{Result.}
+Nine candidates are confirmed moving objects with no matching known orbit.
+Four have ds42 $P=0.59$--1.00 and digest2 scores of 88--100; the remaining
+five have $P=0.16$--0.39 and digest2 scores of 64--90. A single-night
+tracklet is not sufficient to determine whether these objects are NEOs;
+follow-up or later Rubin detections are required. Of the remaining 35 candidates, 22 are rejected as static sources, one was
+identified in the image review as a variable source or artefact, and 12
+have not yet been reviewed.
+
+\section{Data Preview 2}
+\label{sec:dp2}
+
+All data collected with the LSST Camera \citep[LSSTCam;][]{lsstcam} during
+the commissioning of the Rubin Observatory will be released as Data
+Preview~2\footnote{See \url{https://dp2.lsst.io}} \citep[hereafter
+DP2;][]{RTN-115,dp2data}. We use
+diaSources from DP2 for the nine nights of 2025 July 3--11, eight of which
+contain data, and apply the same quality cuts, tracklet construction, and
+scoring procedure. For unassociated detections we again require
+$n_{\rm DiaSources}\leq2$. DP2 detections are labelled using Rubin's own MPC
+submissions, which match the diaSources directly.
+
+\paragraph{Known objects.}
+The DP2 sample contains 285\,126 pure known-object tracklets, including 393
+NEO tracklets. ds42 All predicts 399.3 NEOs. Among the 115\,906 tracklets
+with at least three detections, 170 are NEOs and ds42 predicts 166.0.
+
+For these 3+ detection tracklets, digest2 raw $\geq65$ selects 268 non-NEOs,
+59 with $q\geq4.5$~AU. ds42 $P\geq0.1$ selects 81 non-NEOs, only one
+distant. All 78 tracklets with $P\geq0.9$ are NEOs.
+
+\paragraph{Unknown objects.}
+Among 8\,234 unassociated tracklets with at least three detections, 655 match
+none of Rubin's submitted objects and have ds42 $P\geq0.1$. The static-source
+tests reject 458, and 50 more are produced by detections from a known asteroid
+paired with unrelated detections.
+
+Twenty-three candidates pass all tests, have measured trail lengths
+consistent with their fitted rates, lie in uncrowded fields, and match no
+known orbit. DP2 does not provide the single-visit images needed for the same
+visual inspection used above.
+
+\paragraph{Unreported NEOs.}
+Sixteen candidates are known objects that were not identified through Rubin's
+submissions for these detections. Nine tracklets correspond to seven known
+NEOs, all assigned ds42 $P=0.81$--1.00
+(Figure~\ref{fig:dp2precov}). None of these detections was submitted to the
+MPC.
+
+Four of the objects---2025~OZ, 2025~OT12, 2025~QO13, and 2025~OL4--- first reported to the MPC 11--16 days after the DP2 detections. The others
+are 2025~NA, whose MPC record ends before three later DP2 detections;
+2025~ML93; and 2017~EC3.
+
+\begin{figure*}
+\centering
+\includegraphics[width=\textwidth]{figures/dp2_precovery_timeline.png}
+\caption{Known NEOs among the DP2 candidates whose detections were not
+reported to the MPC. Stars mark DP2 tracklets and give the ds42 probability;
+ticks show MPC observations by night, with Rubin observations in blue. The
+shaded region marks the DP2 nights searched.}
+\label{fig:dp2precov}
+\end{figure*}
+
+
+
+\section{Summary of the Rubin tests}
+
+On real Rubin detections, ds42 probabilities are close to the observed NEO
+fractions in each labelled sample: 68.9 predicted versus 81 observed for
+known alert-stream objects, 22.8 versus 22 for objects Rubin failed to
+associate, and 399.3 versus 393 in DP2. At comparable operating points, ds42
+also produces fewer false positives than digest2 and almost none among the
+distant-object population responsible for many digest2 false alarms.
+
+The main failures arise before classification: pairs of unrelated detections
+and repeated static sources can form plausible tracklets that neither
+classifier can identify from the tracklet alone. Requiring at least three
+detections and removing repeat diaObjects suppresses most of these cases.
+
+Finally, in DP2, ds42 assigns $P\geq0.81$ to seven NEOs whose detections were
+not reported to the MPC; four were observed by Rubin 11--16 days before they were first reported to the MPC.
+
+
+% add a new section but now for LSST alerts go through how the alerts were downloaded, how the tracklets made, what filters and cuts were applied, then what fraction of unknown alerts were given high scores, and from them which were real neo candidates. have a figure showing the scatter plot of unknown + a table showing all the neo candidates and what scores were given to these objects, and then a block of the LSST alert cutouts showing the image, difference, template, and the motion vector. 
+
+
+
+
+
+
+
+
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Triage in the LSST era}
+\label{sec:lsstera}
+
+\citet{wagg2025} predicts that, under the current posting criterion, Rubin will submit about 129 candidates to the NEOCP per night during its first year, of which only 8.3 \% will be NEOs. Most of the remainder are faint, previously undiscovered main-belt asteroids. In their simulations, the submission rate begins to decline after about 150 nights as Rubin catalogs more of the main belt, but follow-up demand remains high during the early survey. They therefore propose prioritizing candidates using additional information such as whether Rubin is likely to recover them independently, trailing, apparent magnitude, and ecliptic latitude, and recommend updating digest2's population model as the survey progresses. 
+
+ds42 approaches the same problem by improving the classification score itself. In the simulated comparison, digest2 selects 287 non-NEOs at its NEOCP threshold, including 213 with with $q\geq4.5$~AU and 58 with
+$1.67\leq q<4.5$~AU. At the same completeness, ds42 selects only 11
+non-NEOs, none with $q\geq4.5$~AU and only one in the main-belt range
+(Section~\ref{sec:disagreement}). The same pattern appears in Rubin data among unassociated detections later matched to known objects, digest2 $\geq65$ selects 17 distant non-NEOs, while ds42 selects none
+(Section~\ref{sec:lsstunknown}). 
+
+Calibration provides a second advantage for follow-up planning. Because $P(\mathrm{NEO})$ is a probability, summing it over a night's candidates
+gives the expected number of NEOs in that list. A threshold can therefore
+be chosen in terms of its expected yield and contamination rather than
+requiring an empirical mapping from score to outcome for each survey. 
+
+Classification alone cannot distinguish an NEO from a main-belt asteroid when their single-night observations are effectively indistinguishable. In such cases, ds42 assigns an appropriately intermediate probability rather than forcing a stronger distinction than the data supports. Its performance is therefore still limited by the size of the undiscovered main-belt population. The strategies proposed by \citet{wagg2025} are complementary: for example, whether Rubin is likely to recover a candidate later provides information beyond the tracklet itself. As Rubin discovers more of the main belt, keeping the Unk population current will allow ds42 to reflect the changing discovery background without retuning the classifier. 
+
+\subsection{Which NEOs receive low probabilities}
+\label{sec:lowp}
+
+In the self-consistency samples, 540 NEOs receive
+$P(\mathrm{NEO})<0.1$, compared with 535.7 expected from the posteriors.
+These objects have tracklets that are difficult to distinguish from those
+of main-belt asteroids. Their median sky motion is
+$0.41^\circ$\,day$^{-1}$, compared with $1.5^\circ$\,day$^{-1}$ for the
+full NEO sample, and they are observed at larger distances
+(median 1.27~AU versus 1.04~AU). They also lie preferentially near the NEO
+boundary: one quarter of NEOs with $1.2\leq q<1.3$~AU receive
+$P(\mathrm{NEO})<0.1$, while no NEO moving faster than
+$1^\circ$\,day$^{-1}$ does.
+
+The Rubin alerts show the same behavior, with most low-probability NEOs being distant Amors (Section~\ref{sec:lsstknown}). These objects are
+intrinsically difficult to identify from a short arc because their apparent
+motion resembles that of the much larger main-belt population.
+
+\subsection{Imminent impactors}
+\label{sec:impactors}
+
+An object approaching nearly along the line of sight can have little apparent sky motion and initially resemble a distant or main-belt object. As a first test of this regime, we score the simulated Rubin detections of real Earth impactors from \citet{chow2026}, who passed the 343 metre-sized impactors in the CNEOS fireball database through the Sorcha survey simulator. 
+
+Eighteen impactors are detected before impact, producing 48 same-night
+tracklets. ds42 assigns $P(\mathrm{NEO})\geq0.5$ to 37 of them, while
+digest2 assigns a NoID score of at least 65 to the same 37. Both methods
+therefore flag every impactor on at least one night, with a median warning
+time of two days. The 11 tracklets missed by both methods occur earlier,
+6--25 days before impact, when the objects move only
+$0.16$--$0.31^\circ$\,day$^{-1}$ and resemble main-belt asteroids in
+apparent motion. As they approach Earth, their sky motion increases and
+both classifiers flag them.
+
+With only 18 objects, this test is indicative rather than conclusive.
+Moreover, $P(\mathrm{NEO})$ is not an impact probability. Because ds42
+retains the posterior over $(\rho,\dot\rho)$, a separate measure of the
+posterior support near Earth could in principle be reported alongside
+$P(\mathrm{NEO})$ for impact screening.
+
+\subsection{Limitations and Future Work}
+\label{sec:limits}
+
+The main limitation is the population model. S3M overpredicts some bright populations, particularly at large distances (Section~\ref{sec:neocp}); the catalog used to construct Unk is more recent
+than the NEOCP sample; the model is a coarse histogram in $(q,e,i,H)$ with
+uniform angular elements; and its support extends only to $H=30$. Because
+the population enters ds42 only through its density
+(Section~\ref{sec:implementation}), the classifier can instead use a newer
+model such as NEOMOD3 or one inferred directly from Rubin discoveries
+without changing the inference framework.
+
+ds42 also treats the attributable as exact. This approximation performs
+well for arcs of 15~minutes or longer
+(Section~\ref{sec:robustness}), but 30\% of same-night arcs in Rubin's
+baseline cadence are shorter than this. For such cases, the astrometric
+uncertainty should be marginalized explicitly. Errors introduced before
+classification, such as tracklets assembled from unrelated detections or
+static sources, cannot be identified by a classifier that receives only the
+tracklet (Section~\ref{sec:lsstcut}).
+
+Finally, the present model contains only NEO and non-NEO classes, excludes
+comets and interstellar objects, and treats each night independently.
+Extending the framework to additional Solar System populations, an explicit
+near-Earth or impact-screening quantity, and multi-night observations are
+natural next steps.
+
+% for the discussion of the paper, to refer back to waggs work and how it said that a method to solve the issue would be to wait 2-3 years until more main belt were known in order to save neocp from rubin
+\section{Summary}
+\label{sec:summary}
+
+We have presented ds42, a classifier that estimates the probability that a single-night tracklet belongs to an NEO by integrating an absolute population model over the admissibile region with the appropriate change of measure between orbital-element space and the observed tracklet. The main results are:
+
+\begin{enumerate}
+    \item On 800\,000 simulated tracklets, ds42 is consistent with calibration: 10\,550 NEOs are observed compared with 10\,542.6 predicted, with an odds scale of $1.01$ $[0.94,1.08]$.
+
+    \item In a controlled comparison using the same simulated population as digest2, ds42 produces a much cleaner follow-up sample. At the completeness of the digest2 NEOCP threshold, ds42 selects 11 non-NEOs compared with 287 for digest2, corresponding to purities of 96.1\% and 48.4\%, respectively. The largest difference is the removal of distant false positives associated with the change of measure.
+
+    \item On Rubin alerts and Data Preview~2, predicted NEO counts agree with those observed in the labelled samples, while ds42 selects almost no distant contaminants. It also assigns $P(\mathrm{NEO})\geq0.81$ to seven NEOs detected by Rubin but not reported at the time, including four observed 11--16 days before they were first reported to the MPC
+    
+    \item The probabilities remain robust to Rubin-like astrometric errors for arcs of at least 15~minutes. The implementation scores one tracklet in about 12~ms on a single core, corresponding to roughly $1.5\times10^{7}$ tracklets per hour on one node.
+
+\end{enumerate}
+
+For Rubin-era follow-up, the main advantage of ds42 is that candidate
+priority has a direct probabilistic interpretation. Follow-up programs can
+therefore choose targets according to expected NEO yield and contamination,
+rather than relying on a survey-dependent ranking score.
+
+
+\begin{acknowledgments}
+This research has made use of data and services provided by the International Astronomical Union’s Minor Planet Center, and of the JPL Small-Body Database. We used alert data from the Fink and ALeRCE brokers, and data products from NSF–DOE Vera C. Rubin Observatory.
+
+\end{acknowledgments}
+
+
+\begin{contribution}
+
+
+
+\end{contribution}
+
+
+\facilities{Vera C. Rubin Observatory, Minor Planet Center, JPL Small-Body Database Query}
+
+\software{ds42, digest2 \citep{keys2019,veres2023}, HelioLinC \citep{heinze2022AAS},
+ASSIST \citep{holman2024}, REBOUND, Sorcha \citep{merritt2025},
+rubin\_sim, Astropy \citep{astropy2022}, NumPy, SciPy, Matplotlib,
+jplephem, PyO3, Rayon}
+
+\appendix
+
+\section{The change-of-measure Jacobian}
+\label{app:jacobian}
+
+\paragraph{Observable block.}
+Order the inputs as $(\alpha,\delta,\rho\,|\,\dot\alpha,\dot\delta,\dot\rho)$
+and the outputs as $(\mathbf{r}\,|\,\mathbf{v})$; reordering columns changes
+only the sign of the determinant. By Equation~(\ref{eq:r}), $\mathbf{r}$ does
+not depend on the three rates, so the matrix is block triangular,
+\begin{equation}
+\frac{\partial(\mathbf{r},\mathbf{v})}
+     {\partial(\alpha,\delta,\rho,\dot\alpha,\dot\delta,\dot\rho)}
+=\begin{pmatrix} P & 0\\ S & P\end{pmatrix},
+\quad
+P=\left[\rho\hat{\mathbf{u}}_\alpha\;\;\rho\hat{\mathbf{u}}_\delta\;\;
+\hat{\mathbf{u}}\right],
+\end{equation}
+and its determinant is $(\det P)^2$; the lower-left block $S$, which holds the
+second derivatives of $\hat{\mathbf{u}}$ and all dependence on the rates,
+does not enter. The vectors $\hat{\mathbf{u}}_\alpha$,
+$\hat{\mathbf{u}}_\delta$ and $\hat{\mathbf{u}}$ are mutually orthogonal with
+lengths $\cos\delta$, 1 and 1, so $|\det P|=\rho^2\cos\delta$ and
+\begin{equation}
+\left|\det\frac{\partial(\mathbf{r},\mathbf{v})}
+{\partial(A,\rho,\dot\rho)}\right| = \rho^4\cos^2\delta.
+\label{eq:obsblock}
+\end{equation}
+Two powers of $\rho$ come from converting angular position into physical
+position and two from converting angular rates into transverse velocity;
+$\cos^2\delta$ reflects the convergence of lines of constant right ascension
+toward the poles. The equatorial-to-ecliptic rotation between the two blocks
+is orthogonal and does not change the determinant.
+
+\paragraph{Element block.}
+The Delaunay variables $(L,G,H_{\rm D},l,g,h)$, with $L=\sqrt{\mu a}$,
+$G=L\sqrt{1-e^2}$, $H_{\rm D}=G\cos i$ and $(l,g,h)=(M,\omega,\Omega)$, are
+canonical, so the map from $(\mathbf{r},\mathbf{v})$ to them preserves
+phase-space volume and has unit determinant. The angles map onto
+$(M,\omega,\Omega)$ unchanged, and $(L,G,H_{\rm D})$ depend on $(a,e,i)$
+triangularly, with diagonal terms $\partial L/\partial a=\tfrac12\sqrt{\mu/a}$,
+$\partial G/\partial e=-Le/\sqrt{1-e^2}$ and
+$\partial H_{\rm D}/\partial i=-G\sin i$. Their product gives
+$|\det\partial(L,G,H_{\rm D})/\partial(a,e,i)|=\mu^{3/2}\sqrt{a}\,e\sin i/2$,
+and hence
+\begin{equation}
+\left|\det\frac{\partial E}{\partial(A,\rho,\dot\rho)}\right|
+= \rho^4\cos^2\delta\,\frac{2}{\mu^{3/2}\sqrt{a}\,e\sin i}
+\label{eq:delaunay}
+\end{equation}
+for $E=(a,e,i,\Omega,\omega,M)$, exactly. Replacing $a$ by $q=a(1-e)$ at fixed
+$e$ multiplies volumes by $\partial q/\partial a=1-e$, which gives
+Equation~(\ref{eq:jacqei}).
+
+\paragraph{Verification.}
+The implementation evaluates Equation~(\ref{eq:jacqei}) in closed form. An
+independent reference implementation instead builds the full $6\times6$
+Jacobian from the analytic partial derivatives of each step and takes its
+determinant numerically; the two agree to a maximum relative difference of
+$1.2\times10^{-11}$ (Section~\ref{sec:implementation}).
+
+\paragraph{The $1/(e\sin i)$ factor.}
+For a circular orbit the perihelion direction, and so $\omega$, is
+undefined, and for a zero-inclination orbit so is $\Omega$, just as longitude
+is undefined at a pole; a small cell of states is then spread over a wide
+range of elements. The singularity is integrable, so $\Lambda_C$ stays
+finite. A smooth population vanishes as $e\to0$ and $i\to0$ and cancels it,
+but the binned ds42 population model density is constant across its lowest bins
+($e<0.1$, $i<2^\circ$), which affects the quadrature
+(Appendix~\ref{app:quadrature}).
+
+\paragraph{Relation to previous work.}
+\citet[their \S2.3]{peiris2003} give the element-space identity by the same
+Delaunay argument \citep[see also][]{tremaine2020}, and \citet{masuda2026}
+derive the same closed form to transform Bayesian priors between Cartesian and
+orbital coordinates for exoplanets. We have not found the composition with
+$\rho^4\cos^2\delta$ used before for short-arc population classification.
+\citet[][\S3.2]{farnocchia2015}, mapping an S3M population onto the
+$(\rho,\dot\rho)$ plane for Scout, call the transformation ``quite
+complicated'' and use the position factor $\rho^2$ alone, and
+\citet{hussein2014} judge the equivalent transformation ``impossible to
+achieve in closed-form'' and evaluate it by Monte Carlo.
+
+\section{Admissible region and quadrature}
+\label{app:quadrature}
+
+\paragraph{The $\dot\rho$ interval.}
+Write Equation~(\ref{eq:v}) as $\mathbf{v}=\mathbf{w}+\dot\rho\,\hat{\mathbf{u}}$,
+where $\mathbf{w}=\dot{\mathbf{R}}+\rho(\dot\alpha\,\hat{\mathbf{u}}_\alpha+
+\dot\delta\,\hat{\mathbf{u}}_\delta)$ is fixed once $\rho$ is chosen. The
+bound-orbit condition is then quadratic in $\dot\rho$ and holds for
+\begin{equation}
+\bigl|\dot\rho+\hat{\mathbf{u}}\cdot\mathbf{w}\bigr|
+<\Bigl(\frac{2\mu}{r}-|\mathbf{w}_\perp|^2\Bigr)^{1/2},
+\label{eq:rhodot}
+\end{equation}
+where $\mathbf{w}_\perp$ is the part of $\mathbf{w}$ perpendicular to the
+line of sight. The interval is empty when the right-hand side is imaginary.
+Since $|\mathbf{w}_\perp|$ grows with $\rho$, this also limits how far away a
+fast-moving tracklet can be. The $\rho$ cell edges lie at the geometric
+midpoints between neighbouring nodes, and columns with an empty interval are
+dropped.
+
+\paragraph{Why the grid is finer in $\rho$.}
+The binned density jumps at every bin edge. Edges in $q$, $e$ and $i$ cross
+the admissible region in both directions, but because $H$ depends on $\rho$
+and not on $\dot\rho$, every $H$-bin edge is a line of constant $\rho$ that
+cuts each cell of its column at the same place. Each node stands for its
+whole cell, so where an edge cuts a cell the node's value is wrong for part of
+it. For an edge crossing the grid at a slant these errors change sign from
+cell to cell and partly cancel, and refining either axis reduces them. For an
+$H$ edge they are identical in every row and add coherently: refining
+$\dot\rho$ leaves them unchanged, and only narrower columns reduce them. At
+equal cost, a $(n_\rho,n_{\dot\rho})=(800,100)$ grid has 2.3 times smaller
+error than $(400,200)$, while $(200,400)$ is no better than $(200,100)$. At
+the default grid this staircase is no longer the dominant error. The
+$1/(e\sin i)$ factor (Appendix~\ref{app:jacobian}) adds narrow, integrable
+spikes along the curves $e=0$ and $i=0$, across which grid quadrature
+converges slowly.
+
+\paragraph{Accuracy.}
+The reference grid of $9600\times400$ changes by $5\times10^{-4}$ (90th
+percentile) when refined by a further factor of two in each direction. For
+small relative errors $\delta_C$ in the $\Lambda_C$, the posterior changes by
+$\Delta P\approx P(1-P)(\delta_{\rm NEO}-\delta_{\rm other})$, so tracklets
+with $P$ near 0 or 1 show almost no error however poorly their $\Lambda_C$ are
+resolved. On a realistic mixture, dominated by $P\approx0$, the
+unconditional 90th-percentile error is $\sim5\times10^{-5}$ whatever the
+quadrature does, which is why we quote only $0.05<P<0.95$. For those 497
+tracklets the 90th percentile is $8\times10^{-3}$. The largest single error is
+0.23; a maximum over a few hundred tracklets is set by the one worst-resolved
+case, so we do not use it as a summary.
+%% validation/H_INTERPOLATION.md: mid-p p90 7.88e-3 at (1200,50) vs 9600x400;
+%% reference adequacy 5.17e-4; mid-p max 2.33e-1; unconditional ~5e-5 on
+%% gate_v0; equal-cost 9.10e-3 vs 2.11e-2, 6.40e-2 vs 6.68e-2.
+
+\section{The $H$ extension and the triage policy}
+\label{app:truncation}
+
+\paragraph{Where the $H$ boundary binds.}
+An object at heliocentric distance $r$ is brightest at opposition, at a
+distance of about $r-1$~AU from the observer and zero phase angle, so a
+survey reaching $V_{\lim}$ detects objects up to
+\begin{equation}
+H_{\max}(r)\approx V_{\lim}-5\log_{10}\bigl[r(r-1)\bigr].
+\label{eq:hmax}
+\end{equation}
+For $V_{\lim}=24$:
+\begin{center}
+\begin{tabular}{lcccccc}
+\hline
+$r$ (AU) & 1.3 & 1.45 & 1.55 & 1.67 & 1.8 & 2.0 \\
+$H_{\max}$ & 26.0 & 24.9 & 24.3 & 23.8 & 23.2 & 22.5 \\
+\hline
+\end{tabular}
+\end{center}
+Main-belt orbits ($r\gtrsim1.66$~AU) cannot reach $H=25.5$; only NEOs and
+Mars-crossers observed near a perihelion just outside $q=1.3$~AU can. With the
+extension, the $H=30$ boundary can bind at $V\le24$ only for nodes with
+$\rho r\lesssim0.06$~AU$^2$, i.e.\ within about 0.06~AU of the observer.
+
+\paragraph{Why $H=30$.}
+At 30, four of the 11 NEOCP boundary tracklets keep 7--10\% of their
+admissible measure above the boundary, which leaves their $P$ unchanged
+because $\Lambda_{\rm other}=0$ for all four. Extending to 34 would cover the
+faintest synthetic tracklets of Section~\ref{sec:validation} (maximum implied
+$H=33.8$), but would place 76\% of the NEO population in the synthetic bin.
+
+\paragraph{The triage policy.}
+The policy fires only when the admissible region is non-empty, both
+$\Lambda_C$ are exactly zero, and at least 95\% of the quadrature measure of
+nodes with finite implied $H$ lies at or above the support boundary. It then
+assigns $P(\mathrm{NEO})=1$, leaves $\ell$ undefined, and flags the result.
+The reasoning is physical as well as empirical: a tracklet too faint for the
+model at nearly every admissible distance can only be a nearby, small object,
+and all 11 such NEOCP tracklets were NEOs.
+The 95\% threshold lies in a measured gap: the 11 boundary tracklets have
+fractions of at least 0.986, and every constructed counter-example, such as a
+bright, slow tracklet whose admissible region lies in empty cells of the
+model, has a fraction of exactly zero. Its evidence is thin: 11 objects,
+all from the sample that prompted it.
+
+
+\bibliography{bibliography}{}
+\bibliographystyle{aasjournalv7}
+
+\end{document}
+
+% End of file `main.tex'.

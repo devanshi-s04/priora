@@ -1,0 +1,35 @@
+# RECONSTRUCTED: the request file for this transfer was not saved. Dates and columns are those of the delivered data
+# (alerts 2026-06-30 22:56 to 2026-10-31 07:38 UTC, 291,305 rows; schema in schema/avro_schema_ftransfer_lsst_2026-11-02_838512.json).
+# Selection: Rubin-associated solar-system sources (every row has ssObjectId and an MPC designation).
+# The delivered columns are flat, without table prefixes, so the source table of each was not recorded.
+dates:
+  startdate: '2026-07-01'
+  stopdate: '2026-11-02'
+filters: [known solar-system objects]
+blocks: []
+extra_cond: null
+delivered_columns:
+- diaSourceId
+- ssObjectId
+- phaseAngle
+- diaDistanceRank
+- snr
+- psfFlux
+- psfFluxErr
+- scienceFlux
+- scienceFluxErr
+- templateFlux
+- templateFluxErr
+- band
+- midpointMjdTai
+- ra
+- dec
+- raErr
+- decErr
+- ra_dec_Cov
+- reliability
+- packed_primary_provisional_designation
+- unpacked_primary_provisional_designation
+- lsst_schema_version
+- fink_broker_version
+- fink_science_version

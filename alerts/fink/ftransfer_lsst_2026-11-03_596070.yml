@@ -1,0 +1,11 @@
+# RECONSTRUCTED: the request file for this transfer was not saved. Dates are those of the delivered data
+# (alerts 2026-06-30 22:56 to 2026-10-31 07:38 UTC; 2,141,791 diaSources after unk/flatten.py).
+# Selection (from unk/flatten.py): new alerts not associated with a known solar-system object.
+# Content: all columns, nested by table (schema/avro_schema_ftransfer_lsst_2026-11-03_596070.json).
+dates:
+  startdate: '2026-07-01'
+  stopdate: '2026-11-02'
+filters: [b_is_new, NOT b_is_solar_system, NOT is_solar_system]
+blocks: []
+extra_cond: null
+content: [diaSource.*, ssSource.*, mpc_orbits.*, diaObject.*]

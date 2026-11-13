@@ -1,0 +1,16 @@
+{
+  "n_rho": 1200,
+  "n_rhodot": 50,
+  "n_tracklets": 40,
+  "single_python_diag1": 0.4972894542501308,
+  "single_python_diag0": 0.47333146404707804,
+  "single_rust_diag1": 0.012430500995833427,
+  "single_rust_diag0": 0.011569828778738156,
+  "speedup_diag": 40.0055842010565,
+  "speedup_nodiag": 42.98157420998298,
+  "batch_n": 320,
+  "batch_1w_s_per_tracklet": 0.01246930891284137,
+  "batch_1w_throughput": 80.19690641958206,
+  "batch_8w_s_per_tracklet": 0.0017219637185917236,
+  "batch_8w_throughput": 580.7323285637119
+}

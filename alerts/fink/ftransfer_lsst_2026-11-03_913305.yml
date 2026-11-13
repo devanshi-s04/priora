@@ -1,0 +1,32 @@
+blocks: []
+catalog_filename: null
+content:
+- diaSource.diaSourceId
+- diaSource.diaObjectId
+- diaSource.ssObjectId
+- diaSource.visit
+- diaSource.detector
+- diaSource.midpointMjdTai
+- diaSource.ra
+- diaSource.dec
+- diaSource.raErr
+- diaSource.decErr
+- diaSource.psfFlux
+- diaSource.psfFluxErr
+- diaSource.snr
+- diaSource.band
+- diaSource.reliability
+- diaSource.extendedness
+- diaSource.trailLength
+- diaSource.isDipole
+- diaSource.isNegative
+- diaSource.glint_trail
+- diaSource.pixelFlags_streak
+- ssSource.designation
+- mpc_orbits.packed_primary_provisional_designation
+- diaObject.nDiaSources
+dates:
+  startdate: '2026-07-01'
+  stopdate: '2026-11-02'
+extra_cond: null
+filters: []

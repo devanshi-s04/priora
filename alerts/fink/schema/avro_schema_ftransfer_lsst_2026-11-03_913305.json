@@ -1,0 +1,351 @@
+{
+    "__fastavro_parsed": true,
+    "__named_schemas": {
+        "topLevelRecord.value": {
+            "fields": [
+                {
+                    "name": "diaSourceId",
+                    "type": [
+                        "long",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "diaObjectId",
+                    "type": [
+                        "long",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "ssObjectId",
+                    "type": [
+                        "long",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "visit",
+                    "type": [
+                        "long",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "detector",
+                    "type": [
+                        "int",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "midpointMjdTai",
+                    "type": [
+                        "double",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "ra",
+                    "type": [
+                        "double",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "dec",
+                    "type": [
+                        "double",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "raErr",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "decErr",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "psfFlux",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "psfFluxErr",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "snr",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "band",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "reliability",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "extendedness",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "trailLength",
+                    "type": [
+                        "float",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "isDipole",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "isNegative",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "glint_trail",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "pixelFlags_streak",
+                    "type": [
+                        "boolean",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "designation",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "packed_primary_provisional_designation",
+                    "type": [
+                        "string",
+                        "null"
+                    ]
+                },
+                {
+                    "name": "nDiaSources",
+                    "type": [
+                        "int",
+                        "null"
+                    ]
+                }
+            ],
+            "name": "topLevelRecord.value",
+            "type": "record"
+        }
+    },
+    "fields": [
+        {
+            "name": "diaSourceId",
+            "type": [
+                "long",
+                "null"
+            ]
+        },
+        {
+            "name": "diaObjectId",
+            "type": [
+                "long",
+                "null"
+            ]
+        },
+        {
+            "name": "ssObjectId",
+            "type": [
+                "long",
+                "null"
+            ]
+        },
+        {
+            "name": "visit",
+            "type": [
+                "long",
+                "null"
+            ]
+        },
+        {
+            "name": "detector",
+            "type": [
+                "int",
+                "null"
+            ]
+        },
+        {
+            "name": "midpointMjdTai",
+            "type": [
+                "double",
+                "null"
+            ]
+        },
+        {
+            "name": "ra",
+            "type": [
+                "double",
+                "null"
+            ]
+        },
+        {
+            "name": "dec",
+            "type": [
+                "double",
+                "null"
+            ]
+        },
+        {
+            "name": "raErr",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "decErr",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "psfFlux",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "psfFluxErr",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "snr",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "band",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        {
+            "name": "reliability",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "extendedness",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "trailLength",
+            "type": [
+                "float",
+                "null"
+            ]
+        },
+        {
+            "name": "isDipole",
+            "type": [
+                "boolean",
+                "null"
+            ]
+        },
+        {
+            "name": "isNegative",
+            "type": [
+                "boolean",
+                "null"
+            ]
+        },
+        {
+            "name": "glint_trail",
+            "type": [
+                "boolean",
+                "null"
+            ]
+        },
+        {
+            "name": "pixelFlags_streak",
+            "type": [
+                "boolean",
+                "null"
+            ]
+        },
+        {
+            "name": "designation",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        {
+            "name": "packed_primary_provisional_designation",
+            "type": [
+                "string",
+                "null"
+            ]
+        },
+        {
+            "name": "nDiaSources",
+            "type": [
+                "int",
+                "null"
+            ]
+        }
+    ],
+    "name": "topLevelRecord.value",
+    "type": "record"
+}

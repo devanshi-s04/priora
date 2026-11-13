@@ -1,0 +1,33 @@
+# Versions used for the paper (Rubin science-pipelines environment lsst-scipipe-12.1.0, Python 3.13).
+# conda env create -f environment.yml && conda activate ds42 && make install
+name: ds42
+channels:
+  - conda-forge
+dependencies:
+  - python=3.13
+  - numpy=2.3.5
+  - scipy=1.16.3
+  - astropy=7.2.0
+  - pyerfa=2.0.1.5
+  - pandas=2.3.3
+  - pyarrow=21.0.0
+  - matplotlib=3.10.8
+  - jplephem=2.23
+  - nbformat=5.10.4
+  - requests=2.32.5
+  - pyyaml=6.0.3
+  - scikit-learn=1.8.0
+  - pyvo=1.8.1          # DP2 TAP queries only
+  - pytest
+  - rust=1.93
+  - compilers          # C++ compiler for HelioLinC (make external)
+  - cmake
+  - pip
+  - pip:
+      - digest2==2.8.2
+      - sorcha==1.1.1
+      - assist==1.1.9
+      - rebound==4.4.11
+      - spiceypy==8.0.2
+      - maturin==1.12.6
+      - alerce==2.3.1      # ALeRCE stamps for the alert follow-up

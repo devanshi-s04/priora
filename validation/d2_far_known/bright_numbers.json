@@ -1,0 +1,334 @@
+{
+ "Trojans/Centaurs 4.5-10 AU": {
+  "q_cells": "4.5-10 AU",
+  "H_table": [
+   {
+    "H": "0-6",
+    "model_all": 9.0,
+    "known_mpcorb": 1,
+    "known_over_model": 0.111,
+    "model_known_frac": 0.111
+   },
+   {
+    "H": "6-8",
+    "model_all": 39.0,
+    "known_mpcorb": 7,
+    "known_over_model": 0.179,
+    "model_known_frac": 0.205
+   },
+   {
+    "H": "8-10",
+    "model_all": 255.0,
+    "known_mpcorb": 77,
+    "known_over_model": 0.302,
+    "model_known_frac": 0.302
+   },
+   {
+    "H": "10-11",
+    "model_all": 599.0,
+    "known_mpcorb": 148,
+    "known_over_model": 0.247,
+    "model_known_frac": 0.25
+   },
+   {
+    "H": "11-12",
+    "model_all": 2072.0,
+    "known_mpcorb": 330,
+    "known_over_model": 0.159,
+    "model_known_frac": 0.159
+   },
+   {
+    "H": "12-13",
+    "model_all": 6775.0,
+    "known_mpcorb": 1013,
+    "known_over_model": 0.15,
+    "model_known_frac": 0.15
+   },
+   {
+    "H": "13-14",
+    "model_all": 19927.0,
+    "known_mpcorb": 2855,
+    "known_over_model": 0.143,
+    "model_known_frac": 0.144
+   },
+   {
+    "H": "14-15",
+    "model_all": 44187.0,
+    "known_mpcorb": 6685,
+    "known_over_model": 0.151,
+    "model_known_frac": 0.176
+   },
+   {
+    "H": "15-16",
+    "model_all": 59742.0,
+    "known_mpcorb": 3372,
+    "known_over_model": 0.056,
+    "model_known_frac": 0.043
+   },
+   {
+    "H": "16-17",
+    "model_all": 49491.0,
+    "known_mpcorb": 819,
+    "known_over_model": 0.017,
+    "model_known_frac": 0.011
+   },
+   {
+    "H": "17-18",
+    "model_all": 77354.0,
+    "known_mpcorb": 136,
+    "known_over_model": 0.002,
+    "model_known_frac": 0.001
+   },
+   {
+    "H": "18-19",
+    "model_all": 850.0,
+    "known_mpcorb": 20,
+    "known_over_model": 0.024,
+    "model_known_frac": 0.015
+   },
+   {
+    "H": "19-20",
+    "model_all": 565.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 0.0
+   },
+   {
+    "H": "20-21",
+    "model_all": 951.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 0.0
+   },
+   {
+    "H": "21-22",
+    "model_all": 1356.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 0.0
+   },
+   {
+    "H": "22-23",
+    "model_all": 2074.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 0.0
+   },
+   {
+    "H": "23-24",
+    "model_all": 3170.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 0.0
+   },
+   {
+    "H": "24-25.5",
+    "model_all": 9956.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 0.0
+   }
+  ],
+  "false_alarms": {
+   "All": {
+    "n_far": 50,
+    "n_bright": 17,
+    "H_bright": [
+     9.8,
+     10.7,
+     11.0,
+     11.1,
+     11.3,
+     11.5,
+     11.7,
+     12.1,
+     12.4,
+     12.6,
+     12.7,
+     13.1,
+     13.5,
+     14.2,
+     14.3,
+     14.3,
+     14.3
+    ],
+    "mean_known_over_model": 0.172,
+    "mean_model_known_frac": 0.178
+   },
+   "Unk": {
+    "n_far": 68,
+    "n_bright": 15,
+    "H_bright": [
+     10.3,
+     10.6,
+     11.1,
+     11.6,
+     11.7,
+     11.7,
+     12.3,
+     12.3,
+     12.3,
+     12.4,
+     12.8,
+     13.2,
+     14.1,
+     14.2,
+     14.4
+    ],
+    "mean_known_over_model": 0.165,
+    "mean_model_known_frac": 0.171
+   }
+  }
+ },
+ "TNOs >= 10 AU": {
+  "q_cells": "10-100 AU",
+  "H_table": [
+   {
+    "H": "0-6",
+    "model_all": 3174.0,
+    "known_mpcorb": 458,
+    "known_over_model": 0.144,
+    "model_known_frac": 0.131
+   },
+   {
+    "H": "6-8",
+    "model_all": 31559.0,
+    "known_mpcorb": 4945,
+    "known_over_model": 0.157,
+    "model_known_frac": 0.106
+   },
+   {
+    "H": "8-10",
+    "model_all": 25796.0,
+    "known_mpcorb": 2731,
+    "known_over_model": 0.106,
+    "model_known_frac": 0.081
+   },
+   {
+    "H": "10-11",
+    "model_all": 643.0,
+    "known_mpcorb": 201,
+    "known_over_model": 0.313,
+    "model_known_frac": 0.253
+   },
+   {
+    "H": "11-12",
+    "model_all": 1312.0,
+    "known_mpcorb": 74,
+    "known_over_model": 0.056,
+    "model_known_frac": 0.054
+   },
+   {
+    "H": "12-13",
+    "model_all": 3059.0,
+    "known_mpcorb": 25,
+    "known_over_model": 0.008,
+    "model_known_frac": 0.008
+   },
+   {
+    "H": "13-14",
+    "model_all": 5383.0,
+    "known_mpcorb": 10,
+    "known_over_model": 0.002,
+    "model_known_frac": 0.001
+   },
+   {
+    "H": "14-15",
+    "model_all": 2664.0,
+    "known_mpcorb": 2,
+    "known_over_model": 0.001,
+    "model_known_frac": 0.001
+   },
+   {
+    "H": "17-18",
+    "model_all": 1.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 1.0
+   },
+   {
+    "H": "24-25.5",
+    "model_all": 3.0,
+    "known_mpcorb": 0,
+    "known_over_model": 0.0,
+    "model_known_frac": 0.0
+   }
+  ],
+  "false_alarms": {
+   "All": {
+    "n_far": 123,
+    "n_bright": 25,
+    "H_bright": [
+     0.3,
+     0.6,
+     0.8,
+     1.0,
+     1.5,
+     2.0,
+     3.2,
+     3.3,
+     3.4,
+     3.6,
+     4.1,
+     4.4,
+     5.3,
+     6.1,
+     6.1,
+     6.2,
+     6.3,
+     6.3,
+     6.3,
+     6.3,
+     6.3,
+     6.4,
+     6.8,
+     7.3,
+     10.2
+    ],
+    "mean_known_over_model": 0.156,
+    "mean_model_known_frac": 0.125
+   },
+   "Unk": {
+    "n_far": 145,
+    "n_bright": 33,
+    "H_bright": [
+     1.5,
+     1.6,
+     1.7,
+     1.8,
+     2.5,
+     2.6,
+     2.7,
+     3.3,
+     3.5,
+     4.0,
+     4.3,
+     4.7,
+     4.7,
+     4.9,
+     5.4,
+     5.6,
+     5.7,
+     6.1,
+     6.1,
+     6.1,
+     6.1,
+     6.1,
+     6.2,
+     6.2,
+     6.2,
+     6.3,
+     6.6,
+     6.6,
+     6.7,
+     6.7,
+     6.8,
+     8.3,
+     8.4
+    ],
+    "mean_known_over_model": 0.147,
+    "mean_model_known_frac": 0.118
+   }
+  }
+ }
+}

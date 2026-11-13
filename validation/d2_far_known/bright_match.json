@@ -1,0 +1,309 @@
+{
+ "known_peak_H": {
+  "NEO": 24.75,
+  "Mars-crosser": 19.75,
+  "main belt": 17.75,
+  "Trojan/Centaur": 14.75,
+  "TNO": 7.25
+ },
+ "Unk / NoID": {
+  "all V": {
+   "n": 19999,
+   "neos": 287,
+   "d2_flagged": 556,
+   "d2_complete": 0.9372822299651568,
+   "d2_contam": 0.5161870503597122,
+   "d2_fa_q": [
+    16,
+    58,
+    213
+   ],
+   "ds42_cut": 0.30029333360664623,
+   "ds42_flagged": 280,
+   "ds42_contam": 0.039285714285714285,
+   "ds42_fa_q": [
+    10,
+    1,
+    0
+   ],
+   "p05_flagged": 267,
+   "p05_complete": 0.9198606271777003,
+   "p05_contam": 0.011235955056179775
+  },
+  "V<21.2": {
+   "n": 783,
+   "neos": 54,
+   "d2_flagged": 106,
+   "d2_complete": 0.9814814814814815,
+   "d2_contam": 0.5,
+   "d2_fa_q": [
+    5,
+    25,
+    23
+   ],
+   "ds42_cut": 0.6627244181145572,
+   "ds42_flagged": 53,
+   "ds42_contam": 0.0,
+   "ds42_fa_q": [
+    0,
+    0,
+    0
+   ],
+   "p05_flagged": 53,
+   "p05_complete": 0.9814814814814815,
+   "p05_contam": 0.0
+  },
+  "V<21.2, known removed": {
+   "n": 90,
+   "neos": 15,
+   "d2_flagged": 17,
+   "d2_complete": 1.0,
+   "d2_contam": 0.11764705882352941,
+   "d2_fa_q": [
+    1,
+    1,
+    0
+   ],
+   "ds42_cut": 1.0,
+   "ds42_flagged": 15,
+   "ds42_contam": 0.0,
+   "ds42_fa_q": [
+    0,
+    0,
+    0
+   ],
+   "p05_flagged": 15,
+   "p05_complete": 1.0,
+   "p05_contam": 0.0
+  },
+  "known fraction among V<21.2": {
+   "NEO": 0.7222222222222222,
+   "non-NEO": 0.897119341563786
+  }
+ },
+ "All / raw": {
+  "all V": {
+   "n": 20000,
+   "neos": 170,
+   "d2_flagged": 369,
+   "d2_complete": 0.8705882352941177,
+   "d2_contam": 0.5989159891598916,
+   "d2_fa_q": [
+    17,
+    31,
+    173
+   ],
+   "ds42_cut": 0.21385495515799588,
+   "ds42_flagged": 158,
+   "ds42_contam": 0.06329113924050633,
+   "ds42_fa_q": [
+    9,
+    1,
+    0
+   ],
+   "p05_flagged": 145,
+   "p05_complete": 0.8294117647058824,
+   "p05_contam": 0.027586206896551724
+  },
+  "V<21.2": {
+   "n": 2445,
+   "neos": 30,
+   "d2_flagged": 65,
+   "d2_complete": 0.9,
+   "d2_contam": 0.5846153846153846,
+   "d2_fa_q": [
+    8,
+    10,
+    20
+   ],
+   "ds42_cut": 0.36717089613774023,
+   "ds42_flagged": 30,
+   "ds42_contam": 0.1,
+   "ds42_fa_q": [
+    3,
+    0,
+    0
+   ],
+   "p05_flagged": 26,
+   "p05_complete": 0.8,
+   "p05_contam": 0.07692307692307693
+  },
+  "V<21.2, known removed": {
+   "n": 160,
+   "neos": 4,
+   "d2_flagged": 5,
+   "d2_complete": 1.0,
+   "d2_contam": 0.2,
+   "d2_fa_q": [
+    1,
+    0,
+    0
+   ],
+   "ds42_cut": 1.0,
+   "ds42_flagged": 4,
+   "ds42_contam": 0.0,
+   "ds42_fa_q": [
+    0,
+    0,
+    0
+   ],
+   "p05_flagged": 4,
+   "p05_complete": 1.0,
+   "p05_contam": 0.0
+  },
+  "known fraction among V<21.2": {
+   "NEO": 0.8666666666666667,
+   "non-NEO": 0.9354037267080745
+  }
+ },
+ "Unk / NoID, 3 detections": {
+  "all V": {
+   "n": 19999,
+   "neos": 287,
+   "d2_flagged": 556,
+   "d2_complete": 0.9372822299651568,
+   "d2_contam": 0.5161870503597122,
+   "d2_fa_q": [
+    16,
+    58,
+    213
+   ],
+   "ds42_cut": 0.30029333360664623,
+   "ds42_flagged": 280,
+   "ds42_contam": 0.039285714285714285,
+   "ds42_fa_q": [
+    10,
+    1,
+    0
+   ],
+   "p05_flagged": 267,
+   "p05_complete": 0.9198606271777003,
+   "p05_contam": 0.011235955056179775
+  },
+  "V<21.2": {
+   "n": 783,
+   "neos": 54,
+   "d2_flagged": 106,
+   "d2_complete": 0.9814814814814815,
+   "d2_contam": 0.5,
+   "d2_fa_q": [
+    5,
+    25,
+    23
+   ],
+   "ds42_cut": 0.6627244181145572,
+   "ds42_flagged": 53,
+   "ds42_contam": 0.0,
+   "ds42_fa_q": [
+    0,
+    0,
+    0
+   ],
+   "p05_flagged": 53,
+   "p05_complete": 0.9814814814814815,
+   "p05_contam": 0.0
+  },
+  "V<21.2, known removed": {
+   "n": 90,
+   "neos": 15,
+   "d2_flagged": 17,
+   "d2_complete": 1.0,
+   "d2_contam": 0.11764705882352941,
+   "d2_fa_q": [
+    1,
+    1,
+    0
+   ],
+   "ds42_cut": 1.0,
+   "ds42_flagged": 15,
+   "ds42_contam": 0.0,
+   "ds42_fa_q": [
+    0,
+    0,
+    0
+   ],
+   "p05_flagged": 15,
+   "p05_complete": 1.0,
+   "p05_contam": 0.0
+  },
+  "known fraction among V<21.2": {
+   "NEO": 0.7222222222222222,
+   "non-NEO": 0.897119341563786
+  }
+ },
+ "Unk / NoID, bright sample": {
+  "all V": {
+   "n": 3498,
+   "neos": 215,
+   "d2_flagged": 461,
+   "d2_complete": 0.9813953488372092,
+   "d2_contam": 0.5422993492407809,
+   "d2_fa_q": [
+    27,
+    80,
+    143
+   ],
+   "ds42_cut": 0.03621542467366378,
+   "ds42_flagged": 256,
+   "ds42_contam": 0.17578125,
+   "ds42_fa_q": [
+    20,
+    24,
+    1
+   ],
+   "p05_flagged": 209,
+   "p05_complete": 0.9488372093023256,
+   "p05_contam": 0.023923444976076555
+  },
+  "V<21.2": {
+   "n": 3498,
+   "neos": 215,
+   "d2_flagged": 461,
+   "d2_complete": 0.9813953488372092,
+   "d2_contam": 0.5422993492407809,
+   "d2_fa_q": [
+    27,
+    80,
+    143
+   ],
+   "ds42_cut": 0.03621542467366378,
+   "ds42_flagged": 256,
+   "ds42_contam": 0.17578125,
+   "ds42_fa_q": [
+    20,
+    24,
+    1
+   ],
+   "p05_flagged": 209,
+   "p05_complete": 0.9488372093023256,
+   "p05_contam": 0.023923444976076555
+  },
+  "V<21.2, known removed": {
+   "n": 397,
+   "neos": 59,
+   "d2_flagged": 64,
+   "d2_complete": 1.0,
+   "d2_contam": 0.078125,
+   "d2_fa_q": [
+    2,
+    2,
+    1
+   ],
+   "ds42_cut": 1.0,
+   "ds42_flagged": 59,
+   "ds42_contam": 0.0,
+   "ds42_fa_q": [
+    0,
+    0,
+    0
+   ],
+   "p05_flagged": 60,
+   "p05_complete": 1.0,
+   "p05_contam": 0.016666666666666666
+  },
+  "known fraction among V<21.2": {
+   "NEO": 0.7255813953488373,
+   "non-NEO": 0.8970453853183065
+  }
+ }
+}

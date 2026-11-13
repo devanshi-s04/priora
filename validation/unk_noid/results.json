@@ -1,0 +1,197 @@
+{
+ "P": {
+  "label": "sample All \u00b7 ds42 All \u00b7 digest2 raw (paper)",
+  "n": 20000,
+  "n_neo": 170,
+  "n_dropped": 0,
+  "auc_ds42": 0.9876684168372342,
+  "auc_d2": 0.9712669455074011,
+  "delta_auc": 0.01640147132983305,
+  "delta_ci": [
+   0.0046672673608021045,
+   0.03158180564207529
+  ],
+  "p_delta_le_0": 0.001,
+  "pred_obs_ds42": 0.9772444434656256,
+  "pred_obs_d2": 6.3581259363519465,
+  "d2_ge65": {
+   "flagged": 369,
+   "neo": 148,
+   "fa": 221,
+   "fa_far": 173,
+   "fa_q_lt_1p67": 17,
+   "fa_q_1p67_4p5": 31,
+   "completeness": 0.8705882352941177,
+   "contamination": 0.5989159891598916
+  },
+  "ds42_matched": {
+   "cut": 0.21385495515799588,
+   "flagged": 158,
+   "neo": 148,
+   "fa": 10,
+   "fa_far": 0,
+   "contamination": 0.06329113924050633
+  },
+  "ds42_p05": {
+   "flagged": 145,
+   "completeness": 0.8294117647058824,
+   "contamination": 0.027586206896551724
+  }
+ },
+ "N": {
+  "label": "sample All \u00b7 ds42 All \u00b7 digest2 NoID",
+  "n": 20000,
+  "n_neo": 170,
+  "n_dropped": 0,
+  "auc_ds42": 0.9876684168372342,
+  "auc_d2": 0.9706766337397289,
+  "delta_auc": 0.016991783097505264,
+  "delta_ci": [
+   0.003991471626472098,
+   0.03292861380558273
+  ],
+  "p_delta_le_0": 0.0005,
+  "pred_obs_ds42": 0.9772444434656256,
+  "pred_obs_d2": 9.431645772104847,
+  "d2_ge65": {
+   "flagged": 489,
+   "neo": 149,
+   "fa": 340,
+   "fa_far": 123,
+   "fa_q_lt_1p67": 30,
+   "fa_q_1p67_4p5": 187,
+   "completeness": 0.8764705882352941,
+   "contamination": 0.6952965235173824
+  },
+  "ds42_matched": {
+   "cut": 0.1898925581033206,
+   "flagged": 159,
+   "neo": 149,
+   "fa": 10,
+   "fa_far": 0,
+   "contamination": 0.06289308176100629
+  },
+  "ds42_p05": {
+   "flagged": 145,
+   "completeness": 0.8294117647058824,
+   "contamination": 0.027586206896551724
+  }
+ },
+ "U": {
+  "label": "sample All \u00b7 ds42 Unk \u00b7 digest2 NoID",
+  "n": 20000,
+  "n_neo": 170,
+  "n_dropped": 0,
+  "auc_ds42": 0.9850763845629024,
+  "auc_d2": 0.9706766337397289,
+  "delta_auc": 0.014399750823173463,
+  "delta_ci": [
+   0.0028365963632048657,
+   0.02815968823232776
+  ],
+  "p_delta_le_0": 0.0055,
+  "pred_obs_ds42": 1.2745605742398,
+  "pred_obs_d2": 9.431645772104847,
+  "d2_ge65": {
+   "flagged": 489,
+   "neo": 149,
+   "fa": 340,
+   "fa_far": 123,
+   "fa_q_lt_1p67": 30,
+   "fa_q_1p67_4p5": 187,
+   "completeness": 0.8764705882352941,
+   "contamination": 0.6952965235173824
+  },
+  "ds42_matched": {
+   "cut": 0.16645643169788918,
+   "flagged": 239,
+   "neo": 149,
+   "fa": 90,
+   "fa_far": 1,
+   "contamination": 0.37656903765690375
+  },
+  "ds42_p05": {
+   "flagged": 160,
+   "completeness": 0.8235294117647058,
+   "contamination": 0.125
+  }
+ },
+ "M": {
+  "label": "sample Unk \u00b7 ds42 Unk \u00b7 digest2 NoID",
+  "n": 19999,
+  "n_neo": 287,
+  "n_dropped": 1,
+  "auc_ds42": 0.9945375427055523,
+  "auc_d2": 0.9845984263993846,
+  "delta_auc": 0.009939116306167728,
+  "delta_ci": [
+   0.003961669115401145,
+   0.017572371416692982
+  ],
+  "p_delta_le_0": 0.0,
+  "pred_obs_ds42": 0.9895988700124043,
+  "pred_obs_d2": 4.700046314159015,
+  "d2_ge65": {
+   "flagged": 556,
+   "neo": 269,
+   "fa": 287,
+   "fa_far": 213,
+   "fa_q_lt_1p67": 16,
+   "fa_q_1p67_4p5": 58,
+   "completeness": 0.9372822299651568,
+   "contamination": 0.5161870503597122
+  },
+  "ds42_matched": {
+   "cut": 0.30029333360664623,
+   "flagged": 280,
+   "neo": 269,
+   "fa": 11,
+   "fa_far": 0,
+   "contamination": 0.039285714285714285
+  },
+  "ds42_p05": {
+   "flagged": 267,
+   "completeness": 0.9198606271777003,
+   "contamination": 0.011235955056179775
+  }
+ },
+ "Mraw": {
+  "label": "sample Unk \u00b7 ds42 Unk \u00b7 digest2 raw",
+  "n": 19999,
+  "n_neo": 287,
+  "n_dropped": 1,
+  "auc_ds42": 0.9945375427055523,
+  "auc_d2": 0.9844874202452599,
+  "delta_auc": 0.010050122460292354,
+  "delta_ci": [
+   0.003016159172926283,
+   0.019212054278474115
+  ],
+  "p_delta_le_0": 0.0,
+  "pred_obs_ds42": 0.9895988700124043,
+  "pred_obs_d2": 4.864454527609477,
+  "d2_ge65": {
+   "flagged": 685,
+   "neo": 268,
+   "fa": 417,
+   "fa_far": 366,
+   "fa_q_lt_1p67": 19,
+   "fa_q_1p67_4p5": 32,
+   "completeness": 0.9337979094076655,
+   "contamination": 0.6087591240875913
+  },
+  "ds42_matched": {
+   "cut": 0.34464763983783747,
+   "flagged": 276,
+   "neo": 268,
+   "fa": 8,
+   "fa_far": 0,
+   "contamination": 0.028985507246376812
+  },
+  "ds42_p05": {
+   "flagged": 267,
+   "completeness": 0.9198606271777003,
+   "contamination": 0.011235955056179775
+  }
+ }
+}

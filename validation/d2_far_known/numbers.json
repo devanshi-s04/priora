@@ -1,0 +1,106 @@
+{
+ "All $4.5\\leq q<10$ AU (Trojans, Centaurs)": {
+  "n": 50,
+  "H_pct": [
+   11.18,
+   13.04,
+   15.19
+  ],
+  "V_pct": [
+   21.0,
+   22.68,
+   23.67
+  ],
+  "rate_deg_day_pct": [
+   0.0498,
+   0.1004,
+   0.1726
+  ],
+  "expected_known": 8.6,
+  "frac_known": 0.172,
+  "known_H_pct": [
+   12.98,
+   14.57,
+   15.6
+  ],
+  "n_known": 15463
+ },
+ "Unk $4.5\\leq q<10$ AU (Trojans, Centaurs)": {
+  "n": 68,
+  "H_pct": [
+   11.08,
+   13.16,
+   15.65
+  ],
+  "V_pct": [
+   21.15,
+   23.12,
+   23.77
+  ],
+  "rate_deg_day_pct": [
+   0.0481,
+   0.1066,
+   0.2196
+  ],
+  "expected_known": 5.0,
+  "frac_known": 0.074,
+  "known_H_pct": [
+   12.98,
+   14.57,
+   15.6
+  ],
+  "n_known": 15463
+ },
+ "All $q\\geq10$ AU (TNOs)": {
+  "n": 123,
+  "H_pct": [
+   5.39,
+   6.96,
+   8.45
+  ],
+  "V_pct": [
+   21.05,
+   22.95,
+   23.72
+  ],
+  "rate_deg_day_pct": [
+   0.0061,
+   0.0206,
+   0.0323
+  ],
+  "expected_known": 12.1,
+  "frac_known": 0.098,
+  "known_H_pct": [
+   6.37,
+   7.62,
+   9.18
+  ],
+  "n_known": 8450
+ },
+ "Unk $q\\geq10$ AU (TNOs)": {
+  "n": 145,
+  "H_pct": [
+   5.14,
+   6.91,
+   8.42
+  ],
+  "V_pct": [
+   21.23,
+   22.99,
+   23.76
+  ],
+  "rate_deg_day_pct": [
+   0.0048,
+   0.0191,
+   0.0301
+  ],
+  "expected_known": 11.7,
+  "frac_known": 0.081,
+  "known_H_pct": [
+   6.37,
+   7.62,
+   9.18
+  ],
+  "n_known": 8450
+ }
+}

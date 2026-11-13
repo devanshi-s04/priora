@@ -1,0 +1,118 @@
+# ds42 packaging.
+#
+# Two artifacts are published, built by two different tools on purpose (see
+# RELEASING.md):
+#
+#   * the **sdist**, built by setuptools (the `[build-system]` backend below).
+#     It carries the Python package *and* the Rust crate sources, but installing
+#     it compiles nothing: `pip install ds42` from source needs no Rust
+#     toolchain and yields the numpy reference implementation, which is exactly
+#     what `backend="auto"` degrades to at run time.  This is what keeps the
+#     package installable on every platform we do not ship a wheel for.
+#   * the **wheels**, built by `maturin` driven as a plain CLI over the
+#     `[tool.maturin]` table below (`maturin build`, never as the PEP 517
+#     backend).  They carry the same Python package plus the compiled
+#     `ds42._core` extension.  Because the crate is built against the
+#     stable ABI (abi3-py311), one wheel per platform covers CPython >= 3.11.
+#
+# Consequences, all deliberate:
+#   * `pip install -e .` / `pip install .` from a checkout is a *pure Python*
+#     install and does not touch cargo, so the CI job that asserts
+#     "no extension present, auto degrades to python" keeps testing the thing a
+#     user actually gets from the sdist, and the documented dev flow
+#     (`pip install -e .` once, then `rust/build.sh` after every crate edit)
+#     is unchanged.
+#   * setuptools and maturin read the *same* `[project]` table, so the two
+#     artifacts cannot disagree about name, version, dependencies or metadata.
+#     The release workflow diffs their METADATA anyway.
+
+[build-system]
+# >=77 for PEP 639 (`license` as an SPDX expression, License-Expression in the
+# metadata).  maturin needs no entry here: it is never the PEP 517 backend.
+requires = ["setuptools>=77", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ds42"
+# The version is derived from git by setuptools-scm: a `vX.Y.Z` tag IS the
+# version (and pushing one publishes the release -- see RELEASING.md); between
+# tags, dev installs get `X.Y.(Z+1).devN+g<hash>`.  There is no hand-maintained
+# version string anywhere: `__init__.__version__` reads installed metadata, and
+# rust/Cargo.toml carries no version (publish = false; the crate is an
+# implementation detail of this package).  The maturin wheel build cannot run
+# setuptools-scm, so release.yml resolves the version from the tag and stamps
+# it into the workspace pyproject before `maturin build` -- see the
+# `version-check` job.
+dynamic = ["version"]
+description = "Bayesian NEO tracklet classification by ranging over topocentric distance and range-rate"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "BSD-3-Clause"
+authors = [
+    { name = "Devanshi Singh", email = "ds2004@uw.edu" },
+    { name = "Mario Juric", email = "mjuric@uw.edu" },
+]
+keywords = ["astronomy", "asteroids", "NEO", "digest2", "classification", "Bayesian", "LSST"]
+# No `License :: ...` classifier: PEP 639 forbids mixing those with the SPDX
+# `license` expression above, and setuptools >= 77 rejects the combination.
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Rust",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "numpy>=1.24",
+    "astropy>=5.3",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+ds42 = "ds42.cli:main"
+ds42-fetch-model = "ds42.fetch_model:main"
+
+[project.urls]
+Homepage = "https://github.com/mjuric/ds42"
+Repository = "https://github.com/mjuric/ds42"
+Issues = "https://github.com/mjuric/ds42/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# The compiled extension and the population model are deliberately absent from
+# the setuptools build: `src/ds42/_core.abi3.so` is a build product of
+# rust/build.sh (and is what maturin puts in the wheel itself), and
+# `data/digest2.model.csv` is fetched at first use by
+# scripts/fetch_digest2_model.py.  Neither is package data.  MANIFEST.in states
+# what the sdist carries; the release workflow asserts what it must not.
+
+[tool.maturin]
+# Mixed Python/Rust layout: the Python package is the authoritative one at
+# `src/ds42` and the crate contributes exactly one submodule to it.  Naming
+# the module `ds42._core` (rather than letting maturin default to the crate
+# name, `ds42_core`) is what makes the wheel a drop-in for the layout
+# rust/build.sh already installs into.  `python-source` must stay in sync with
+# `[tool.setuptools.packages.find] where`.
+python-source = "src"
+module-name = "ds42._core"
+manifest-path = "rust/Cargo.toml"
+# maturin copies `python-source` into the wheel verbatim, which would otherwise
+# pick up a developer's stale bytecode.  (A stale `_core.abi3.so` from
+# rust/build.sh is already overwritten by the freshly built extension.)
+exclude = ["**/__pycache__/**", "**/*.py[cod]"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools_scm]
+# A build from a tarball with no .git (and no PKG-INFO) still installs, with a
+# version that is obviously not a release.
+fallback_version = "0.0.0+unknown"
