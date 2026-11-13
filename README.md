@@ -1,7 +1,7 @@
 # ds42
 
 **A Bayesian approach to prioritizing the follow-up of near-Earth objects.**
-Code, analysis scripts and paper source for Singh, Jurić & Ivezić (AJ, submitted).
+Code, analysis scripts and paper source for Singh, Jurić & Ivezić 
 
 Given a single-night tracklet (two or more detections), ds42 gives the posterior probability that the object is
 a near-Earth object (NEO). It integrates an absolute population model over the tracklet's admissible region.
