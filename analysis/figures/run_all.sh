@@ -34,8 +34,11 @@ fi
 if [ -f "$DS42_ALERTS/score/scores_joined.parquet" ] && [ -f "$DS42_ALERTS/tracklets/pairdets_v5.csv" ]; then
   $PY make_lsst_known_flow.py >/dev/null;                        put rubin_known_flow.pdf rubin_known_flow.pdf
   put rubin_known_flow.png rubin_known_flow.png
+  # Appendix D: field overlaps and tracklets with 3+ detections, one night
+  $PY make_lsst_overlap_night.py >/dev/null;                     put rubin_overlap_night.pdf rubin_overlap_night.pdf
+  put rubin_overlap_night.png rubin_overlap_night.png
 else
-  echo "  skip rubin_known_flow: known-object alert data not in \$DS42_ALERTS (run 'make alerts')"
+  echo "  skip rubin_known_flow: known-object alert data (rubin_known_flow, rubin_overlap_night) not in \$DS42_ALERTS (run 'make alerts')"
 fi
 # Fig. 11  DP2 precovery timeline
 if [ -f "$DS42_ALERTS/dp2/run/score/candidate_verdict_final.parquet" ]; then
