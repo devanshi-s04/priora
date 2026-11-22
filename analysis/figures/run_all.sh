@@ -30,6 +30,13 @@ if [ -f "$DS42_ALERTS/full_nd2/score/scores_joined.parquet" ]; then
 else
   echo "  skip Figs. 9-10: no alert data in \$DS42_ALERTS (run 'make alerts' after downloading the Fink transfers)"
 fi
+# Known objects in the alerts: main-belt flow and flagged tracklets (Sec. 6.2.2)
+if [ -f "$DS42_ALERTS/score/scores_joined.parquet" ] && [ -f "$DS42_ALERTS/tracklets/pairdets_v5.csv" ]; then
+  $PY make_lsst_known_flow.py >/dev/null;                        put rubin_known_flow.pdf rubin_known_flow.pdf
+  put rubin_known_flow.png rubin_known_flow.png
+else
+  echo "  skip rubin_known_flow: known-object alert data not in \$DS42_ALERTS (run 'make alerts')"
+fi
 # Fig. 11  DP2 precovery timeline
 if [ -f "$DS42_ALERTS/dp2/run/score/candidate_verdict_final.parquet" ]; then
   $PY make_dp2_precovery_timeline.py >/dev/null;                 put dp2_precovery_timeline.png dp2_precovery_timeline.png
