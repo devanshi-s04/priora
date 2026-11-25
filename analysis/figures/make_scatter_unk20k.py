@@ -54,7 +54,7 @@ ax.axvline(P10, color=CINK, lw=0.9, ls=":")
 ax.text(1.5e-8, THRESH + 1.5, "digest2 NEOCP threshold", fontsize=7.5, color=CINK, va="bottom",
         bbox=dict(facecolor="white", edgecolor="none", pad=0.6, alpha=0.85))
 ax.text(P10 / 1.35, 34, "$P=0.1$ (10%)", fontsize=7.5, color=CINK, ha="center", va="bottom", rotation=90)
-ax.set(xscale="log", xlim=(1e-8, 1.6), ylim=(-2, 102), xlabel="ds42 $P(\\mathrm{NEO})$", ylabel="digest2 NoID NEO score")
+ax.set(xscale="log", xlim=(1e-8, 1.6), ylim=(-2, 102), xlabel="priora $P(\\mathrm{NEO})$", ylabel="digest2 NoID NEO score")
 ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=3, frameon=False, markerscale=2.2,
           handletextpad=0.1, columnspacing=0.8, fontsize=7.5)
 for ext, kw in (("pdf", {}), ("png", {"dpi": 400})):

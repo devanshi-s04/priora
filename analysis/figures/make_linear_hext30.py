@@ -149,7 +149,7 @@ auc = auc_bootstrap(p42, s2, y, w, n_boot=2000, seed=7)        # same settings a
 
 # --- Fig 2: ROC, linear ------------------------------------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(3.4, 2.9), layout="constrained")
-for sc, col, lbl, key in ((p42, C42, "ds42 $P(\\mathrm{NEO})$", "auc_a"), (s2, CD2, f"digest2 {D2_LABEL} score", "auc_b")):
+for sc, col, lbl, key in ((p42, C42, "priora $P(\\mathrm{NEO})$", "auc_a"), (s2, CD2, f"digest2 {D2_LABEL} score", "auc_b")):
     fpr, tpr = _roc(sc, y, w)
     ax.plot(fpr, tpr, color=col, lw=1.5, drawstyle="steps-post", label=f"{lbl}, AUC = {auc[key]:.4f}")
 ax.plot([0, 1], [0, 1], color=CSUB, lw=0.8, ls=":")
@@ -166,7 +166,7 @@ save(fig, "d2cmp_hext30_roc_linear")
 # --- Fig 3: counts, linear bins and axis -------------------------------------------------------------------------
 R42, RD2 = linbins(p42, y), linbins(pd2, y)
 fig, axes = plt.subplots(1, 2, figsize=(7.1, 3.0), layout="constrained", sharey=True)
-for ax, rows, col, name in ((axes[0], R42, C42, "ds42"), (axes[1], RD2, CD2, "digest2 (score / 100)")):
+for ax, rows, col, name in ((axes[0], R42, C42, "priora"), (axes[1], RD2, CD2, "digest2 (score / 100)")):
     xc = np.array([(r["lo"] + r["hi"]) / 2 for r in rows])
     exp = np.array([r["exp"] for r in rows])
     obs = np.array([r["obs"] for r in rows])

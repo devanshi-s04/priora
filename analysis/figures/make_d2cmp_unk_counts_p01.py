@@ -27,7 +27,7 @@ def rows(p):
     return [(float(p[m].sum()), int(y[m].sum()), float(np.sqrt((p[m] * (1 - p[m])).sum())), int(m.sum())) for m in ms]
 LAB = ["0.1–0.5", "0.5–0.9", "0.9–0.99", "0.99–<1", "$=1$"]
 fig, axes = plt.subplots(1, 2, figsize=(7.1, 2.9), layout="constrained", sharey=True)
-for ax, p, col, name in ((axes[0], p42, C42, "ds42"), (axes[1], pd2, CD2, "digest2 (score / 100)")):
+for ax, p, col, name in ((axes[0], p42, C42, "priora"), (axes[1], pd2, CD2, "digest2 (score / 100)")):
     R = rows(p); x = np.arange(len(R)); exp = np.array([r[0] for r in R]); obs = np.array([r[1] for r in R]); sd = np.array([r[2] for r in R])
     ax.bar(x, exp, width=0.66, color=col, alpha=0.30, lw=0, label="predicted ($\\sum P$)")
     ax.errorbar(x, obs, yerr=sd, fmt="o", ms=3.6, color=col, elinewidth=1.0, capsize=0, label="observed ($\\pm1\\sigma$ if calibrated)")

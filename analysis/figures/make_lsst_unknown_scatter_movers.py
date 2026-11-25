@@ -21,7 +21,7 @@ fig, ax = plt.subplots(figsize=(3.5, 3.0), layout="constrained")
 ax.scatter(x[~mov], y[~mov], s=5, color=CPT, alpha=0.45, lw=0, rasterized=True, label=f"tracklets with 3+ detections ({len(s):,})")
 ax.scatter(x[mov], y[mov], s=110, marker="*", color=CSTAR, ec=CINK, lw=0.6, zorder=5, label=f"NEO candidates ({int(mov.sum())})")
 ax.axhline(65, color=CINK, lw=0.8, ls="--"); ax.axvline(0.1, color=CINK, lw=0.8, ls=":")   # candidate cut, P = 0.1
-ax.set(xscale="log", xlim=(1e-7, 1.6), ylim=(-2, 102), xlabel=r"ds42 $P(\mathrm{NEO})$", ylabel="digest2 raw NEO score")
+ax.set(xscale="log", xlim=(1e-7, 1.6), ylim=(-2, 102), xlabel=r"priora $P(\mathrm{NEO})$", ylabel="digest2 raw NEO score")
 ax.legend(loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=1, frameon=False, handletextpad=0.3)
 for ext in ("pdf", "png"): fig.savefig(OUT / f"lsst_unknown_scatter_movers.{ext}", dpi=300)
 print("static removed:", int(s.index.isin(static).sum()) if False else len(static), "| movers flagged static:", len(set(static) & set(RV.index[RV == "real mover"])), "|", len(s), "tracklets;", int(mov.sum()), "movers:", list(s.index[mov]))

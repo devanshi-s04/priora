@@ -21,7 +21,7 @@ ax.scatter(x[~y & ~fr], yv[~y & ~fr], s=5, color="#b9b6ae", lw=0, rasterized=Tru
 ax.scatter(x[fr], yv[fr], s=10, color="#6b3fa0", lw=0, label="non-NEO, $q\\geq4.5$ AU")
 ax.scatter(x[y], yv[y], s=14, color="#eb6834", lw=0, label="NEO")
 ax.axhline(65, color="k", lw=0.8, ls="--"); ax.axvline(0.1, color="k", lw=0.8, ls=":")
-ax.set(xscale="log", xlim=(1e-8, 1.6), ylim=(-2, 102), xlabel="ds42 $P(\\mathrm{NEO})$", ylabel="digest2 NoID NEO score")
+ax.set(xscale="log", xlim=(1e-8, 1.6), ylim=(-2, 102), xlabel="priora $P(\\mathrm{NEO})$", ylabel="digest2 NoID NEO score")
 fig.legend(*ax.get_legend_handles_labels(), loc="outside upper center", ncol=3, frameon=False, markerscale=1.8, handletextpad=0.2, columnspacing=0.8)
 for ext in ("pdf", "png"): fig.savefig(F + f"neocp_bright_scatter.{ext}", dpi=300)
 plt.close(fig)

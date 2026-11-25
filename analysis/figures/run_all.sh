@@ -19,7 +19,7 @@ put calibration_hext30_reliability_linear_noid_unk800k_indomain.png calibration_
 # Figs. 4-6  digest2 comparison
 $PY make_d2cmp_unk_counts_p01.py >/dev/null;                     put d2cmp_unk_counts_p01.png d2cmp_unk_counts_p01.png
 $PY make_d2cmp_unk_logroc_pr.py >/dev/null;                      put d2cmp_unk_pr.png d2cmp_unk_pr.png
-$PY make_scatter_unk20k.py >/dev/null;                           put d2cmp_scatter_unk20k.png digest2_vs_ds42_20k_unk.png
+$PY make_scatter_unk20k.py >/dev/null;                           put d2cmp_scatter_unk20k.png digest2_vs_priora_20k_unk.png
 # Figs. 7-8  NEOCP bright-sample test
 $PY make_neocp_bright_figs.py >/dev/null
 put neocp_bright_scatter.png neocp_bright_scatter.png;           put neocp_bright_hdist.png neocp_bright_hdist.png

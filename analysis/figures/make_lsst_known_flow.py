@@ -54,7 +54,7 @@ ax.add_collection(LineCollection(seg, colors=CM(NORM(F.ds42_All.values)), linewi
 ax.scatter(S.theta[S.neo], S.bet[S.neo], s=9, facecolor="none", edgecolor="k", lw=0.5, zorder=5)
 ax.set(xlim=XR, ylim=YR, aspect="equal", xlabel="longitude from opposition [deg]", ylabel="ecliptic latitude [deg]")
 cb = fig.colorbar(mpl.cm.ScalarMappable(norm=NORM, cmap=CM), ax=ax, location="top", shrink=0.7, aspect=30, pad=0.02, ticks=[0.1, 0.2, 0.5, 1])
-cb.ax.set_xticklabels(["0.1", "0.2", "0.5", "1"]); cb.ax.minorticks_off(); cb.set_label(r"pneo $P(\mathrm{NEO})$", fontsize=8)
+cb.ax.set_xticklabels(["0.1", "0.2", "0.5", "1"]); cb.ax.minorticks_off(); cb.set_label(r"priora $P(\mathrm{NEO})$", fontsize=8)
 fig.savefig(OUT / "rubin_known_flow.png", dpi=300); fig.savefig(OUT / "rubin_known_flow.pdf"); plt.close(fig)
 w = S.theta.between(XR[1], XR[0]) & S.bet.between(*YR)
 print(f"tracklets {len(S)}, flagged {len(F)} ({int(F.neo.sum())} NEOs), NEOs {int(S.neo.sum())}; "
