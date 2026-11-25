@@ -30,7 +30,7 @@ script and output that produce it.
 | `src/priora`, `rust/` | the classifier (Python package, Rust kernel with the closed-form Jacobian) |
 | `tests/` | unit and regression tests (`make test`) |
 | `docs/` | design notes, decisions, implementation and population-model notes; validation write-ups |
-| `validation/` | simulation, digest2 comparison, astrometric noise, NEOCP and impactor pipelines (Secs. 5–8, 10) |
+| `validation/` | simulation, digest2 comparison, astrometric noise and NEOCP pipelines (Secs. 5–8) |
 | `analysis/` | `figures/` (paper figures), `numbers/` (number checks), `simulations.sh` (full regeneration with the paper's seeds) |
 | `alerts/` | Rubin alert test (Sec. 9): Fink transfers → HelioLinC tracklets → scores; `dp2/`: DP2 precovery test |
 | `paper/` | `main.tex`, `bibliography.bib`, `figures/` |
@@ -41,8 +41,6 @@ script and output that produce it.
 * **Fink alert data.** Not redistributed. `alerts/fink/` gives each transfer's request, so the same data can be
   requested again. Then run `make alerts`.
 * **Rubin DP2.** Available only to Rubin data-rights holders. Only the scripts are here (`alerts/dp2/README.md`).
-* **Imminent-impactor simulation.** The Sorcha detections of imminent impactors in Sec. 10 were provided by Ian Chow,
-  based on the population of Chow et al. (2026). They are available from him.
 
 Without these inputs, `make analysis` still builds every simulation and NEOCP figure. It skips the alert and DP2
 figures and says why.

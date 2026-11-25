@@ -12,10 +12,6 @@ Nothing in this folder is versioned. Every input comes from a `make` target or f
 
 ## Inputs that are not redistributed
 
-* **Imminent-impactor detections (Sec. 10).** The Sorcha simulation of LSST detections of imminent impactors
-  (`validation/impactors/all_obs_precovery.csv`) was provided by Ian Chow and is based on the population of
-  Chow et al. (2026). It is unpublished and is not included; ask Ian Chow for it. The public data release of
-  Chow et al. (2026) is in `validation/impactors/chow2026/`.
 * **Rubin alerts (Sec. 9).** The three Fink Data Transfers are not included. `alerts/fink/` gives the transfer
   settings needed to request the same data from Fink.
 * **Rubin DP2 (Sec. 9.3).** DP2 is available only to Rubin data-rights holders. Only the scripts are here; see

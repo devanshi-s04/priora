@@ -84,7 +84,6 @@ All regenerate with `bash reproduce/figures/run_all.sh` into `reproduce/figures/
 | `pipelines/` | Snapshot copies of the pipelines that produced the stored outputs (`validation/` self-consistency, digest2 comparison, astrometric noise, NEOCP pilot and rescore, quadrature study, bright-sample test). Run the originals in `validation/`; the copies record the versions used. |
 | `alerts/` | Snapshot copies of the Rubin alert pipeline from `~/lsst_alerts_test` (same subfolders). |
 | `dp2/` | Snapshot copies of the DP2 pipeline from `~/lsst_alerts_test/dp2`. DP2 data are for Rubin data-rights holders; keep private. |
-| `impactors/` | `ian_sorcha_score.py` (Sec. 12.3), scoring Ian Chow's Sorcha detections (unpublished; ask before sharing). |
 
 ### How the stored simulation outputs were made
 
@@ -307,10 +306,3 @@ Status: OK = matches the stored output; WRONG / NO SOURCE as listed in the corre
 | 11 | 399.3 vs 393; few distant contaminants (1 vs 59) | | analyze_known.py | numbers_dp2.json | OK |
 | Summary | ML93 "not reported at the time" | | | mpc_obs_2025_ML93.csv | wording: other ML93 detections were reported |
 
-## Section 12.3: imminent impactors
-
-| Quantity | Paper | Script | Stored output | Status |
-|---|---|---|---|---|
-| 343 CNEOS impactors; 18 detected; 48 tracklets | | impactors/ian_sorcha_score.py | validation/impactors/ian_sorcha_scores.csv (input all_obs_precovery.csv from Ian Chow) | OK |
-| 37 flagged by both, same 37; 11 missed by both | | same | same | OK |
-| median warning 2 days; misses 6–25 d, 0.16–0.31 °/day | | same | same | OK |
