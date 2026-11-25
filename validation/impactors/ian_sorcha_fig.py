@@ -1,5 +1,5 @@
 """Timeline figure for the Chow et al. (2026) Sorcha impactor test: one row per impactor, one marker per Rubin tracklet at
-its time before impact; filled = ds42 Unk P >= 0.5, open = P < 0.5; a cross marks digest2 NoID >= 65. New file only."""
+its time before impact; filled = priora Unk P >= 0.5, open = P < 0.5; a cross marks digest2 NoID >= 65. New file only."""
 import numpy as np, pandas as pd, matplotlib as mpl
 mpl.use("Agg"); import matplotlib.pyplot as plt
 T = pd.read_csv("validation/impactors/ian_sorcha_scores.csv")
@@ -16,8 +16,8 @@ for k, o in enumerate(objs):
 ax.set_xscale("log"); ax.invert_xaxis(); ax.set_xlim(100, 0.3)
 ax.set_yticks(range(len(objs)), [o[:4] + "-" + o[4:6] + "-" + o[6:8] for o in objs], fontsize=7.5)
 ax.set_xlabel("days before impact"); ax.set_ylabel("impactor (impact date)")
-h = [plt.Line2D([], [], marker="o", ls="", color="#2a78d6", label="ds42 $P\\geq0.5$"),
-     plt.Line2D([], [], marker="o", ls="", mfc="white", mec="#2a78d6", label="ds42 $P<0.5$"),
+h = [plt.Line2D([], [], marker="o", ls="", color="#2a78d6", label="priora $P\\geq0.5$"),
+     plt.Line2D([], [], marker="o", ls="", mfc="white", mec="#2a78d6", label="priora $P<0.5$"),
      plt.Line2D([], [], marker="x", ls="", color="#eb6834", label="digest2 NoID $\\geq65$")]
 ax.legend(handles=h, loc="lower left", frameon=False, fontsize=7.5)
 for ext in ("png", "pdf"): fig.savefig(f"validation/impactors/page/impactor_timeline.{ext}", dpi=300)

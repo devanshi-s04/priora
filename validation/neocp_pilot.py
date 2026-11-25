@@ -1,8 +1,8 @@
-"""WP8 — real-data NEOCP pilot: ds42 v0 against the real sky (DESIGN §4.3).
+"""WP8 — real-data NEOCP pilot: priora v0 against the real sky (DESIGN §4.3).
 
 What this is
 ------------
-Everything ds42 has been measured on so far was drawn from its own prior:
+Everything priora has been measured on so far was drawn from its own prior:
 the §4.1 self-consistency gate and the §4.2 digest2 head-to-head both sample
 the test population *from* ``data/digest2.model.csv``, the file both codes read.
 This harness is the first contact with real observations and real labels.  It
@@ -42,7 +42,7 @@ from JPL's SBDB (per object) and are cross-checked against the MPC's own
    component (DESIGN §5), so a comet is neither a NEO nor an "other" in the
    sense the two components partition.  They are counted, not scored.
 4. *Space-based discovery stations are excluded* (C51/NEOWISE, 258/Gaia, ...):
-   the MPC obscode table carries no parallax constants for them and ds42's
+   the MPC obscode table carries no parallax constants for them and priora's
    observer model has no spacecraft ephemeris.
 5. *The archive spans 2019-03-21 to 2021-12-21* and stops there; the rolling
    ``ToConfirm_PrevDes.html`` page (~4 months, no years) is fetched as a
@@ -82,7 +82,7 @@ magnitude — so the comparison is same-inputs, not against archived NEOCP score
 of unknown digest2 vintage or unknown model file.  Both codes read
 ``data/digest2.model.csv``.
 
-ds42 is scored **three** times on identical inputs:
+priora is scored **three** times on identical inputs:
 
 * ``All`` — the v0 default, the counterpart of digest2's ``raw`` score;
 * ``Unk`` — the "yet undiscovered" tables, the counterpart of digest2's default
@@ -91,7 +91,7 @@ ds42 is scored **three** times on identical inputs:
   *a priori* the right prior for this use case.  The data disagrees; see the
   report.
 * ``All`` with ``h_top_bin_infinite=True`` — digest2's own [24, inf) top H bin
-  instead of ds42's hard truncation at H = 25.5 (D-4).  Not a cosmetic
+  instead of priora's hard truncation at H = 25.5 (D-4).  Not a cosmetic
   control on real data: for close, fast NEOs the *entire* admissible region can
   imply H > 25.5, at which point both truncated components are zero everywhere
   and the posterior is 0/0.  ~2% of this sample, all of them true NEOs.
@@ -187,7 +187,7 @@ __all__ = [
     "reliability_quantile",
     "score",
     "score_digest2",
-    "score_ds42",
+    "score_priora",
     "select_sample",
     "main",
 ]
@@ -205,7 +205,7 @@ H_TRUNC = 25.5
 #: The D-19 trigger's measure threshold, imported from the classifier rather
 #: than restated, so this module's H-wall detector cannot drift from the branch
 #: it is reconstructing.
-from ds42.classifier import H_TRUNCATION_MEASURE_MIN  # noqa: E402
+from priora.classifier import H_TRUNCATION_MEASURE_MIN  # noqa: E402
 
 #: D-2 / DESIGN §1: the NEO class boundary in perihelion distance [AU].
 Q_NEO = 1.3
@@ -221,8 +221,8 @@ URL_SBDB = "https://ssd-api.jpl.nasa.gov/sbdb.api"
 
 #: Sent on every request.  Plain, identifying, no address of the user's.
 USER_AGENT = (
-    "ds42-validation/0.1 (NEOCP pilot, DESIGN 4.3; "
-    "+https://github.com/mjuric/ds42)"
+    "priora-validation/0.1 (NEOCP pilot, DESIGN 4.3; "
+    "+https://github.com/devanshi-s04/priora)"
 )
 
 #: Minimum seconds between two requests to the same host (politeness).
@@ -300,7 +300,7 @@ MPC_BAND_ALIASES: dict[str, str] = {
 }
 
 #: Equatorial Earth radius used by the MPC to normalise its parallax constants.
-#: Same value as ``ds42.attributable.MPC_EARTH_RADIUS_M``; repeated here so
+#: Same value as ``priora.attributable.MPC_EARTH_RADIUS_M``; repeated here so
 #: the obscode parser has no import-time dependency on the package.
 MPC_EARTH_RADIUS_M = 6378137.0
 
@@ -477,7 +477,7 @@ def parse_obscodes(path: str) -> dict[str, dict]:
     Returns ``{code: {"lon_deg", "rho_cos_phi", "rho_sin_phi", "name"}}`` for
     every code that publishes parallax constants.  Space-based and roving
     codes (Gaia, TESS, "Roving Observer", ...) leave those columns blank and
-    are **omitted**: they define no fixed ITRS site, and ds42's observer
+    are **omitted**: they define no fixed ITRS site, and priora's observer
     model has no spacecraft ephemeris.
     """
     raw = _read_maybe_gzip(path).decode("utf-8", errors="replace")
@@ -514,7 +514,7 @@ def obscode_geodetic(row: dict) -> tuple[float, float, float]:
     ``y = rho cos(phi') sin(lon)``, ``z = rho sin(phi')``.  Those define an
     ITRS position with no ellipsoid involved, so we build the position and let
     astropy invert to geodetic — which is what
-    :func:`ds42.attributable.observatory_location` consumes for any code
+    :func:`priora.attributable.observatory_location` consumes for any code
     outside its 14-entry built-in table.  The round trip is exact to
     sub-millimetre; ``tests/test_neocp_pilot.py`` checks it against every entry
     of that built-in table.
@@ -1299,7 +1299,7 @@ def load_tracklets(out_dir: str = DEFAULT_OUT) -> tuple[list[Tracklet], dict]:
 
 
 # --------------------------------------------------------------------------
-# score: ds42 (both variants) and digest2, same detections
+# score: priora (both variants) and digest2, same detections
 # --------------------------------------------------------------------------
 
 _W: dict = {}
@@ -1309,11 +1309,11 @@ def _init_worker(model: str, variant: str, cfg: dict, clamp: bool = False) -> No
     """Parse the 45,936-bin model once per worker, not once per tracklet.
 
     ``clamp`` builds the pair with ``h_top_bin_infinite=True``, i.e. with
-    digest2's own [24, inf) top H bin instead of ds42's hard truncation at
+    digest2's own [24, inf) top H bin instead of priora's hard truncation at
     H = 25.5 (D-4).  On this real sample that is not a cosmetic control: see
     the report's "did anything break" section.
     """
-    from ds42.population import Digest2Histogram
+    from priora.population import Digest2Histogram
 
     neo, other = Digest2Histogram.neo_other_pair(
         model, variant, h_top_bin_infinite=bool(clamp)
@@ -1325,7 +1325,7 @@ def _score_one(task: tuple) -> tuple:
     """Score one real tracklet.  Module level and picklable (multiprocessing)."""
     from astropy.time import Time
 
-    from ds42 import Attributable, classify
+    from priora import Attributable, classify
 
     (idx, ra, dec, ra_rate, dec_rate, jd, v_mag, lon, lat, height) = task
     cfg = _W["cfg"]
@@ -1386,7 +1386,7 @@ SCORE_FIELDS = (
 _INT_FIELDS = {"index", "n_nodes", "n_masked_nonfinite", "n_masked_det"}
 
 
-def score_ds42(
+def score_priora(
     tracklets: list[Tracklet],
     variant: str = "All",
     model: str = DEFAULT_MODEL,
@@ -1399,7 +1399,7 @@ def score_ds42(
     clamp: bool = False,
     verbose: bool = True,
 ) -> dict[str, np.ndarray]:
-    """Score every tracklet with ds42 v0 in one model variant."""
+    """Score every tracklet with priora v0 in one model variant."""
     import multiprocessing as mp
 
     cfg = {
@@ -1447,7 +1447,7 @@ def score_ds42(
     }
     if verbose:
         print(
-            f"[ds42/{variant}{'+clamp' if clamp else ''}] "
+            f"[priora/{variant}{'+clamp' if clamp else ''}] "
             f"{len(rows)} tracklets in {elapsed:.1f} s "
             f"({1e3 * elapsed / max(len(rows), 1):.0f} ms/tracklet wall, "
             f"{workers} workers)"
@@ -1469,14 +1469,14 @@ def emit_ades_psv(tracklets: list[Tracklet], path: str) -> dict:
     ids are not guaranteed unique across the sample.  Everything else —
     station, time, RA/Dec, magnitude, band — is exactly what the MPC published,
     and the band is left native so digest2 applies its own conversion (the same
-    table :data:`BAND_TO_V` gives ds42).
+    table :data:`BAND_TO_V` gives priora).
     """
     from astropy.time import Time
 
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
     n_obs = 0
     with open(path, "w") as fh:
-        fh.write("# ds42 WP8 NEOCP pilot: real MPC discovery-tracklet astrometry\n")
+        fh.write("# priora WP8 NEOCP pilot: real MPC discovery-tracklet astrometry\n")
         fh.write(_PSV_HEADER + "\n")
         for i, t in enumerate(tracklets):
             # Native bands are unknown per-detection after the median, so the
@@ -1587,13 +1587,13 @@ def score(
     skip_digest2: bool = False,
     verbose: bool = True,
 ) -> dict:
-    """Stage 3: score with ds42 (All + Unk) and digest2, same detections."""
+    """Stage 3: score with priora (All + Unk) and digest2, same detections."""
     tracklets, _ = load_tracklets(out_dir)
     if not tracklets:
         raise RuntimeError("no tracklets built; run build first")
 
     store: dict[str, np.ndarray] = {}
-    # Three ds42 passes: the two D-10 model variants, plus the "All"
+    # Three priora passes: the two D-10 model variants, plus the "All"
     # variant with digest2's [24, inf) top H bin.  The clamped pass is not a
     # curiosity on real data: for close fast NEOs the entire admissible region
     # can imply H > 25.5, at which point both truncated components are zero
@@ -1603,7 +1603,7 @@ def score(
         ("unk", "Unk", False),
         ("allclamp", "All", True),
     ):
-        cols = score_ds42(
+        cols = score_priora(
             tracklets,
             variant=variant,
             model=model,
@@ -1614,7 +1614,7 @@ def score(
             verbose=verbose,
         )
         for k, v in cols.items():
-            store[f"ds42_{prefix}_{k}"] = v
+            store[f"priora_{prefix}_{k}"] = v
 
     d2_stats: dict = {"skipped": True}
     if not skip_digest2:
@@ -1639,7 +1639,7 @@ def score(
         "n_rho": int(n_rho),
         "n_rhodot": int(n_rhodot),
         "workers": int(workers),
-        "backend": os.environ.get("DS42_BACKEND", "auto"),
+        "backend": os.environ.get("PRIORA_BACKEND", "auto"),
         "digest2": d2_stats,
         "n_tracklets": len(tracklets),
     }
@@ -1863,7 +1863,7 @@ def analyze(out_dir: str = DEFAULT_OUT, n_boot: int = 4000, seed: int = 11,
 
     y = store["is_neo"].astype(bool)
     w = np.ones(y.size)
-    frac_h = store["ds42_all_ar_frac_h_above"]
+    frac_h = store["priora_all_ar_frac_h_above"]
     masks = subset_masks(frac_h)
 
     has_d2 = "d2_raw_neo" in store
@@ -1896,22 +1896,22 @@ def analyze(out_dir: str = DEFAULT_OUT, n_boot: int = 4000, seed: int = 11,
         pol = _policy_mask(prefix)
         return np.where(pol, np.nan, raw), pol
 
-    p_all_raw = np.asarray(store["ds42_all_p_neo"], dtype=float)
-    p_all, policy_all_col = _likelihood_only("ds42_all")
-    p_unk, policy_unk_col = _likelihood_only("ds42_unk")
+    p_all_raw = np.asarray(store["priora_all_p_neo"], dtype=float)
+    p_all, policy_all_col = _likelihood_only("priora_all")
+    p_unk, policy_unk_col = _likelihood_only("priora_unk")
 
     p_clamp = None
     policy_clamp_col = np.zeros(y.size, dtype=bool)
-    if "ds42_allclamp_p_neo" in store:
-        p_clamp, policy_clamp_col = _likelihood_only("ds42_allclamp")
+    if "priora_allclamp_p_neo" in store:
+        p_clamp, policy_clamp_col = _likelihood_only("priora_allclamp")
     has_clamp = p_clamp is not None
 
     scores = {
-        "ds42 All": p_all,
-        "ds42 Unk": p_unk,
+        "priora All": p_all,
+        "priora Unk": p_unk,
     }
     if has_clamp:
-        scores["ds42 All H-clamped"] = p_clamp
+        scores["priora All H-clamped"] = p_clamp
     if has_d2:
         scores["digest2 raw (All)"] = d2_raw
         scores["digest2 noid (Unk)"] = d2_noid
@@ -1987,15 +1987,15 @@ def analyze(out_dir: str = DEFAULT_OUT, n_boot: int = 4000, seed: int = 11,
             & (store[f"{prefix}_ar_frac_h_above"] >= H_TRUNCATION_MEASURE_MIN)
         )
 
-    wall_all = _wall_mask("ds42_all")
-    wall_unk = _wall_mask("ds42_unk")
+    wall_all = _wall_mask("priora_all")
+    wall_unk = _wall_mask("priora_unk")
     # RAW (unmasked) columns in this block only: it reports what the run
     # actually recorded, policy assignments included.  `p_all`/`p_unk`/
     # `p_clamp` stay the likelihood-only views everywhere else, so no statistic
     # below can pick up a policy score by accident.
-    p_unk_raw = np.asarray(store["ds42_unk_p_neo"], dtype=float)
+    p_unk_raw = np.asarray(store["priora_unk_p_neo"], dtype=float)
     p_clamp_raw = (
-        np.asarray(store["ds42_allclamp_p_neo"], dtype=float)
+        np.asarray(store["priora_allclamp_p_neo"], dtype=float)
         if has_clamp else None
     )
     unscored_all = ~np.isfinite(p_all_raw)
@@ -2021,17 +2021,17 @@ def analyze(out_dir: str = DEFAULT_OUT, n_boot: int = 4000, seed: int = 11,
         "policy_assigned_frac_true_neo": (
             float(y[policy_all].mean()) if policy_all.any() else float("nan")
         ),
-        "empty_admissible_region": int((store["ds42_all_n_nodes"] == 0).sum()),
+        "empty_admissible_region": int((store["priora_all_n_nodes"] == 0).sum()),
         "n_masked_nonfinite_median": float(
-            np.median(store["ds42_all_n_masked_nonfinite"])
+            np.median(store["priora_all_n_masked_nonfinite"])
         ),
-        "n_masked_det_total": int(store["ds42_all_n_masked_det"].sum()),
+        "n_masked_det_total": int(store["priora_all_n_masked_det"].sum()),
         "ar_frac_h_above_median": float(np.median(frac_h)),
         "ar_frac_h_above_gt_1e2": float(np.mean(frac_h > 1e-2)),
         "ar_frac_h_above_gt_1e1": float(np.mean(frac_h > 1e-1)),
         "n_clean": int(masks["clean"].sum()),
         "n_broken": int(masks["broken"].sum()),
-        "ds42_seconds_median": float(np.median(store["ds42_all_seconds"])),
+        "priora_seconds_median": float(np.median(store["priora_all_seconds"])),
         # Saturation.  p = 0 exactly means Lambda_NEO is exactly zero while
         # Lambda_other is not.  p = 1 exactly now has TWO causes and they must
         # not be conflated (D-19):
@@ -2088,7 +2088,7 @@ def analyze(out_dir: str = DEFAULT_OUT, n_boot: int = 4000, seed: int = 11,
         # so the number is the same before and after D-19 — under D-19 the D-4
         # pair also returns a *number* for these, but a policy assignment is
         # not a recovery and must not be counted as one.
-        wall_clamp = _wall_mask("ds42_allclamp")
+        wall_clamp = _wall_mask("priora_allclamp")
         nan_clamp = ~np.isfinite(p_clamp_raw)
         recovered = wall_all & ~wall_clamp
         summary["robustness"]["clamp"] = {
@@ -2199,34 +2199,34 @@ def analyze(out_dir: str = DEFAULT_OUT, n_boot: int = 4000, seed: int = 11,
             },
         }
         entry["paired"] = {
-            "ds42_All_vs_ds42_Unk": paired_auc_bootstrap(
+            "priora_All_vs_priora_Unk": paired_auc_bootstrap(
                 p_all[m], p_unk[m], y[m], w[m], n_boot=n_boot, seed=seed
             )
         }
         if has_clamp:
-            entry["paired"]["ds42_All_clamped_vs_digest2_raw"] = (
+            entry["paired"]["priora_All_clamped_vs_digest2_raw"] = (
                 paired_auc_bootstrap(
                     p_clamp[m], d2_raw[m], y[m], w[m], n_boot=n_boot, seed=seed
                 )
                 if has_d2
                 else {}
             )
-            entry["paired"]["ds42_All_clamped_vs_All"] = paired_auc_bootstrap(
+            entry["paired"]["priora_All_clamped_vs_All"] = paired_auc_bootstrap(
                 p_clamp[m], p_all[m], y[m], w[m], n_boot=n_boot, seed=seed
             )
         if has_d2:
-            entry["paired"]["ds42_All_vs_digest2_raw"] = paired_auc_bootstrap(
+            entry["paired"]["priora_All_vs_digest2_raw"] = paired_auc_bootstrap(
                 p_all[m], d2_raw[m], y[m], w[m], n_boot=n_boot, seed=seed
             )
-            entry["paired"]["ds42_Unk_vs_digest2_noid"] = paired_auc_bootstrap(
+            entry["paired"]["priora_Unk_vs_digest2_noid"] = paired_auc_bootstrap(
                 p_unk[m], d2_noid[m], y[m], w[m], n_boot=n_boot, seed=seed
             )
         summary["auc"][subset] = entry
 
     # -- calibration --------------------------------------------------------
-    cal_scores = {"ds42 All": p_all, "ds42 Unk": p_unk}
+    cal_scores = {"priora All": p_all, "priora Unk": p_unk}
     if has_clamp:
-        cal_scores["ds42 All H-clamped"] = p_clamp
+        cal_scores["priora All H-clamped"] = p_clamp
     if has_d2:
         cal_scores["digest2 raw/100"] = d2_raw / 100.0
         cal_scores["digest2 noid/100"] = d2_noid / 100.0
@@ -2370,11 +2370,11 @@ def _disagreement(tracklets, p42, d2, y, percentile_rank, k: int = 10) -> dict:
         "rank_correlation": float(np.corrcoef(r42, rd2)[0, 1]),
         "frac_rank_gap_gt_0.25": float(np.mean(np.abs(delta) > 0.25)),
         "digest2_ranks_above": lo,
-        "ds42_ranks_above": hi,
+        "priora_ranks_above": hi,
         "digest2_above_true_neo_frac": float(
             np.mean([r["true_neo"] for r in lo])
         ),
-        "ds42_above_true_neo_frac": float(
+        "priora_above_true_neo_frac": float(
             np.mean([r["true_neo"] for r in hi])
         ),
     }
@@ -2486,8 +2486,8 @@ def _plot_variant_scatter(p_all, p_unk, y, out_dir: str) -> str:
     ax.set_ylim(eps, 1.6)
     ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xlabel("ds42 p_neo, All variant")
-    ax.set_ylabel("ds42 p_neo, Unk variant")
+    ax.set_xlabel("priora p_neo, All variant")
+    ax.set_ylabel("priora p_neo, Unk variant")
     ax.set_title("All vs Unk model variant (D-10 open question)", fontsize=9)
     ax.legend(fontsize=8, loc="upper left")
     return _save(fig, out_dir, "variant_scatter.png")
@@ -2503,9 +2503,9 @@ def _plot_scatter(p42, d2, y, out_dir: str) -> str:
     ax.set_xlim(eps, 1.6)
     ax.axhline(D2_NEOCP_THRESHOLD, color="0.4", ls="--", lw=0.9,
                label="digest2 NEOCP cut = 65")
-    ax.axvline(0.5, color="0.4", ls=":", lw=0.9, label="ds42 p = 0.5")
+    ax.axvline(0.5, color="0.4", ls=":", lw=0.9, label="priora p = 0.5")
     ax.set_xscale("log")
-    ax.set_xlabel("ds42 p_neo (All)")
+    ax.set_xlabel("priora p_neo (All)")
     ax.set_ylabel("digest2 raw NEO score")
     ax.set_title("Same detections, same model file", fontsize=9)
     ax.legend(fontsize=7, loc="lower right")
@@ -2528,7 +2528,7 @@ def _plot_truncation(frac_h, p42, y, out_dir: str) -> str:
     axes[1].set_xscale("log")
     axes[1].set_yscale("log")
     axes[1].set_xlabel(f"measure fraction at H > {H_TRUNC}")
-    axes[1].set_ylabel("ds42 p_neo (All)")
+    axes[1].set_ylabel("priora p_neo (All)")
     axes[1].legend(fontsize=8)
     return _save(fig, out_dir, "truncation.png")
 
@@ -2569,7 +2569,7 @@ def _headline(s: dict, A) -> None:
     single = auc.get("single", {})
     paired = auc.get("paired", {})
     cal = s.get("calibration", {}).get("all", {})
-    c42 = cal.get("ds42 All", {})
+    c42 = cal.get("priora All", {})
     cd2 = cal.get("digest2 raw/100", {})
     ops = (s.get("operating_points", {}) or {}).get("all", {})
     census = s.get("census", {})
@@ -2601,16 +2601,16 @@ def _headline(s: dict, A) -> None:
           f"(ECE {_fmt(cd2.get('ece'), '.1e')}). The NEOCP cut is a function "
           "of the observables alone, so it is exactly the ε(A, V) that "
           "DESIGN §2.4 shows cancels in the posterior.")
-    d_raw = paired.get("ds42_All_vs_digest2_raw")
+    d_raw = paired.get("priora_All_vs_digest2_raw")
     if d_raw and single:
-        A(f"- **Ranking**: AUC {_fmt(single.get('ds42 All'), '.4f')} "
-          f"(ds42 All) vs {_fmt(single.get('digest2 raw (All)'), '.4f')} "
+        A(f"- **Ranking**: AUC {_fmt(single.get('priora All'), '.4f')} "
+          f"(priora All) vs {_fmt(single.get('digest2 raw (All)'), '.4f')} "
           f"(digest2 raw), ΔAUC {_ci(d_raw)}, P(Δ ≤ 0) = "
           f"{_fmt(d_raw.get('p_delta_le_0'), '.3f')} — the same sign and "
           "magnitude as WP7's synthetic +0.007, not resolved at this sample "
           "size, **and censored against digest2** (the sample is what digest2 "
           "already accepted).")
-    d_unk = paired.get("ds42_All_vs_ds42_Unk")
+    d_unk = paired.get("priora_All_vs_priora_Unk")
     if d_unk:
         A(f"- **D-10, All vs Unk: keep `All`.** ΔAUC(All - Unk) = "
           f"{_ci(d_unk)}, P(Δ ≤ 0) = "
@@ -2621,13 +2621,13 @@ def _headline(s: dict, A) -> None:
           "it.")
     if ops:
         d2pt = ops.get("digest2_neocp", {})
-        m42 = ops.get("ds42_matched", {})
-        p50 = ops.get("ds42_p50", {})
+        m42 = ops.get("priora_matched", {})
+        p50 = ops.get("priora_p50", {})
         A(f"- **Operationally**, inside this already-filtered sample: "
           f"digest2's own cut (`raw >= 65`) flags {d2pt.get('n_flagged')} "
           f"tracklets at {_fmt(d2pt.get('completeness'), '.1%')} completeness "
           f"and {_fmt(d2pt.get('contamination'), '.1%')} contamination; "
-          f"ds42 matches that completeness at "
+          f"priora matches that completeness at "
           f"{_fmt(m42.get('contamination'), '.1%')} contamination, and at its "
           f"natural p >= 0.5 gives {_fmt(p50.get('completeness'), '.1%')} "
           f"completeness at {_fmt(p50.get('contamination'), '.1%')}.")
@@ -2856,8 +2856,8 @@ def build_report(s: dict) -> str:
         A(f"| ... of the 1.0s: one-sided posteriors / D-19 policy assignments | "
           f"{r['p_neo_exactly_one_one_sided_posterior']} / "
           f"{r['p_neo_exactly_one_policy_assigned']} |")
-    A(f"| median ds42 CPU per tracklet [s] | "
-      f"{_fmt(r['ds42_seconds_median'], '.2f')} |")
+    A(f"| median priora CPU per tracklet [s] | "
+      f"{_fmt(r['priora_seconds_median'], '.2f')} |")
     if "digest2_unscored" in r:
         A(f"| digest2 tracklets it declined to score | {r['digest2_unscored']} |")
     A("")
@@ -3027,13 +3027,13 @@ def build_report(s: dict) -> str:
     A("![calibration](calibration.png)")
     A("")
     _cal_all = s["calibration"].get("all", {}) or {}
-    cal_42 = _cal_all.get("ds42 All", {})
+    cal_42 = _cal_all.get("priora All", {})
     cal_d2 = _cal_all.get("digest2 raw/100", {})
-    cal_clamp = _cal_all.get("ds42 All H-clamped", {}) or {}
+    cal_clamp = _cal_all.get("priora All H-clamped", {}) or {}
     A("**How to read this — and the pilot's most interesting result.** The "
       "expectation going in was that calibration *had* to degrade here: the "
       "sample is a digest2-selected slice of the sky, and v0's prior is a "
-      "2011 population model. It did not. ds42's posterior predicts "
+      "2011 population model. It did not. priora's posterior predicts "
       f"{_fmt(cal_42.get('expected_positives'), '.1f')} NEOs against "
       f"{_fmt(cal_42.get('observed_positives'), '.1f')} observed "
       f"(ratio {_fmt(cal_42.get('ratio_expected_observed'), '.2f')}, "
@@ -3088,7 +3088,7 @@ def build_report(s: dict) -> str:
         A("| variant | pred/obs | ECE | Brier | AUC (all) |")
         A("|---|---:|---:|---:|---:|")
         auc_all = s["auc"].get("all", {}).get("single", {})
-        for name in ("ds42 All", "ds42 Unk", "ds42 All H-clamped"):
+        for name in ("priora All", "priora Unk", "priora All H-clamped"):
             st = cal_all.get(name)
             if not st:
                 continue
@@ -3098,7 +3098,7 @@ def build_report(s: dict) -> str:
         A("")
     auc_all = s["auc"].get("all", {}).get("single", {})
     d_all_unk = (
-        s["auc"].get("all", {}).get("paired", {}).get("ds42_All_vs_ds42_Unk")
+        s["auc"].get("all", {}).get("paired", {}).get("priora_All_vs_priora_Unk")
     )
     if d_all_unk:
         A(f"**The answer is All, and it is not close.** ΔAUC(All - Unk) = "
@@ -3150,8 +3150,8 @@ def build_report(s: dict) -> str:
         ops_all = (s.get("operating_points", {}) or {}).get("all", {})
         if ops_all:
             d2pt = ops_all.get("digest2_neocp", {})
-            m42 = ops_all.get("ds42_matched", {})
-            p50 = ops_all.get("ds42_p50", {})
+            m42 = ops_all.get("priora_matched", {})
+            p50 = ops_all.get("priora_p50", {})
             c_d2 = d2pt.get("contamination") or float("nan")
             c_50 = p50.get("contamination") or float("nan")
             gain = c_d2 / c_50 if c_50 else float("nan")
@@ -3167,7 +3167,7 @@ def build_report(s: dict) -> str:
               "method: the easy non-NEOs that made up most of WP7's "
               "false-positive budget were never posted to the NEOCP, so they "
               "are not in this sample to remove. The operationally useful "
-              "number is the other row: ds42 at its own p >= 0.5 flags "
+              "number is the other row: priora at its own p >= 0.5 flags "
               f"{p50.get('n_flagged')} tracklets, "
               f"{_fmt(p50.get('completeness'), '.1%')} complete at "
               f"{_fmt(p50.get('contamination'), '.1%')} contamination — a "
@@ -3193,7 +3193,7 @@ def build_report(s: dict) -> str:
     if dis:
         A("## Disagreement census")
         A("")
-        A(f"Percentile-rank correlation between ds42 (All) and digest2 "
+        A(f"Percentile-rank correlation between priora (All) and digest2 "
           f"(raw): **{_fmt(dis['rank_correlation'], '.3f')}**; "
           f"{_fmt(dis['frac_rank_gap_gt_0.25'], '.1%')} of tracklets differ by "
           "more than a quarter of the sample in rank. That is far tighter "
@@ -3203,11 +3203,11 @@ def build_report(s: dict) -> str:
           "mostly the region where both agree.")
         A("")
         A("The residual tails still carry WP7's signature. The tracklets "
-          "digest2 ranks furthest above ds42 are dominated by **slow, "
+          "digest2 ranks furthest above priora are dominated by **slow, "
           "distant** objects — Hilda/Trojan/Centaur-like, q ~ 4.6-5.0 AU, "
           "rates ~0.1 deg/day — which digest2 saturates near 75-80 and "
-          "ds42 puts at 1e-4, exactly the failure mode WP7 identified. In "
-          "the other tail ds42 sits above digest2 on Mars-crossers and "
+          "priora puts at 1e-4, exactly the failure mode WP7 identified. In "
+          "the other tail priora sits above digest2 on Mars-crossers and "
           "high-e inner-belt objects, where both codes are low in absolute "
           "terms and the rank gap costs little. Note also the tracklets where "
           "both saturate (p = 1.0 and raw = 100): they appear in these tables "
@@ -3215,8 +3215,8 @@ def build_report(s: dict) -> str:
           "information.")
         A("")
         for key, title in (
-            ("digest2_ranks_above", "digest2 ranks far above ds42"),
-            ("ds42_ranks_above", "ds42 ranks far above digest2"),
+            ("digest2_ranks_above", "digest2 ranks far above priora"),
+            ("priora_ranks_above", "priora ranks far above digest2"),
         ):
             A(f"**{title}**")
             A("")
@@ -3242,7 +3242,7 @@ def build_report(s: dict) -> str:
       f"{_fmt(r['ar_frac_h_above_gt_1e2'], '.1%')} of tracklets exceed 1e-2 "
       f"and {_fmt(r['ar_frac_h_above_gt_1e1'], '.1%')} exceed 1e-1. The "
       f"WP7 \"clean\" subset (< 1e-3, where digest2's [24, inf) top H bin and "
-      f"ds42's hard truncation at {H_TRUNC} really do read the same "
+      f"priora's hard truncation at {H_TRUNC} really do read the same "
       f"effective model) holds **{r['n_clean']}** of {s['n_tracklets']} "
       "tracklets here, against 22% of the synthetic gate catalogue. That is "
       "a finding rather than an inconvenience: real NEOCP discovery tracklets "
@@ -3250,11 +3250,11 @@ def build_report(s: dict) -> str:
       "past the model's support, and the DESIGN §4.2 \"same inputs\" premise "
       "is broken for nearly all of them. The WP7 clamped control "
       "(`DIGEST2_COMPARISON_CLAMPED.md`) is the mechanism that repairs the "
-      "premise, and it is run here as a third ds42 pass: with digest2's "
+      "premise, and it is run here as a third priora pass: with digest2's "
       "top H bin on both sides no tracklet is scored against a different "
       "effective model, and the ranking barely moves "
       f"(ΔAUC(clamped - All) = "
-      f"{_ci((s['auc'].get('all', {}).get('paired', {}) or {}).get('ds42_All_clamped_vs_All', {}))}"
+      f"{_ci((s['auc'].get('all', {}).get('paired', {}) or {}).get('priora_All_clamped_vs_All', {}))}"
       ") — the clamp's value here is that it *scores at all* the 2% of "
       "candidates the truncated pair refuses, not that it re-ranks anything.")
     A("")
@@ -3284,8 +3284,8 @@ def build_report(s: dict) -> str:
     A("- **Observatory geolocation**: MPC parallax constants -> ITRS -> WGS84 "
       "geodetic, then passed to `classify(lon_deg=..., lat_deg=..., "
       "height_m=...)`. The unit tests check this reproduces every entry of "
-      "`ds42.attributable.MPC_OBSCODES` to sub-metre.")
-    A("- **Times** are UTC as published; ds42 converts to TDB internally.")
+      "`priora.attributable.MPC_OBSCODES` to sub-metre.")
+    A("- **Times** are UTC as published; priora converts to TDB internally.")
     A("- **No light-time correction** anywhere, matching v0's convention.")
     A("- **The discovery tracklet is a reconstruction**, not a record of what "
       "digest2 saw at NEOCP time: the MPC back-fills the NEOCP `trksub` onto "
@@ -3299,7 +3299,7 @@ def build_report(s: dict) -> str:
     A("## Reproduce")
     A("")
     A("```")
-    A("DS42_BACKEND=python python -m validation.neocp_pilot all "
+    A("PRIORA_BACKEND=python python -m validation.neocp_pilot all "
       "--n 500 --workers 90")
     A("```")
     A("")
@@ -3329,7 +3329,7 @@ def _json_default(o):
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="validation.neocp_pilot",
-        description="Real-data NEOCP pilot for ds42 v0 (DESIGN §4.3).",
+        description="Real-data NEOCP pilot for priora v0 (DESIGN §4.3).",
     )
     ap.add_argument("stage", choices=["fetch", "build", "score", "analyze", "all"])
     ap.add_argument("--out", default=DEFAULT_OUT)

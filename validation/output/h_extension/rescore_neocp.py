@@ -80,7 +80,7 @@ def _pair():
 
 
 def _init_worker(kind: str) -> None:
-    from digest42.population import Digest2Histogram
+    from priora.population import Digest2Histogram
 
     neo, other = Digest2Histogram.neo_other_pair(MODEL, "All", **CONFIGS[kind])
     _W["neo"] = neo
@@ -91,8 +91,8 @@ def _init_worker(kind: str) -> None:
 def _score_one(task: tuple) -> dict:
     from astropy.time import Time
 
-    from digest42 import Attributable, classify
-    from digest42.classifier import h_support_end
+    from priora import Attributable, classify
+    from priora.classifier import h_support_end
 
     (idx, ra, dec, ra_rate, dec_rate, jd, v_mag, lon, lat, height) = task
     att = Attributable(

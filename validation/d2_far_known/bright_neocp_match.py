@@ -3,7 +3,7 @@ NEOCP-like brightness and known objects are removed?
   1. V < 21.2 (NEOCP sample median 21.14 + 0.1).
   2. 'Known' = brighter than the peak of the known-object H distribution in MPCORB for the object's orbit range
      (NEO q<1.3, Mars-crosser 1.3-1.67, inner/main 1.67-4.5, Trojan/Centaur 4.5-10, TNO >= 10 AU), applied to every class.
-  3. Completeness / contamination at digest2 >= 65 and at ds42's matched cut, before and after removing known objects,
+  3. Completeness / contamination at digest2 >= 65 and at priora's matched cut, before and after removing known objects,
      against the NEOCP numbers for the same pairing (All/raw = Table 5; Unk/NoID = validation/output/neocp_unk_ext).
 Also the same numbers for the Unk sample with 3-detection digest2 tracklets. -> bright_match.json, bright_scatter_*.png/pdf"""
 import os
@@ -14,7 +14,7 @@ mpl.use("Agg"); import matplotlib.pyplot as plt
 OUT = Path(__file__).resolve().parent; O = Path("validation/output")
 QR = [(0, 1.3, "NEO"), (1.3, 1.667, "Mars-crosser"), (1.667, 4.5, "main belt"), (4.5, 10, "Trojan/Centaur"), (10, 1e9, "TNO")]
 Hs, qs = [], []
-with gzip.open(Path(os.environ["DS42_ALERTS"]) / "dp2/mpcorb/MPCORB.DAT.gz", "rt", errors="ignore") as f:
+with gzip.open(Path(os.environ["PRIORA_ALERTS"]) / "dp2/mpcorb/MPCORB.DAT.gz", "rt", errors="ignore") as f:
     go = False
     for L in f:
         if L.startswith("-----"): go = True; continue
@@ -36,7 +36,7 @@ def ops(y, q, p, s):
         d2_fa_q=[int((sel & ~y & (q < 1.67)).sum()), int((sel & ~y & (q >= 1.67) & (q < 4.5)).sum()), int((sel & ~y & (q >= 4.5)).sum())])
     if tp:
         cut = np.sort(p[y])[::-1][tp - 1]; s2 = p >= cut
-        r.update(ds42_cut=float(cut), ds42_flagged=int(s2.sum()), ds42_contam=float((s2 & ~y).sum() / s2.sum()), ds42_fa_q=[int((s2 & ~y & (q < 1.67)).sum()), int((s2 & ~y & (q >= 1.67) & (q < 4.5)).sum()), int((s2 & ~y & (q >= 4.5)).sum())])
+        r.update(priora_cut=float(cut), priora_flagged=int(s2.sum()), priora_contam=float((s2 & ~y).sum() / s2.sum()), priora_fa_q=[int((s2 & ~y & (q < 1.67)).sum()), int((s2 & ~y & (q >= 1.67) & (q < 4.5)).sum()), int((s2 & ~y & (q >= 4.5)).sum())])
     s5 = p >= 0.5; r.update(p05_flagged=int(s5.sum()), p05_complete=float((s5 & y).sum() / y.sum()), p05_contam=float((s5 & ~y).sum() / s5.sum()) if s5.sum() else np.nan)
     return r
 res = {"known_peak_H": peaks}
@@ -55,7 +55,7 @@ for nm, (run, d2, sc) in CFG.items():
         ax.scatter(x[~y & ~far], yv[~y & ~far], s=6, color="#b9b6ae", lw=0, label="non-NEO, $q<4.5$ AU"); ax.scatter(x[far], yv[far], s=10, color="#6b3fa0", lw=0, label="non-NEO, $q\\geq4.5$ AU")
         ax.scatter(x[y], yv[y], s=16, color="#eb6834", lw=0, label="NEO"); ax.axhline(65, color="k", lw=0.8, ls="--"); ax.axvline(0.1, color="k", lw=0.8, ls=":")
         r = ops(D["y"][sel], D["q"][sel], D["p"][sel], D["s"][sel])
-        ax.set(xscale="log", xlim=(1e-8, 1.6), ylim=(-2, 102), xlabel="ds42 $P(\\mathrm{NEO})$", title=f"{ttl}: {r['n']:,} tracklets, {r['neos']} NEOs")
+        ax.set(xscale="log", xlim=(1e-8, 1.6), ylim=(-2, 102), xlabel="priora $P(\\mathrm{NEO})$", title=f"{ttl}: {r['n']:,} tracklets, {r['neos']} NEOs")
         ax.text(0.03, 0.97, f"digest2$\\geq$65: {100 * r['d2_complete']:.0f}% complete, {100 * r['d2_contam']:.0f}% contam.", transform=ax.transAxes, va="top", fontsize=7.5, bbox=dict(fc="white", ec="none", alpha=0.85))
     axs[0].set_ylabel(f"digest2 {nm.split(' / ')[1]} NEO score"); axs[0].legend(loc="center left", frameon=False, fontsize=7)
     tag = nm.split(" / ")[0].lower() + ("_brightsample" if "bright sample" in nm else "")
@@ -66,4 +66,4 @@ print("known peaks:", peaks)
 for nm in CFG:
     print("==", nm, "| known frac V<21.2:", {k: round(v, 2) for k, v in res[nm]["known fraction among V<21.2"].items()})
     for k in ("all V", "V<21.2", "V<21.2, known removed"):
-        r = res[nm][k]; print(f"  {k:24s} n={r['n']:6d} NEOs={r['neos']:4d} | d2>=65: {r['d2_flagged']} flagged, {100*r['d2_complete']:.1f}% complete, {100*r['d2_contam']:.1f}% contam, FA(q<1.67/1.67-4.5/>=4.5)={r['d2_fa_q']} | ds42 matched {r.get('ds42_cut', float('nan')):.3f}: {r.get('ds42_flagged')} flagged, {100*r.get('ds42_contam', float('nan')):.1f}% contam FA={r.get('ds42_fa_q')} | P>=0.5: {r['p05_flagged']}, {100*r['p05_complete']:.1f}%, {100*r['p05_contam']:.1f}%")
+        r = res[nm][k]; print(f"  {k:24s} n={r['n']:6d} NEOs={r['neos']:4d} | d2>=65: {r['d2_flagged']} flagged, {100*r['d2_complete']:.1f}% complete, {100*r['d2_contam']:.1f}% contam, FA(q<1.67/1.67-4.5/>=4.5)={r['d2_fa_q']} | priora matched {r.get('priora_cut', float('nan')):.3f}: {r.get('priora_flagged')} flagged, {100*r.get('priora_contam', float('nan')):.1f}% contam FA={r.get('priora_fa_q')} | P>=0.5: {r['p05_flagged']}, {100*r['p05_complete']:.1f}%, {100*r['p05_contam']:.1f}%")

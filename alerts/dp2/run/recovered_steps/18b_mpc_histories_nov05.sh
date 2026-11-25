@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # MPC observation histories for the remaining objects (network; fetched 2026-11-05): ../precovery_fig/mpc_obs_*.csv
-# Recovered verbatim from the analysis session (log line 32642); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 32642); run with 'source env.sh' first.
 set -e
-cd $DS42_ALERTS/dp2/precovery_fig && ${PY:-python} - <<'EOF'
+cd $PRIORA_ALERTS/dp2/precovery_fig && ${PY:-python} - <<'EOF'
 import requests, pandas as pd, os
 for k in ("2025 NA", "2025 ML93", "2017 EC3", "2025 QO13", "2025 OL4", "2025 OT12", "2025 OZ"):
     f = f"mpc_obs_{k.replace(' ', '_')}.csv"

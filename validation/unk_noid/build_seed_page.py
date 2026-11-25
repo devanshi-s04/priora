@@ -40,14 +40,14 @@ figcaption{{font-size:13px;color:#4b555d;margin-top:6px}}
 .note{{font-size:13.5px;color:var(--ink-2)}} code{{font:12.5px var(--mono)}}
 </style>
 <main>
-<header><p class="kicker">ds42 · calibration on the undiscovered population · 2026-10-24</p>
+<header><p class="kicker">priora · calibration on the undiscovered population · 2026-10-24</p>
 <h1>Was the mid-range dip real?</h1>
-<p class="lede">The first 200,000-tracklet sample from the undiscovered (Unk) population showed fewer NEOs than predicted between P = 0.2 and 0.7. We drew three more independent samples (two new seeds in 2026, one in 2027), scored them with ds42 exactly as before, and compared.</p></header>
+<p class="lede">The first 200,000-tracklet sample from the undiscovered (Unk) population showed fewer NEOs than predicted between P = 0.2 and 0.7. We drew three more independent samples (two new seeds in 2026, one in 2027), scored them with priora exactly as before, and compared.</p></header>
 <section class="verdict"><h2>Verdict: it was a fluctuation</h2><ul>
 <li>The dip does not repeat. The mid-range z is −3.2 in the first sample, then +2.1, +0.8 and +0.0 in the new ones.</li>
 <li>Pooled over all four samples ({P['n']:,} tracklets, {P['n_neo']:,} NEOs), the mid range has {P['mid']['obs']} NEOs against {P['mid']['exp']:.1f} expected (z = {P['mid']['z']:+.2f}), and predicted/observed overall is {P['pred_obs']:.3f}.</li>
 <li>The first sample's −3.2 is also inflated because the 0.2–0.7 range was picked after seeing that plot.</li>
-<li>One thing does repeat: a handful of very bright, very distant non-NEOs (perihelion 31–98 AU, H 0.3–3.6) get P = 1 in every sample, {P['nonneo_p1']} in 800,000 tracklets. The undiscovered population has almost no bright distant objects, so ds42 finds no non-NEO alternative there. This is the same prior-coverage gap as Pluto, and it is why each run's built-in check reports FAIL.</li>
+<li>One thing does repeat: a handful of very bright, very distant non-NEOs (perihelion 31–98 AU, H 0.3–3.6) get P = 1 in every sample, {P['nonneo_p1']} in 800,000 tracklets. The undiscovered population has almost no bright distant objects, so priora finds no non-NEO alternative there. This is the same prior-coverage gap as Pluto, and it is why each run's built-in check reports FAIL.</li>
 </ul></section>
 <section><h2>The runs</h2><div class="tbl"><table>
 <tr><th>Sample</th><th class="n">Tracklets</th><th class="n">NEOs</th><th class="n">Pred/obs</th><th class="n">Mid range obs / exp</th><th class="n">Mid z</th><th class="n">Non-NEOs at P=1</th></tr>{rows}</table></div>

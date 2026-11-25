@@ -24,7 +24,7 @@ def unscale(df):
 A = M[M.Model == "All"]; U = M[M.Model == "Unk"].set_index(["Q", "e", "i"]).reindex(A.set_index(["Q", "e", "i"]).index).fillna(0.0).reset_index()
 cA, cU = unscale(A), unscale(U); qhi = A.Q.values
 rows = []
-with gzip.open(Path(os.environ["DS42_ALERTS"]) / "dp2/mpcorb/MPCORB.DAT.gz", "rt", errors="ignore") as f:
+with gzip.open(Path(os.environ["PRIORA_ALERTS"]) / "dp2/mpcorb/MPCORB.DAT.gz", "rt", errors="ignore") as f:
     go = False
     for L in f:
         if L.startswith("-----"): go = True; continue

@@ -102,7 +102,7 @@ Per-tracklet diagnostics recorded alongside the score:
   H_max^model, i.e. the part of the integration domain that both components
   zero out purely by model boundary.  This is the operative v0 flag, and the
   quantity WP7 needs in order to exclude or separately discuss tracklets where
-  digest2 (which clamps H >= 24 into an open top bin) and ds42 (which
+  digest2 (which clamps H >= 24 into an open top bin) and priora (which
   truncates at its declared support end, D-4) consume different effective
   models.  With ``--h-extend-to 30`` the boundary moves to 30 and the
   measured fractions drop accordingly, so a number from this line is only
@@ -237,21 +237,21 @@ import matplotlib.pyplot as plt  # noqa: E402
 
 from astropy.time import Time  # noqa: E402
 
-from ds42.attributable import Attributable, observer_state  # noqa: E402
-from ds42.classifier import (  # noqa: E402
+from priora.attributable import Attributable, observer_state  # noqa: E402
+from priora.classifier import (  # noqa: E402
     N_RHO_DEFAULT,
     N_RHODOT_DEFAULT,
     classify,
     h_support_end,
 )
-from ds42.constants import G_SLOPE_DEFAULT  # noqa: E402
-from ds42.population import (  # noqa: E402
+from priora.constants import G_SLOPE_DEFAULT  # noqa: E402
+from priora.population import (  # noqa: E402
     H_EDGES,
     H_INTERPOLATIONS,
     Digest2Histogram,
 )
-from ds42.ranging import admissible_rhodot_interval  # noqa: E402
-from ds42.transforms import (  # noqa: E402
+from priora.ranging import admissible_rhodot_interval  # noqa: E402
+from priora.transforms import (  # noqa: E402
     observables_from_elements,
     qei_from_elements,
     ranging_jacobian_det,
@@ -900,7 +900,7 @@ def _ar_margin(att, R_obs, V_obs, rho_true: float, rho_dot_true: float):
       DESIGN §4.1 admissible-region-edge slice.
 
     The interval is evaluated EXACTLY at ``rho_true`` via
-    :func:`ds42.ranging.admissible_rhodot_interval`, not reconstructed from
+    :func:`priora.ranging.admissible_rhodot_interval`, not reconstructed from
     the grid nodes, so both numbers are independent of the quadrature.
     """
     nan = float("nan")
@@ -2460,7 +2460,7 @@ def _summary_text(s: dict) -> str:
     L = []
     A = L.append
     A("=" * 78)
-    A("ds42 WP6 — self-consistency validation (DESIGN §4.1, v0 gate)")
+    A("priora WP6 — self-consistency validation (DESIGN §4.1, v0 gate)")
     A("=" * 78)
     cfgn = s.get("generation_config", {})
     cfgs = s.get("scoring_config", {})
@@ -3179,7 +3179,7 @@ def _analyze_kwargs(a) -> dict:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(
         prog="python3 -m validation.self_consistency",
-        description="ds42 WP6 self-consistency validation harness (DESIGN §4.1).",
+        description="priora WP6 self-consistency validation harness (DESIGN §4.1).",
         epilog=(
             "The v0 gate is: generate --n 10000 (mixture mode, no --neo-fraction), "
             "score (defaults are the (1200, 50) grid), analyze --gate.  Export "

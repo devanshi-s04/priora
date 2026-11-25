@@ -1,4 +1,4 @@
-"""Recompute every number in the simulation-based sections of the ds42 paper (draft 5, 2026-11-12) (Sections 2.8, 3, 5, 6, 7, 8, 12 and
+"""Recompute every number in the simulation-based sections of the priora paper (draft 5, 2026-11-12) (Sections 2.8, 3, 5, 6, 7, 8, 12 and
 Appendix C) from the stored outputs, and compare each with the value printed in the paper.
 
 Nothing is re-scored: every value comes from stored arrays (scores.npz / gen.npz / digest2_scores.npz / npz tables)
@@ -13,7 +13,7 @@ import numpy as np
 
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO)); sys.path.insert(0, str(REPO / "src")); sys.path.insert(0, str(REPO / "validation"))
-from ds42.population import read_digest2_model, Digest2Histogram, Q_EDGES, H_EDGES, E_EDGES  # noqa: E402
+from priora.population import read_digest2_model, Digest2Histogram, Q_EDGES, H_EDGES, E_EDGES  # noqa: E402
 from self_consistency import fit_odds_scale                                                     # noqa: E402
 from validation.digest2_comparison import auc_bootstrap                                          # noqa: E402
 
@@ -161,15 +161,15 @@ q = el[:, 0] * (1 - el[:, 1]); pd2 = np.clip(s2 / 100, 0, 1)
 src6 = "validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)"
 chk("6.1", "tracklets / NEOs", [19999, 287], [p42.size, yb.sum()], 0, src6)
 chk("6.1", "tracklets with >1% of measure beyond H=30 (%)", 2, 100 * (fr > 0.01).mean(), 0.1, src6 + " ar_frac_h_above", fmt="{:.2f}")
-chk("6.2", "ds42 predicted / digest2 predicted (all)", [284.0, 1349], [p42.sum(), pd2.sum()], 0.5, src6, fmt="{:.1f}")
+chk("6.2", "priora predicted / digest2 predicted (all)", [284.0, 1349], [p42.sum(), pd2.sum()], 0.5, src6, fmt="{:.1f}")
 chk("6.2", "digest2 / observed ratio", 4.7, pd2.sum() / yb.sum(), 0.05, src6, fmt="{:.2f}")
 lo2, lo4 = pd2 < 0.1, p42 < 0.1
 chk("6.2", "digest2 <10: n, predicted, observed", [17263, 290.5, 9], [lo2.sum(), pd2[lo2].sum(), yb[lo2].sum()], 0.05, src6, fmt="{:.1f}")
 chk("6.2", "digest2 >=10: n, predicted, observed", [2736, 1058, 278], [(~lo2).sum(), pd2[~lo2].sum(), yb[~lo2].sum()], 0.5, src6, fmt="{:.1f}")
-chk("6.2", "ds42 <0.1 / >=0.1: predicted, observed", [14.1, 17, 269.9, 270], [p42[lo4].sum(), yb[lo4].sum(), p42[~lo4].sum(), yb[~lo4].sum()], 0.05, src6, fmt="{:.1f}")
-chk("6.2", "ds42 P=1 tracklets, all NEOs", [237, 237], [(p42 == 1).sum(), yb[p42 == 1].sum()], 0, src6)
+chk("6.2", "priora <0.1 / >=0.1: predicted, observed", [14.1, 17, 269.9, 270], [p42[lo4].sum(), yb[lo4].sum(), p42[~lo4].sum(), yb[~lo4].sum()], 0.05, src6, fmt="{:.1f}")
+chk("6.2", "priora P=1 tracklets, all NEOs", [237, 237], [(p42 == 1).sum(), yb[p42 == 1].sum()], 0, src6)
 a42, ad2 = auc(p42, yb), auc(s2, yb)
-chk("6.3", "AUC ds42 / digest2", [0.9945, 0.9846], [a42, ad2], 0.00005, src6, fmt="{:.5f}")
+chk("6.3", "AUC priora / digest2", [0.9945, 0.9846], [a42, ad2], 0.00005, src6, fmt="{:.5f}")
 res_M = json.load(open(REPO / "validation/unk_noid/results.json"))["M"]
 chk("6.3", "Delta AUC and 95% CI", [0.0099, 0.0040, 0.0176], [res_M["delta_auc"]] + list(res_M["delta_ci"]), 0.00005, "validation/unk_noid/results.json M", fmt="{:.5f}")
 chk("6.3", "non-NEO : NEO ratio (69 to 1)", 69, (~yb).sum() / yb.sum(), 0.5, src6, fmt="{:.1f}")
@@ -177,11 +177,11 @@ sel_d2 = s2 >= 65
 cut = np.sort(p42[yb])[::-1][yb[sel_d2].sum() - 1]; sel42 = p42 >= cut; sel5 = p42 >= 0.5
 chk("6.4 / Table 3", "digest2>=65: NEO, non-NEO, compl %, contam %", [269, 287, 93.7, 51.6],
     [yb[sel_d2].sum(), (~yb[sel_d2]).sum(), 100 * yb[sel_d2].sum() / yb.sum(), 100 * (~yb[sel_d2]).mean()], 0.05, src6, fmt="{:.2f}")
-chk("6.4 / Table 3", "ds42 matched cut value", 0.30, cut, 0.005, src6, fmt="{:.4f}")
-chk("6.4 / Table 3", "ds42 P>=0.30: NEO, non-NEO, contam %", [269, 11, 3.9], [yb[sel42].sum(), (~yb[sel42]).sum(), 100 * (~yb[sel42]).mean()], 0.05, src6, fmt="{:.2f}")
-chk("6.4 / Table 3", "ds42 P>=0.5: NEO, non-NEO, compl %, contam %", [264, 3, 92.0, 1.1],
+chk("6.4 / Table 3", "priora matched cut value", 0.30, cut, 0.005, src6, fmt="{:.4f}")
+chk("6.4 / Table 3", "priora P>=0.30: NEO, non-NEO, contam %", [269, 11, 3.9], [yb[sel42].sum(), (~yb[sel42]).sum(), 100 * (~yb[sel42]).mean()], 0.05, src6, fmt="{:.2f}")
+chk("6.4 / Table 3", "priora P>=0.5: NEO, non-NEO, compl %, contam %", [264, 3, 92.0, 1.1],
     [yb[sel5].sum(), (~yb[sel5]).sum(), 100 * yb[sel5].sum() / yb.sum(), 100 * (~yb[sel5]).mean()], 0.05, src6, fmt="{:.2f}")
-chk("6.3", "purity digest2>=65 / ds42 matched / ds42 P>=0.5 (%)", [48.4, 96.1, 98.9],
+chk("6.3", "purity digest2>=65 / priora matched / priora P>=0.5 (%)", [48.4, 96.1, 98.9],
     [100 * yb[sel_d2].mean(), 100 * yb[sel42].mean(), 100 * yb[sel5].mean()], 0.05, src6, fmt="{:.2f}")
 both = sel_d2 & sel42 & yb
 chk("6.4", "NEOs selected by both / each only", [267, 2, 2], [both.sum(), (sel_d2 & yb & ~sel42).sum(), (sel42 & yb & ~sel_d2).sum()], 0, src6)
@@ -189,9 +189,9 @@ fa2 = sel_d2 & ~yb
 chk("6.5", "digest2 FPs with q>=4.5 / q>=10", [213, 145], [(fa2 & (q >= 4.5)).sum(), (fa2 & (q >= 10)).sum()], 0, src6)
 chk("12.1", "digest2 FPs with 1.67<=q<4.5", 58, (fa2 & (q >= 1.67) & (q < 4.5)).sum(), 0, src6)
 chk("6.5", "heliocentric distance range of q>=10 FPs (AU)", [13, 89], [rh[fa2 & (q >= 10)].min(), rh[fa2 & (q >= 10)].max()], 0.5, src6 + " (R_obs + rho u)", fmt="{:.1f}")
-bound("6.5", "max ds42 P among digest2 q>=4.5 FPs", "<", 0.1, p42[fa2 & (q >= 4.5)].max(), src6, fmt="{:.3f}")
+bound("6.5", "max priora P among digest2 q>=4.5 FPs", "<", 0.1, p42[fa2 & (q >= 4.5)].max(), src6, fmt="{:.3f}")
 fa42 = sel42 & ~yb
-chk("6.5 / 12.1", "ds42 FPs: Mars-crossers / main-belt range / q>=4.5", [10, 1, 0],
+chk("6.5 / 12.1", "priora FPs: Mars-crossers / main-belt range / q>=4.5", [10, 1, 0],
     [(fa42 & (q >= 1.3) & (q < 1.67)).sum(), (fa42 & (q >= 1.67) & (q < 4.5)).sum(), (fa42 & (q >= 4.5)).sum()], 0, src6)
 # All sample, digest2 raw, default 1" vs 0.1" observer error
 gz = np.load(O / "gate_v0_hext30/gen.npz"); zz = np.load(O / "gate_v0_hext30/scores.npz")
@@ -249,19 +249,19 @@ srcN = "validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)
 chk("8", "tracklets / NEOs / non-NEOs", [499, 305, 194], [yN.size, yN.sum(), (~yN).sum()], 0, srcN)
 TK = json.load(open(O / "neocp_pilot/tracklets.json"))["tracklets"]
 chk("8", "median detections / median arc (min)", [4, 35], [np.median([t["n_det"] for t in TK]), 60 * np.median([t["arc_hours"] for t in TK])], 0.5, "validation/output/neocp_pilot/tracklets.json", fmt="{:.1f}")
-chk("8", "ds42 predicted / digest2 NoID/100 predicted", [312.0, 436], [pU.sum(), (noid / 100).sum()], [0.05, 0.5], srcN, fmt="{:.1f}")
+chk("8", "priora predicted / digest2 NoID/100 predicted", [312.0, 436], [pU.sum(), (noid / 100).sum()], [0.05, 0.5], srcN, fmt="{:.1f}")
 s65 = noid >= 65; cN = np.sort(pU[yN])[::-1][yN[s65].sum() - 1]; sN = pU >= cN; s5 = pU >= 0.5
 chk("8 / Table 5", "digest2>=65 NEO, non-NEO, compl, contam", [300, 140, 98.4, 31.8], [yN[s65].sum(), (~yN[s65]).sum(), 100 * yN[s65].sum() / 305, 100 * (~yN[s65]).mean()], 0.05, srcN, fmt="{:.2f}")
-chk("8 / Table 5", "ds42 matched cut", 0.030, cN, 0.0005, srcN, fmt="{:.4f}")
-chk("8 / Table 5", "ds42 matched NEO, non-NEO, contam", [300, 85, 22.1], [yN[sN].sum(), (~yN[sN]).sum(), 100 * (~yN[sN]).mean()], 0.05, srcN, fmt="{:.2f}")
-chk("8 / Table 5", "ds42 P>=0.5 NEO, non-NEO, compl, contam", [286, 22, 93.8, 7.1], [yN[s5].sum(), (~yN[s5]).sum(), 100 * yN[s5].sum() / 305, 100 * (~yN[s5]).mean()], 0.05, srcN, fmt="{:.2f}")
+chk("8 / Table 5", "priora matched cut", 0.030, cN, 0.0005, srcN, fmt="{:.4f}")
+chk("8 / Table 5", "priora matched NEO, non-NEO, contam", [300, 85, 22.1], [yN[sN].sum(), (~yN[sN]).sum(), 100 * (~yN[sN]).mean()], 0.05, srcN, fmt="{:.2f}")
+chk("8 / Table 5", "priora P>=0.5 NEO, non-NEO, compl, contam", [286, 22, 93.8, 7.1], [yN[s5].sum(), (~yN[s5]).sum(), 100 * yN[s5].sum() / 305, 100 * (~yN[s5]).mean()], 0.05, srcN, fmt="{:.2f}")
 chk("8 / Table 5", "fraction of sample below digest2 65 (%)", 11.8, 100 * (~s65).mean(), 0.05, srcN, fmt="{:.2f}")
-chk("8", "selected tracklets: digest2 - ds42 matched", 55, s65.sum() - sN.sum(), 0, srcN)
-chk("8", "AUC ds42 Unk / digest2 NoID", [0.9663, 0.9539], [auc(pU, yN), auc(noid, yN)], 0.00005, srcN, fmt="{:.5f}")
+chk("8", "selected tracklets: digest2 - priora matched", 55, s65.sum() - sN.sum(), 0, srcN)
+chk("8", "AUC priora Unk / digest2 NoID", [0.9663, 0.9539], [auc(pU, yN), auc(noid, yN)], 0.00005, srcN, fmt="{:.5f}")
 bt = auc_bootstrap(pU, noid, yN, np.ones_like(pU), n_boot=2000, seed=7)
 chk("8", "Delta AUC and 95% CI (paired, stratified bootstrap, seed 7, 2000)", [0.0123, 0.0050, 0.0211], [bt["delta"]] + list(bt["delta_ci"]), 0.00005, srcN + "; digest2_comparison.auc_bootstrap", fmt="{:.4f}")
 fN = s5 & ~yN
-chk("8", "ds42 P>=0.5 non-NEOs: q<2.3 / q<1.55", [22, 17], [(fN & (qN < 2.3)).sum(), (fN & (qN < 1.55)).sum()], 0, srcN)
+chk("8", "priora P>=0.5 non-NEOs: q<2.3 / q<1.55", [22, 17], [(fN & (qN < 2.3)).sum(), (fN & (qN < 1.55)).sum()], 0, srcN)
 fD = s65 & ~yN
 chk("8", "digest2 FPs: q<1.67 of total / q>=4.5", [91, 140, 4], [(fD & (qN < 1.67)).sum(), fD.sum(), (fD & (qN >= 4.5)).sum()], 0, srcN)
 chk("8", "NEOCP median V (paper: 21.1, cut = +0.1 = 21.2)", 21.14, np.median(VN), 0.005, srcN, fmt="{:.3f}")
@@ -297,10 +297,10 @@ def op(sel_y, p, s):
 
 
 comp, cont, d2b, c42 = op(by, bp, bs)
-chk("8 / Table 6", "V<21.2: compl, contam, distant FPs, ds42 contam", [98.1, 54.2, 143, 17.6], [100 * comp, 100 * cont, (d2b & ~by & (bq >= 4.5)).sum(), 100 * c42], 0.05, srcB, fmt="{:.2f}")
+chk("8 / Table 6", "V<21.2: compl, contam, distant FPs, priora contam", [98.1, 54.2, 143, 17.6], [100 * comp, 100 * cont, (d2b & ~by & (bq >= 4.5)).sum(), 100 * c42], 0.05, srcB, fmt="{:.2f}")
 m = ~known
 comp2, cont2, d2k, c42k = op(by[m], bp[m], bs[m])
-chk("8 / Table 6", "known distant removed: compl, contam, distant FPs, ds42 contam", [98.1, 33.9, 1, 17.3], [100 * comp2, 100 * cont2, (d2k & ~by[m] & (bq[m] >= 4.5)).sum(), 100 * c42k], 0.05, srcB + "; distant-only H-peak removal", fmt="{:.2f}")
+chk("8 / Table 6", "known distant removed: compl, contam, distant FPs, priora contam", [98.1, 33.9, 1, 17.3], [100 * comp2, 100 * cont2, (d2k & ~by[m] & (bq[m] >= 4.5)).sum(), 100 * c42k], 0.05, srcB + "; distant-only H-peak removal", fmt="{:.2f}")
 dfa = d2b & ~by & (bq >= 4.5)
 tc, tn = dfa & (bq < 10), dfa & (bq >= 10)
 chk("8 / Fig 9", "distant FPs brighter than the known peak (142 of 143)", [142, 143], [(dfa & known).sum(), dfa.sum()], 0, srcB)

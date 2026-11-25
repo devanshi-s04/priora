@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # Regenerate every stored simulation / comparison output that the paper uses, from scratch.
-# Run through `make simulations` (sets DS42_* and PYTHONPATH). Takes many hours; WORKERS sets parallelism.
+# Run through `make simulations` (sets PRIORA_* and PYTHONPATH). Takes many hours; WORKERS sets parallelism.
 # Seeds, sizes and settings are exactly those of the published runs (validation/output/<run>/summary.json).
 set -euo pipefail
-cd "$DS42_REPO"
+cd "$PRIORA_REPO"
 W="${WORKERS:-8}"
 O=validation/output
-sc() {  # sc <run> <n> <seed> <variant> <v_max> [extra args]: generate + score with ds42 (H extended to 30)
+sc() {  # sc <run> <n> <seed> <variant> <v_max> [extra args]: generate + score with priora (H extended to 30)
   local run=$1 n=$2 seed=$3 var=$4 vmax=$5; shift 5
   [ -f "$O/$run/scores.npz" ] && { echo "skip $run (exists)"; return; }
   $PY -m validation.unk_noid.run_sc run --out "$O/$run" --n "$n" --seed "$seed" --variant "$var" \
@@ -34,7 +34,7 @@ sc gate_v0unk_hext30  20000 20260901 Unk 24
 sc gate_v0_hext30     20000 20260901 All 24
 d2 gate_v0unk_hext30 $O/digest2_comparison_unk
 d2 gate_v0_hext30    $O/digest2_comparison_hext30/gate_v0_hext30
-DIGEST2_CONFIG="$DS42_REPO/validation/configs/digest2_MPC_obserr0p1.config" d2 gate_v0_hext30 $O/digest2_comparison_hext30_obserr0p1/gate_v0_hext30
+DIGEST2_CONFIG="$PRIORA_REPO/validation/configs/digest2_MPC_obserr0p1.config" d2 gate_v0_hext30 $O/digest2_comparison_hext30_obserr0p1/gate_v0_hext30
 
 # Sec. 7: astrometric noise at 45 min and the arc-length sweep (Table 4)
 [ -f $O/astrometric_noise_hext30/summary.json ] || $PY -m validation.astrometric_noise run \

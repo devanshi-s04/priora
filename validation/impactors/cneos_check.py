@@ -2,7 +2,7 @@
 For each: barycentric ecliptic state at impact -> heliocentric equatorial; integrate backwards with Sun + Earth gravity
 (Earth started from the ephemeris at impact); find the earliest time within 30 days before impact at which the object is
 brighter than V = 24 from the geocentre (H_v from the file, G = 0.15); observe it there as a 45-min geocentric tracklet and
-score with ds42 Unk (H to 30) and digest2 NoID. No survey pointing or visibility constraint except reporting elongation.
+score with priora Unk (H to 30) and digest2 NoID. No survey pointing or visibility constraint except reporting elongation.
 Run from the repo root: PYTHONPATH=src python validation/impactors/cneos_check.py"""
 import sys, numpy as np, warnings
 from types import SimpleNamespace
@@ -10,9 +10,9 @@ from astropy.time import Time
 from astropy.coordinates import get_body_barycentric_posvel
 from scipy.integrate import solve_ivp
 sys.path.insert(0, "."); sys.path.insert(0, "src")
-from ds42.attributable import Attributable, observer_state
-from ds42.classifier import classify_many
-from ds42.population import Digest2Histogram
+from priora.attributable import Attributable, observer_state
+from priora.classifier import classify_many
+from priora.population import Digest2Histogram
 from validation.digest2_comparison import emit_ades_psv, run_digest2
 warnings.simplefilter("ignore")
 MU, MUE = 2.959122082855911e-4, 8.887692445125634e-10
@@ -67,9 +67,9 @@ np.savez("validation/impactors/cneos_check.npz", p=p, d2=s, rows=R, cols="days_b
 days, rho, el, rate, V, H = R.T
 print(f"{len(orb)} impactors; {n} brighter than V=24 within 30 d (others too small/faint)")
 print(f"  time before impact: median {np.median(days)*24:.1f} h (10-90%: {np.percentile(days,10)*24:.1f}-{np.percentile(days,90)*24:.1f} h); distance median {np.median(rho):.4f} AU; sky rate median {np.median(rate):.2f} deg/d")
-print(f"  undefined ds42: {np.isnan(p).sum()}")
+print(f"  undefined priora: {np.isnan(p).sum()}")
 for nm, m in (("all", np.ones(n, bool)), ("elongation >= 60", el >= 60)):
-    print(f"  {nm:17s} n {m.sum():3d} | ds42 P>=0.5 {np.nanmean(p[m]>=0.5):.2f}  P>=0.1 {np.nanmean(p[m]>=0.1):.2f}  median {np.nanmedian(p[m]):.3f} | digest2 NoID>=65 {np.nanmean(s[m]>=65):.2f}")
+    print(f"  {nm:17s} n {m.sum():3d} | priora P>=0.5 {np.nanmean(p[m]>=0.5):.2f}  P>=0.1 {np.nanmean(p[m]>=0.1):.2f}  median {np.nanmedian(p[m]):.3f} | digest2 NoID>=65 {np.nanmean(s[m]>=65):.2f}")
 for a, b in ((0, 60), (60, 90), (90, 120), (120, 150), (150, 181)):
     m = (el >= a) & (el < b)
-    if m.any(): print(f"  elong {a:3d}-{b:3d}: n {m.sum():3d} ds42 P>=0.5 {np.nanmean(p[m]>=0.5):.2f}  digest2>=65 {np.nanmean(s[m]>=65):.2f}  median rate {np.median(rate[m]):.2f} deg/d")
+    if m.any(): print(f"  elong {a:3d}-{b:3d}: n {m.sum():3d} priora P>=0.5 {np.nanmean(p[m]>=0.5):.2f}  digest2>=65 {np.nanmean(s[m]>=65):.2f}  median rate {np.median(rate[m]):.2f} deg/d")

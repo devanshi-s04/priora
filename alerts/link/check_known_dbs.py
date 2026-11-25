@@ -8,10 +8,10 @@ import numpy as np, pandas as pd, requests
 from astropy.time import Time
 from astropy.coordinates import Angle
 import astropy.units as u
-T = Path(os.environ["DS42_ALERTS"]); OUT = T / "link/dbcheck"; OUT.mkdir(exist_ok=True)
+T = Path(os.environ["PRIORA_ALERTS"]); OUT = T / "link/dbcheck"; OUT.mkdir(exist_ok=True)
 C = pd.read_csv(T / "full/score/candidates_annot.csv", index_col=0)
-C["tier"] = np.where((C.gal_b.abs() >= 15) & (C.same_field == 0) & (C.ds42_All >= 0.5), "A", np.where((C.gal_b.abs() >= 15) & (C.same_field == 0), "B", "set aside"))
-C = C.assign(o=C.tier.map({"A": 0, "B": 1, "set aside": 2})).sort_values(["o", "ds42_All"], ascending=[True, False])
+C["tier"] = np.where((C.gal_b.abs() >= 15) & (C.same_field == 0) & (C.priora_All >= 0.5), "A", np.where((C.gal_b.abs() >= 15) & (C.same_field == 0), "B", "set aside"))
+C = C.assign(o=C.tier.map({"A": 0, "B": 1, "set aside": 2})).sort_values(["o", "priora_All"], ascending=[True, False])
 td = pd.read_parquet(T / "full/score/trk_dets.parquet"); first = td.sort_values("MJD").groupby("trkSub").first()
 C["mjd_tai"] = first.loc[C.index, "MJD"].values
 C["jd_utc"] = Time(C.mjd_tai.values, format="mjd", scale="tai").utc.jd
@@ -70,6 +70,6 @@ sb = [skybot(t, r) for t, r in C.iterrows()]
 print("SkyBoT done", flush=True)
 with cf.ThreadPoolExecutor(3) as ex:
     jp = list(ex.map(lambda tr: jpl(*tr), C.iterrows()))
-S = C[["tier", "utc", "ra", "dec", "n", "rate", "V", "ds42_All"]].join(pd.DataFrame(sb).set_index("trkSub")).join(pd.DataFrame(jp).set_index("trkSub"))
+S = C[["tier", "utc", "ra", "dec", "n", "rate", "V", "priora_All"]].join(pd.DataFrame(sb).set_index("trkSub")).join(pd.DataFrame(jp).set_index("trkSub"))
 S.to_csv(T / "link/dbcheck_summary.csv")
 pd.set_option("display.width", 250); print(S.round(2).to_string())

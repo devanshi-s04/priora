@@ -4,7 +4,7 @@ import sys, os, cProfile, pstats, warnings, numpy as np
 sys.argv=["x","--n","10"]; os.environ.update(VAR="Unk",HEXT="30",GENRUN="gate_v0unk_hext30")
 sys.path.insert(0, os.path.dirname(__file__))
 import bench_kernel_unk_hext30 as B
-from ds42.classifier import classify
+from priora.classifier import classify
 warnings.simplefilter("ignore")
 neo, other = B.Digest2Histogram.neo_other_pair(B.MODEL,"Unk",h_extend_to=30.0)
 atts,R,V = B.load(10)

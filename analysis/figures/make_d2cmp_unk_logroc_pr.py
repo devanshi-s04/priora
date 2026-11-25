@@ -1,8 +1,8 @@
-"""ds42 vs digest2 on the matched Unk comparison (validation/unk_noid run M: sample Unk, ds42 Unk, digest2 NoID; 19,999
+"""priora vs digest2 on the matched Unk comparison (validation/unk_noid run M: sample Unk, priora Unk, digest2 NoID; 19,999
 tracklets, 287 NEOs), drawn so the low-false-positive regime is visible:
   d2cmp_unk_roc_logfpr   ROC with a log false-positive-rate axis (the follow-up regime)
   d2cmp_unk_pr           precision (purity) against recall (completeness)
-Operating points marked: digest2 NoID >= 65 (NEOCP threshold), ds42 at matched completeness, ds42 P >= 0.5.
+Operating points marked: digest2 NoID >= 65 (NEOCP threshold), priora at matched completeness, priora P >= 0.5.
 New files only. Run from paper/figures."""
 import sys, os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))   # reproduce copy: outputs next to this script
@@ -44,6 +44,6 @@ ax.annotate(f"priora $P\\geq0.5$: {100 * hpt[2]:.1f}%", (hpt[0], hpt[2]), xytext
 ax.set(xlim=(0.75, 1.005), ylim=(0, 1.08), xlabel="completeness (recall)", ylabel="purity (precision)")
 ax.legend(loc="lower left", frameon=False)
 for ext in ("pdf", "png"): fig.savefig(f"d2cmp_unk_pr.{ext}", dpi=300)
-print("d2>=65", d2pt, "| ds42 matched cut", round(float(cut), 3), dpt, "| P>=0.5", hpt)
+print("d2>=65", d2pt, "| priora matched cut", round(float(cut), 3), dpt, "| P>=0.5", hpt)
 for f in (1e-3, 1e-2):
-    print(f"FPR {f}: TPR ds42 {T42[F42 <= f].max():.3f} digest2 {TD2[FD2 <= f].max():.3f}")
+    print(f"FPR {f}: TPR priora {T42[F42 <= f].max():.3f} digest2 {TD2[FD2 <= f].max():.3f}")

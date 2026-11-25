@@ -9,7 +9,7 @@ v0's delta-function attributable **breaks** at arc length dt if any of three arm
 - **C1 (calibration)** — the noisy scores FAIL the WP6 gate's own reliability verdict against the true labels: either the global count arm (|Z_tot|, Poisson-binomial) or the binned arm (max|z| over equal-expected-NEO-count bins) has a parametric-bootstrap p-value <= alpha = 0.01. This reuses the gate's own thresholds; nothing new is invented.
 - **C2 (triage churn)** — more than 1% of tracklets change side of a triage threshold (p = 0.1/0.3/0.5/0.7) per noise realization. Estimated as the MC mean crossing count over the realizations of the stratified NEO-enriched subsample, divided by its size — an UPPER bound on the full population's rate, since the subsample holds every true NEO and hence essentially every mid-probability tracklet in the catalogue. Cross-checked against the full-catalogue single realization.
 - **C3 (lost tracklets)** — more than 1% of tracklets that scored finitely noiseless get an UNDEFINED score under noise (the noisy attributable admits no bound orbit the classifier can integrate). Such a tracklet is not merely mis-scored, it is unscored.
-- **W1 (warning, ranking)** — the paired-bootstrap 95% CI on Delta-AUC excludes zero AND |Delta AUC| > 0.0126, the ds42-over-digest2 method gap D-14 measured.
+- **W1 (warning, ranking)** — the paired-bootstrap 95% CI on Delta-AUC excludes zero AND |Delta AUC| > 0.0126, the priora-over-digest2 method gap D-14 measured.
 - **W2 (warning, operating point)** — completeness at the FIXED WP7 matched-completeness cut (chosen once on noiseless scores) drops by more than 1 percentage point.
 
 C1 is the gate's own reliability test, not a new one: the same equal-expected-NEO-count bins, the same Poisson-binomial z, the same parametric-bootstrap thresholds that `validation/GATE_RESULTS.md` runs, applied to the *noisy* scores against the *true* labels.  A failure there is a property of the data, not a bug.
@@ -50,7 +50,7 @@ This is reported as **post-hoc** and enters no verdict: a tripwire invented afte
 
 One thing changes across the rows above: the arc length.  The per-detection sigma (Sorcha's model, m5 = 24, FWHM = 700 mas), the catalogue, the labels, the classifier, the scoring grid **and the standard-normal draws themselves** are identical at every arc length.  That last point is what makes the sweep sharp: `noisy_attributable` draws `e0, e1` from `default_rng([seed, stream])` and dt enters only as the divisor in `(d_1 - d_0) / dt`, so every arc length perturbs *the same endpoints by the same offsets* and differs only in the 1/dt amplification of the rates.  The dt-to-dt comparison is therefore paired per tracklet and carries no Monte-Carlo noise of its own.
 
-dt = 45 min is **adopted** from `/home/mjuric/ds42/validation/output/astrometric_noise` rather than re-scored: the injected catalogue is verified identical array-by-array and the stored scores are reused, so that row is literally the number published in `validation/ASTROMETRIC_NOISE.md`, not a reproduction of it.
+dt = 45 min is **adopted** from `/home/mjuric/priora/validation/output/astrometric_noise` rather than re-scored: the injected catalogue is verified identical array-by-array and the stored scores are reused, so that row is literally the number published in `validation/ASTROMETRIC_NOISE.md`, not a reproduction of it.
 
 That makes the 45-minute row a cross-check on this harness, and it passes on every point estimate: Z_tot = −0.42, ĉ = 0.925, reliability max\|z\| = 0.72 against a bootstrap threshold of 2.62, AUC 0.98125 → 0.98222, ΔAUC = +0.00097, \|ΔP\| percentiles 5.06e-06 / 7.03e-05 / 7.20e-04, 87.6% completeness at 5.3% contamination, MC std(P) 4.55e-06 / 1.71e-04 / 8.17e-03 — all identical to the published values.
 
@@ -275,8 +275,8 @@ At N = 2×10⁴ (≈185 NEOs) the fitted odds scale is only constrained to rough
 ## Reproduce
 
 ```
-OMP_NUM_THREADS=1 DS42_BACKEND=python \
+OMP_NUM_THREADS=1 PRIORA_BACKEND=python \
   python3 -m validation.astrometric_noise sweep --workers 84
 ```
 
-Seed 20260902; source catalogue `/home/mjuric/ds42/validation/output/gate_v0` (read-only); 6 arc lengths x (1 x 20k full-catalogue realization + 25 x 500 MC + 2 x 500 decomposition). Every stage is resumable and a pure function of its inputs.
+Seed 20260902; source catalogue `/home/mjuric/priora/validation/output/gate_v0` (read-only); 6 arc lengths x (1 x 20k full-catalogue realization + 25 x 500 MC + 2 x 500 decomposition). Every stage is resumable and a pure function of its inputs.

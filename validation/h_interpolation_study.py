@@ -3,7 +3,7 @@
 ``Digest2Histogram(h_interpolation="pchip")`` replaces the piecewise-constant
 H dependence of the digest2 model by the derivative of a monotone cubic through
 each (q, e, i) cell's cumulative object count (see
-``ds42.population``'s module docstring for the construction and its
+``priora.population``'s module docstring for the construction and its
 guarantees).  This module measures what that buys and what it changes.  Three
 independent experiments, three subcommands:
 
@@ -67,11 +67,11 @@ import numpy as np
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from ds42.attributable import Attributable  # noqa: E402
-from ds42.backend import core_available  # noqa: E402
-from ds42.classifier import classify, classify_many  # noqa: E402
-from ds42.constants import G_SLOPE_DEFAULT  # noqa: E402
-from ds42.population import Digest2Histogram  # noqa: E402
+from priora.attributable import Attributable  # noqa: E402
+from priora.backend import core_available  # noqa: E402
+from priora.classifier import classify, classify_many  # noqa: E402
+from priora.constants import G_SLOPE_DEFAULT  # noqa: E402
+from priora.population import Digest2Histogram  # noqa: E402
 
 from validation.digest2_comparison import (  # noqa: E402
     auc_bootstrap,
@@ -1042,7 +1042,7 @@ def _plot_analyze(p_hist, p_pchip, dlog, f, v, y, d2, masks, out_dir):
         m = ok
         fpr, tpr = _roc(sc[m], y[m])
         ax.plot(fpr, tpr, style,
-                label=f"ds42, {name} (AUC {auc_fast(sc[m], y[m]):.4f})")
+                label=f"priora, {name} (AUC {auc_fast(sc[m], y[m]):.4f})")
     if d2 is not None:
         m = ok & np.isfinite(d2)
         fpr, tpr = _roc(d2[m], y[m])
@@ -1192,7 +1192,7 @@ def _measure_guarantees(model: str, variant: str) -> dict:
     the code.  These are the same properties the unit tests assert (with
     tolerances); here they are reported as numbers.
     """
-    from ds42.population import (H_EDGES, MODEL_SHAPE, QEI_VOLUME,
+    from priora.population import (H_EDGES, MODEL_SHAPE, QEI_VOLUME,
                                      Digest2Histogram)
 
     ang = (2.0 * np.pi) ** 3
@@ -1438,7 +1438,7 @@ def _plot_reconstruction(model: str, variant: str, out_dir: str) -> list:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    from ds42.population import (H_EDGES, MODEL_SHAPE, QEI_VOLUME,
+    from priora.population import (H_EDGES, MODEL_SHAPE, QEI_VOLUME,
                                      Digest2Histogram)
 
     ang = (2.0 * np.pi) ** 3
@@ -1572,7 +1572,7 @@ def cmd_report(a: argparse.Namespace) -> int:
     w("")
     w(f"*Generated {time.strftime('%Y-%m-%dT%H:%M:%S')} by "
       "`validation/h_interpolation_study.py report`.  Construction and its "
-      "guarantees: `ds42/population.py` module docstring; unit tests: "
+      "guarantees: `priora/population.py` module docstring; unit tests: "
       "`tests/test_population.py`, `tests/test_backend_parity.py`.*")
     w("")
     w("## What was built")

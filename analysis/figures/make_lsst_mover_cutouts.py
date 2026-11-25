@@ -1,6 +1,6 @@
 """LSST alerts section: alert cutouts of the nine NEO candidates confirmed as real movers in the image review
 (full_nd2/score/image_review.csv). Public ALeRCE stamps (science | template | difference, 30x30 px) at each tracklet's
-highest-SNR detection, from $DS42_ALERTS/cutouts/alerce_nd2/<diaSourceId>.fits. Arrow on the science stamp: direction
+highest-SNR detection, from $PRIORA_ALERTS/cutouts/alerce_nd2/<diaSourceId>.fits. Arrow on the science stamp: direction
 of motion (first to last detection, via the stamp WCS); label: rate. North/East compass in the first cell.
 -> lsst_mover_cutouts.{pdf,png} (new file)"""
 import os
@@ -10,12 +10,12 @@ mpl.use("Agg"); import matplotlib.pyplot as plt
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.visualization import ZScaleInterval, AsinhStretch, ImageNormalize
-T = Path(os.environ["DS42_ALERTS"]); OUT = Path(__file__).resolve().parent
+T = Path(os.environ["PRIORA_ALERTS"]); OUT = Path(__file__).resolve().parent
 RV = pd.read_csv(T / "full_nd2/score/image_review.csv"); RV = RV[RV.review == "real mover"].set_index("current_id")
 H = pd.read_csv(T / "handoff/lsst_neo_candidates_nd2_detections.csv", dtype={"diaSourceId": str})
-S = pd.read_parquet(T / "full_nd2/score/scores_joined.parquet")
+S = pd.read_parquet(T / "full_nd2/score/scores_joined.parquet").rename(columns=lambda c: c.replace("ds42_", "priora_"))  # columns written before the rename
 mpl.rcParams.update({"font.family": "STIXGeneral", "mathtext.fontset": "stix", "font.size": 8, "savefig.bbox": "tight", "savefig.pad_inches": 0.02, "pdf.fonttype": 42})
-order = S.loc[RV.index, "ds42_All"].sort_values(ascending=False).index
+order = S.loc[RV.index, "priora_All"].sort_values(ascending=False).index
 fig = plt.figure(figsize=(7.1, 3.75)); outer = fig.add_gridspec(3, 3, wspace=0.08, hspace=0.42, left=0.01, right=0.99, top=0.95, bottom=0.06)
 for k, t in enumerate(order):
     g = H[H.tracklet_id == t].sort_values("obs_mjd_tai")
@@ -44,7 +44,7 @@ for k, t in enumerate(order):
                 ax.text(*(base + px * 1.3), name, color="white", fontsize=6.5, ha="center", va="center")
     first = RV.loc[t, "first_pull_id"]
     fig.text(0.5 * (fig.axes[-3].get_position().x0 + fig.axes[-1].get_position().x1), fig.axes[-1].get_position().y0 - 0.008,
-             f"{first}   $P$ = {S.loc[t, 'ds42_All']:.2f}   d2 = {S.loc[t, 'd2_raw']:.0f}   {rate:.2f}$^\\circ$/d   {r.band}",
+             f"{first}   $P$ = {S.loc[t, 'priora_All']:.2f}   d2 = {S.loc[t, 'd2_raw']:.0f}   {rate:.2f}$^\\circ$/d   {r.band}",
              ha="center", va="top", fontsize=7.0)
 for ext in ("pdf", "png"): fig.savefig(OUT / f"lsst_mover_cutouts.{ext}", dpi=300)
 print([(RV.loc[t, "first_pull_id"], t) for t in order])

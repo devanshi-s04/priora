@@ -3,7 +3,7 @@
 The Rubin alert test (paper Sec. 9) used three Fink Data Transfers (https://fink-portal.org, Data Transfer service).
 The alert data are not redistributed here. These files describe each request, so that the same data can be requested again.
 
-| Transfer | Request | Used for | Unpack under `$DS42_ALERTS` |
+| Transfer | Request | Used for | Unpack under `$PRIORA_ALERTS` |
 |---|---|---|---|
 | `ftransfer_lsst_2026-11-02_838512` | `ftransfer_lsst_2026-11-02_838512.yml` (reconstructed) | known-object test | `data/ftransfer_2026-11-02/` |
 | `ftransfer_lsst_2026-11-03_596070` | `ftransfer_lsst_2026-11-03_596070.yml` (reconstructed) | unknown alerts, first pull | `data_unk/ftransfer_2026-11-03/` |

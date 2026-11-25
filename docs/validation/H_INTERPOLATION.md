@@ -1,6 +1,6 @@
 # Mass-conserving smooth-in-H reconstruction of the digest2 histogram
 
-*Generated 2026-09-02T13:10:16 by `validation/h_interpolation_study.py report`.  Construction and its guarantees: `ds42/population.py` module docstring; unit tests: `tests/test_population.py`, `tests/test_backend_parity.py`.*
+*Generated 2026-09-02T13:10:16 by `validation/h_interpolation_study.py report`.  Construction and its guarantees: `priora/population.py` module docstring; unit tests: `tests/test_population.py`, `tests/test_backend_parity.py`.*
 
 ## What was built
 

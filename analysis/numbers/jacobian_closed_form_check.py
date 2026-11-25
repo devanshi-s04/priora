@@ -4,10 +4,10 @@ nodes at mid admissible rho_dot for 400 rho values. Prints n comparisons, median
 Run from the repo root: PYTHONPATH=src python analysis/numbers/jacobian_closed_form_check.py"""
 import numpy as np
 from astropy.time import Time
-import ds42.transforms as T
-from ds42._core import jacobian_closed_form
-from ds42.ranging import admissible_rhodot_interval
-from ds42.attributable import Attributable
+import priora.transforms as T
+from priora._core import jacobian_closed_form
+from priora.ranging import admissible_rhodot_interval
+from priora.attributable import Attributable
 rng = np.random.default_rng(19); errs = []; nbad = 0; ngeo = 0
 for _ in range(40):
     ra = rng.uniform(0, 2 * np.pi); dec = np.arcsin(rng.uniform(-1, 1)); rr = rng.normal(0, .01); dr = rng.normal(0, .01)

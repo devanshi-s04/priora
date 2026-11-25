@@ -14,4 +14,4 @@ cols, _ = run_digest2(path, np.arange(n), workers=32)
 np.savez(f"validation/impactors/impactors_{DT}d_digest2.npz", **cols)
 p = z["p"]; s = cols["noid_neo"]; el = z["rows"][:, 4]; obs = el >= 60
 for nm, m in (("all", np.ones(n, bool)), ("elongation >= 60", obs)):
-    print(f"{nm:18s} n {m.sum():5d} | ds42 P>=0.5 {np.mean(p[m]>=0.5):.3f} P>=0.1 {np.mean(p[m]>=0.1):.3f} | digest2 NoID>=65 {np.nanmean(s[m]>=65):.3f} | either {np.mean((p[m]>=0.5)|(s[m]>=65)):.3f}")
+    print(f"{nm:18s} n {m.sum():5d} | priora P>=0.5 {np.mean(p[m]>=0.5):.3f} P>=0.1 {np.mean(p[m]>=0.1):.3f} | digest2 NoID>=65 {np.nanmean(s[m]>=65):.3f} | either {np.mean((p[m]>=0.5)|(s[m]>=65)):.3f}")

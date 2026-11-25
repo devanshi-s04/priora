@@ -28,11 +28,11 @@ def row(label, f, cls=""):
 
 rows = "".join([
     row("NEOs in the sample", lambda r: f"{r['n_neo']}"),
-    row("AUC, ds42", lambda r: f"{r['auc_ds42']:.4f}"),
+    row("AUC, priora", lambda r: f"{r['auc_priora']:.4f}"),
     row("AUC, digest2", lambda r: f"{r['auc_d2']:.4f}"),
-    row("ΔAUC (ds42 − digest2), 95% interval",
+    row("ΔAUC (priora − digest2), 95% interval",
         lambda r: f"{r['delta_auc']:+.4f}<br><span class='ci'>[{r['delta_ci'][0]:+.4f}, {r['delta_ci'][1]:+.4f}]</span>"),
-    row("Predicted / observed NEOs, ds42", lambda r: f"{r['pred_obs_ds42']:.2f}"),
+    row("Predicted / observed NEOs, priora", lambda r: f"{r['pred_obs_priora']:.2f}"),
     row("Predicted / observed NEOs, digest2", lambda r: f"{r['pred_obs_d2']:.2f}"),
     row("digest2 ≥ 65: flagged", lambda r: f"{r['d2_ge65']['flagged']}"),
     row("digest2 ≥ 65: completeness", lambda r: pct(r['d2_ge65']['completeness'])),
@@ -41,11 +41,11 @@ rows = "".join([
     row("&nbsp;&nbsp;of which q 1.67–4.5 AU", lambda r: f"{r['d2_ge65']['fa_q_1p67_4p5']}"),
     row("&nbsp;&nbsp;of which q &lt; 1.67 AU", lambda r: f"{r['d2_ge65']['fa_q_lt_1p67']}"),
     row("digest2 ≥ 65: contamination", lambda r: pct(r['d2_ge65']['contamination'])),
-    row("ds42 at the same completeness: cut", lambda r: f"P ≥ {r['ds42_matched']['cut']:.3f}"),
-    row("ds42 at the same completeness: false alarms", lambda r: f"{r['ds42_matched']['fa']}"),
-    row("ds42 at the same completeness: contamination", lambda r: pct(r['ds42_matched']['contamination']), "hl"),
-    row("ds42 at P ≥ 0.5: completeness / contamination",
-        lambda r: f"{pct(r['ds42_p05']['completeness'])} / {pct(r['ds42_p05']['contamination'])}"),
+    row("priora at the same completeness: cut", lambda r: f"P ≥ {r['priora_matched']['cut']:.3f}"),
+    row("priora at the same completeness: false alarms", lambda r: f"{r['priora_matched']['fa']}"),
+    row("priora at the same completeness: contamination", lambda r: pct(r['priora_matched']['contamination']), "hl"),
+    row("priora at P ≥ 0.5: completeness / contamination",
+        lambda r: f"{pct(r['priora_p05']['completeness'])} / {pct(r['priora_p05']['contamination'])}"),
 ])
 setup_rows = "".join(
     f"<tr><td><b>{k}</b></td><td>{SETUP[k][3]}</td><td>{SETUP[k][0]}</td><td>{SETUP[k][1]}</td><td>{SETUP[k][2]}</td></tr>"
@@ -109,19 +109,19 @@ code{{font:13px var(--mono);overflow-wrap:anywhere}}
 </style>
 <main>
 <header>
-  <p class="kicker">ds42 · paper 1 · §5–§6 · 2026-10-21</p>
-  <h1>Switching digest2 to NoID, and matching ds42 to it</h1>
-  <p class="lede">Mario asked to compare against digest2's NoID score (the one the NEOCP uses) instead of its raw score. We did that, then matched ds42 to the same population (Unk), then drew a fresh test sample from that population so ds42's probabilities can be checked on the same footing. Four setups, same 20,000-tracklet design, all with the extended model (H to 30).</p>
+  <p class="kicker">priora · paper 1 · §5–§6 · 2026-10-21</p>
+  <h1>Switching digest2 to NoID, and matching priora to it</h1>
+  <p class="lede">Mario asked to compare against digest2's NoID score (the one the NEOCP uses) instead of its raw score. We did that, then matched priora to the same population (Unk), then drew a fresh test sample from that population so priora's probabilities can be checked on the same footing. Four setups, same 20,000-tracklet design, all with the extended model (H to 30).</p>
 </header>
 
 <section class="bottom">
   <h2>Bottom line</h2>
   <ul>
-    <li><b>ds42 still wins in every setup.</b> In the fully matched setup (M) its AUC is {Mr['auc_ds42']:.4f} vs {Mr['auc_d2']:.4f}, ΔAUC {Mr['delta_auc']:+.4f} [{Mr['delta_ci'][0]:+.4f}, {Mr['delta_ci'][1]:+.4f}]. The lead is smaller than in the paper (+0.016), because both codes do better on this sample.</li>
-    <li><b>ds42 stays calibrated when matched</b>: predicted/observed NEOs {Mr['pred_obs_ds42']:.2f}, and the new sample passes every self-consistency check (observed 287 vs expected 284 NEOs). digest2 NoID overpredicts by {Mr['pred_obs_d2']:.1f}×.</li>
-    <li><b>The false-alarm gap holds</b>: at digest2's completeness ({pct(Mr['d2_ge65']['completeness'])}), digest2 NoID has {Mr['d2_ge65']['fa']} false alarms ({pct(Mr['d2_ge65']['contamination'])} contamination), ds42 {Mr['ds42_matched']['fa']} ({pct(Mr['ds42_matched']['contamination'])}).</li>
+    <li><b>priora still wins in every setup.</b> In the fully matched setup (M) its AUC is {Mr['auc_priora']:.4f} vs {Mr['auc_d2']:.4f}, ΔAUC {Mr['delta_auc']:+.4f} [{Mr['delta_ci'][0]:+.4f}, {Mr['delta_ci'][1]:+.4f}]. The lead is smaller than in the paper (+0.016), because both codes do better on this sample.</li>
+    <li><b>priora stays calibrated when matched</b>: predicted/observed NEOs {Mr['pred_obs_priora']:.2f}, and the new sample passes every self-consistency check (observed 287 vs expected 284 NEOs). digest2 NoID overpredicts by {Mr['pred_obs_d2']:.1f}×.</li>
+    <li><b>The false-alarm gap holds</b>: at digest2's completeness ({pct(Mr['d2_ge65']['completeness'])}), digest2 NoID has {Mr['d2_ge65']['fa']} false alarms ({pct(Mr['d2_ge65']['contamination'])} contamination), priora {Mr['priora_matched']['fa']} ({pct(Mr['priora_matched']['contamination'])}).</li>
     <li><b>The distant-object story comes back when matched.</b> {Mr['d2_ge65']['fa_far']} of digest2's {Mr['d2_ge65']['fa']} false alarms in M are distant (q ≥ 4.5 AU). In setup N it looked like the main belt took over; that was the mismatch between NoID and an All sample.</li>
-    <li><b>Mixing populations hurts ds42 too.</b> Unk ds42 on the All sample (U) overpredicts by {R['U']['pred_obs_ds42']:.2f}× and has {R['U']['ds42_matched']['fa']} false alarms. That is the prior being wrong for the sample, not the method.</li>
+    <li><b>Mixing populations hurts priora too.</b> Unk priora on the All sample (U) overpredicts by {R['U']['pred_obs_priora']:.2f}× and has {R['U']['priora_matched']['fa']} false alarms. That is the prior being wrong for the sample, not the method.</li>
   </ul>
 </section>
 
@@ -130,15 +130,15 @@ code{{font:13px var(--mono);overflow-wrap:anywhere}}
   <div class="defs">
     <div><b>raw (digest2)</b><span>Fraction of all model objects in the bins a tracklet could fall in that are NEOs.</span></div>
     <div><b>NoID (digest2)</b><span>Same, but counting only objects not yet discovered. What the NEOCP uses. Main-belt objects are mostly known, so scores rise.</span></div>
-    <div><b>All (ds42)</b><span>ds42 with the whole population. Counterpart of raw.</span></div>
-    <div><b>Unk (ds42)</b><span>ds42 with the undiscovered population. Counterpart of NoID.</span></div>
+    <div><b>All (priora)</b><span>priora with the whole population. Counterpart of raw.</span></div>
+    <div><b>Unk (priora)</b><span>priora with the undiscovered population. Counterpart of NoID.</span></div>
   </div>
 </section>
 
 <section>
   <h2>The four setups</h2>
   <div class="tbl"><table>
-    <tr><th></th><th>What it is</th><th>Sample drawn from</th><th>ds42</th><th>digest2</th></tr>
+    <tr><th></th><th>What it is</th><th>Sample drawn from</th><th>priora</th><th>digest2</th></tr>
     {setup_rows}
   </table></div>
   <p class="note">P, N and U use the paper's 20,000-tracklet sample. M is a new 20,000-tracklet sample drawn the same way (seed, epochs, magnitudes, geocentric observer) from the Unk population; it contains more NEOs (287) because NEOs are a larger share of what is undiscovered.</p>
@@ -156,8 +156,8 @@ code{{font:13px var(--mono);overflow-wrap:anywhere}}
 <section>
   <h2>Figures 1–4 for each setup</h2>
   <div class="seg" role="group" aria-label="Choose setup">{buttons}</div>
-  <figure><img id="fig" src="{IMG['M']}" alt="Four panels for the selected setup: ds42 reliability, ROC, predicted vs observed NEOs per bin, digest2 score vs ds42 P(NEO)"></figure>
-  <p class="note">(1) ds42 reliability in ten bins of 0.1, with tracklet counts; (2) ROC, log false-positive rate; (3) predicted (bar) vs observed (dot) NEOs per score bin, digest2 score divided by 100; (4) the Figure-4 scatter with the digest2 65 line and P = 0.1. These are quick-look panels; paper-style NoID versions of Figs 2–4 for setup N are in <code>paper/figures/*_noid.*</code>.</p>
+  <figure><img id="fig" src="{IMG['M']}" alt="Four panels for the selected setup: priora reliability, ROC, predicted vs observed NEOs per bin, digest2 score vs priora P(NEO)"></figure>
+  <p class="note">(1) priora reliability in ten bins of 0.1, with tracklet counts; (2) ROC, log false-positive rate; (3) predicted (bar) vs observed (dot) NEOs per score bin, digest2 score divided by 100; (4) the Figure-4 scatter with the digest2 65 line and P = 0.1. These are quick-look panels; paper-style NoID versions of Figs 2–4 for setup N are in <code>paper/figures/*_noid.*</code>.</p>
 </section>
 
 <section>
@@ -176,7 +176,7 @@ code{{font:13px var(--mono);overflow-wrap:anywhere}}
   <h2>Files</h2>
   <ul>
     <li><code>validation/unk_noid/analyze.py</code> computes everything on this page (<code>results.json</code>, <code>figures/</code>); <code>build_page.py</code> builds the page; <code>run_sc.py</code> runs the generator with the ephemeris pinned.</li>
-    <li>Runs: <code>validation/output/gate_v0_hext30_scoreUnk/</code> (ds42 Unk on the paper sample), <code>gate_v0unk_hext30/</code> (new Unk sample), <code>digest2_comparison_unk/</code> (digest2 on it).</li>
+    <li>Runs: <code>validation/output/gate_v0_hext30_scoreUnk/</code> (priora Unk on the paper sample), <code>gate_v0unk_hext30/</code> (new Unk sample), <code>digest2_comparison_unk/</code> (digest2 on it).</li>
     <li>Paper-style NoID figures for setup N: <code>paper/figures/*_noid.*</code>; scripts take <code>D2_SCORE=noid</code>.</li>
     <li>Nothing is committed yet.</li>
   </ul>

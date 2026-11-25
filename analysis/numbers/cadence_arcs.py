@@ -1,12 +1,12 @@
 """Section 7: same-night arc lengths in the first year of the LSST baseline cadence simulation v5.3.7.
 For 3000 random sky points (dec < +20 deg, seed 2), find every visit within 1.75 deg (about the LSSTCam field radius) and,
 for each point-night with >= 2 visits, the time from first to last visit. Writes cadence_arcs.json.
-Input: $DS42_EXTERNAL/opsim/baseline_v5.3.7_10yrs.db (rubin_sim baseline). Run: python analysis/numbers/cadence_arcs.py"""
+Input: $PRIORA_EXTERNAL/opsim/baseline_v5.3.7_10yrs.db (rubin_sim baseline). Run: python analysis/numbers/cadence_arcs.py"""
 import os
 import json, sqlite3
 from pathlib import Path
 import numpy as np
-DB = Path(os.environ["DS42_EXTERNAL"]) / "opsim/baseline_v5.3.7_10yrs.db"
+DB = Path(os.environ["PRIORA_EXTERNAL"]) / "opsim/baseline_v5.3.7_10yrs.db"
 a = np.array(sqlite3.connect(DB).execute("select fieldRA, fieldDec, observationStartMJD, night from observations where night < 365").fetchall(), float)
 ra, dec, t, n = np.radians(a[:, 0]), np.radians(a[:, 1]), a[:, 2] * 1440, a[:, 3].astype(int)
 rng = np.random.default_rng(2); m = 3000

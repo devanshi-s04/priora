@@ -14,7 +14,7 @@ from scipy.spatial import cKDTree
 from astropy.time import Time
 from astropy.coordinates import EarthLocation
 import astropy.units as u
-A = os.path.join(os.environ["DS42_EXTERNAL"], "ar_cache/"); M = os.path.join(os.environ["DS42_ALERTS"], "dp2/mpcorb/"); S = os.path.join(os.environ["DS42_ALERTS"], "full_nd2/score/")
+A = os.path.join(os.environ["PRIORA_EXTERNAL"], "ar_cache/"); M = os.path.join(os.environ["PRIORA_ALERTS"], "dp2/mpcorb/"); S = os.path.join(os.environ["PRIORA_ALERTS"], "full_nd2/score/")
 sp.furnsh(A + "naif0012.tls"); sp.furnsh(A + "de440s.bsp")
 GM = 2.9591220828559115e-04; C = 173.1446326846693; EPS = np.radians(84381.448 / 3600)
 R_ECL = np.array([[1, 0, 0], [0, np.cos(EPS), -np.sin(EPS)], [0, np.sin(EPS), np.cos(EPS)]])   # ecliptic -> equatorial
@@ -24,10 +24,10 @@ def body(name, jd_tdb, rel="SSB"):
     st = np.array([sp.spkezr(name, (j - 2451545.0) * 86400, "J2000", "NONE", rel)[0] for j in np.atleast_1d(jd_tdb)])
     return st[:, :3] / 1.495978707e8, st[:, 3:] / 1.495978707e8 * 86400
 # ---------------- targets (alert rerun full_nd2: the 44 candidates + 2 partly-known P >= 0.5 + 200 labelled 3+ tracklets as validation)
-AL = os.path.join(os.environ["DS42_ALERTS"], "full_nd2/score/")
+AL = os.path.join(os.environ["PRIORA_ALERTS"], "full_nd2/score/")
 u3 = pd.read_parquet(AL + "scores_joined.parquet"); u3 = u3[u3.n >= 3]
 cand = pd.read_csv(AL + "candidates_annot.csv", index_col=0).index
-part = u3[(u3.status == "partial") & (u3.ds42_All >= 0.5)].index
+part = u3[(u3.status == "partial") & (u3.priora_All >= 0.5)].index
 val = u3[(u3.status == "labelled") & u3.desig.notna()].sample(200, random_state=1)
 c = pd.DataFrame(index=cand.union(part))
 T = pd.read_parquet(AL + "trk_dets.parquet"); T = T[T.trkSub.isin(c.index.union(val.index))].copy()

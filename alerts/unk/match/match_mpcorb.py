@@ -8,7 +8,7 @@ Stage 2 (exact time): two-body position of each candidate at the detection's own
   (An ASSIST N-body refinement was tried and dropped: far too slow here, and two-body is already ~1 arcsec.)
 Output: match.parquet, one row per tracklet detection with the closest object, its separation (arcsec), q and H.
   Labels are applied downstream with a separation cut chosen from the residual distribution.
-Run from $DS42_ALERTS:  python3 unk/match/match_mpcorb.py
+Run from $PRIORA_ALERTS:  python3 unk/match/match_mpcorb.py
 """
 import os
 import gzip, json, sys, time
@@ -24,7 +24,7 @@ EPS = np.radians(84381.448 / 3600)                 # J2000 obliquity: ecliptic -
 CE, SE = np.cos(EPS), np.sin(EPS)
 C_AUD = 173.1446326846693                          # speed of light, AU/day
 R1 = np.radians(10 / 60)                           # stage-1 radius
-CACHE = os.path.join(os.environ["DS42_EXTERNAL"], "ar_cache/")
+CACHE = os.path.join(os.environ["PRIORA_EXTERNAL"], "ar_cache/")
 X05 = EarthLocation.from_geodetic(-70.749417 * u.deg, -30.244639 * u.deg, 2663 * u.m)
 
 # --- inputs -------------------------------------------------------------------------------------------------

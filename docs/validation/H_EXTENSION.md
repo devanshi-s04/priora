@@ -387,9 +387,9 @@ because before D-19 those 11 were excluded automatically by `isfinite`.
 policy rows as well as non-finite ones, and reports both counts. This is
 load-bearing for that module specifically: its premise is a *symmetric* drop —
 a tracklet enters both codes' ROC or neither — and a policy row is `p = 1.0`
-for ds42 with no likelihood behind it, on a class that is empirically ~100%
-true NEO, so keeping it hands ds42 free true positives that digest2 has to
-earn and biases ΔAUC in ds42's favour by construction. Separately,
+for priora with no likelihood behind it, on a class that is empirically ~100%
+true NEO, so keeping it hands priora free true positives that digest2 has to
+earn and biases ΔAUC in priora's favour by construction. Separately,
 `ClampedScoreConfig` silently dropped `h_interpolation` and `h_extend_to` from
 the run's own `score_config.json`, so the clamped pass would score a pchip or
 D-19-extended run against a plain clamped histogram and call the difference
@@ -553,7 +553,7 @@ extended model, so this tests **the extended model as a legitimate
 population**, not the extension as a scoring hack.
 
 ```
-OMP_NUM_THREADS=1 DS42_BACKEND=rust python -m validation.self_consistency run \
+OMP_NUM_THREADS=1 PRIORA_BACKEND=rust python -m validation.self_consistency run \
   --n 20000 --seed 20260901 --model data/digest2.model.csv --variant All \
   --h-extend-to 30 --n-rho 1200 --n-rhodot 50 --workers 90 --chunk 500 \
   --gate --boot 2000 --bins 5 --out validation/output/gate_v0_hext30
@@ -742,9 +742,9 @@ way the clamp does.
 | suite | result |
 |---|---|
 | `pytest tests/` (default `auto` => Rust) | **661 passed, 1 skipped, 1 xfailed** (221 s) |
-| `DS42_BACKEND=python pytest tests/` | **661 passed, 1 skipped, 1 xfailed** (243 s) |
+| `PRIORA_BACKEND=python pytest tests/` | **661 passed, 1 skipped, 1 xfailed** (243 s) |
 | `cargo test --manifest-path rust/Cargo.toml` | **20 passed, 0 failed** (19 before D-19; +1 `extended_h_axis_needs_no_kernel_special_case`) |
-| build | `rust/build.sh` (release), `ds42._core 0.0.1` |
+| build | `rust/build.sh` (release), `priora._core 0.0.1` |
 
 Tests added or reworked for the Feature 2 rework, on top of Feature 1's:
 

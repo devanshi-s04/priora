@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # MPC observation histories (network; fetched 2026-11-03): ../precovery_fig/mpc_obs_*.csv
-# Recovered verbatim from the analysis session (log line 28880); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 28880); run with 'source env.sh' first.
 # (The session wrote these to a scratch folder, then moved them to dp2/precovery_fig; this version writes there directly.)
 set -e
-cd $DS42_ALERTS/dp2/precovery_fig && ${PY:-python} - <<'EOF'
+cd $PRIORA_ALERTS/dp2/precovery_fig && ${PY:-python} - <<'EOF'
 import requests, pandas as pd, io
 for k in ("2025 OL4","2025 OT12","2025 OZ"):
     r=requests.get("https://data.minorplanetcenter.net/api/get-obs", json={"desigs":[k],"output_format":["ADES_DF"]}, timeout=120)

@@ -6,7 +6,7 @@ from multiprocessing import Pool
 os.environ.update(VAR="Unk",HEXT="30",GENRUN="gate_v0unk_hext30"); sys.argv=["x"]
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import bench_kernel_unk_hext30 as B
-from ds42.classifier import classify, classify_many
+from priora.classifier import classify, classify_many
 warnings.simplefilter("ignore")
 neo, other = B.Digest2Histogram.neo_other_pair(B.MODEL,"Unk",h_extend_to=30.0)
 N=int(os.environ.get("N","20000")); atts,R,V = B.load(N)

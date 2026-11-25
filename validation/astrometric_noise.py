@@ -1,6 +1,6 @@
-"""WP8 — how much does Rubin-level astrometric noise cost ds42 v0?
+"""WP8 — how much does Rubin-level astrometric noise cost priora v0?
 
-ds42 v0 treats the attributable ``A = (alpha, delta, alpha_dot, delta_dot)``
+priora v0 treats the attributable ``A = (alpha, delta, alpha_dot, delta_dot)``
 as EXACT — a delta function (DECISIONS D-6, DESIGN §2.7).  Real Rubin tracklets
 carry astrometric uncertainty, and on a short (~45 min) arc that uncertainty
 propagates into the *rates* amplified by ``1/dt``.  This harness measures the
@@ -415,7 +415,7 @@ def trailing_loss_dmag(
         dmagTrail = 1.25 * np.log10(1.0 + a_trail * x**2 / (1.0 + b_trail * x))
 
     Rates are in deg/day **with the cos(dec) factor already applied** to the RA
-    rate (Sorcha's ``RARateCosDec_deg_day``); ``ds42.Attributable.ra_rate``
+    rate (Sorcha's ``RARateCosDec_deg_day``); ``priora.Attributable.ra_rate``
     is the raw d(alpha)/dt, so the caller must multiply.
     """
     vel = np.hypot(np.asarray(dra_cosdec_deg_day, dtype=float),
@@ -1882,7 +1882,7 @@ def build_report(s: dict) -> str:
     em = s["error_model"]
     cal_n, cal_y = _g(s, "calibration", "noiseless", default={}), _g(s, "calibration", "noisy", default={})
 
-    A("# Astrometric noise vs. ds42 v0's delta-function attributable")
+    A("# Astrometric noise vs. priora v0's delta-function attributable")
     A("")
     A("*Does D-6 (the exact-attributable assumption) cost anything at Rubin-level "
       "astrometric noise, or is v1's covariance marginalization urgent?  Harness: "
@@ -2134,7 +2134,7 @@ def build_report(s: dict) -> str:
     A("")
     A("`validation/DIGEST2_COMPARISON.md` sets the reference: digest2's own NEOCP cut "
       f"(raw ≥ 65) recovers {_pct(op.get('target_completeness'))} of the true NEOs on "
-      "`gate_v0`, and ds42 matches that completeness at 6.3% contamination. Three "
+      "`gate_v0`, and priora matches that completeness at 6.3% contamination. Three "
       "readings, of which the third is the operationally honest one — a threshold is "
       "chosen once, on a study like WP7's, and then deployed against noisy data:")
     A("")
@@ -2386,7 +2386,7 @@ BREAK_CROSS_FRAC = 0.01
 #: anywhere in the admissible region of the noisy attributable) above which the
 #: classifier is judged to have lost the tracklet outright.
 BREAK_UNDEFINED_FRAC = 0.01
-#: **W1** — the ds42-over-digest2 AUC gap D-14 measured.  A ranking
+#: **W1** — the priora-over-digest2 AUC gap D-14 measured.  A ranking
 #: degradation of that size would eat the method's entire measured advantage.
 WARN_DELTA_AUC = 0.0126
 #: **W2** — completeness loss at the fixed WP7 operating point, in absolute
@@ -2419,7 +2419,7 @@ BREAK_CRITERION = [
     "Lambdas are zero (D-19 then assigns a triage score of 1.0, which is not a "
     "likelihood and is counted here as lost — see `mask_policy_rows`).",
     f"W1 (warning, ranking) — the paired-bootstrap 95% CI on Delta-AUC excludes "
-    f"zero AND |Delta AUC| > {WARN_DELTA_AUC:g}, the ds42-over-digest2 "
+    f"zero AND |Delta AUC| > {WARN_DELTA_AUC:g}, the priora-over-digest2 "
     "method gap D-14 measured.",
     f"W2 (warning, operating point) — completeness at the FIXED WP7 "
     f"matched-completeness cut (chosen once on noiseless scores) drops by more "
@@ -4472,7 +4472,7 @@ def build_sweep_report(s: dict) -> str:
     A("## Reproduce")
     A("")
     A("```")
-    A("OMP_NUM_THREADS=1 DS42_BACKEND=python \\")
+    A("OMP_NUM_THREADS=1 PRIORA_BACKEND=python \\")
     A("  python3 -m validation.astrometric_noise sweep --workers 84")
     A("```")
     A("")
@@ -4538,7 +4538,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="python3 -m validation.astrometric_noise",
         description=(
-            "Measure the cost of ds42 v0's delta-function attributable "
+            "Measure the cost of priora v0's delta-function attributable "
             "(D-6) under Rubin-level astrometric noise."
         ),
     )

@@ -32,7 +32,7 @@ def load(run, d2dir, score):
                 rate=np.degrees(np.hypot(g["ra_rate"][idx] * np.cos(np.radians(g["dec"][idx])), g["dec_rate"][idx])), s=d[score][idd])
 # known objects (MPCORB, downloaded 2026-11-04)
 rows = []
-with gzip.open(Path(os.environ["DS42_ALERTS"]) / "dp2/mpcorb/MPCORB.DAT.gz", "rt", errors="ignore") as f:
+with gzip.open(Path(os.environ["PRIORA_ALERTS"]) / "dp2/mpcorb/MPCORB.DAT.gz", "rt", errors="ignore") as f:
     go = False
     for L in f:
         if L.startswith("-----"): go = True; continue

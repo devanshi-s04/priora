@@ -3,7 +3,7 @@
 environment (VAR=Unk HEXT=30 GENRUN=gate_v0unk_hext30). Results: bench_kernel_unk_hext30.json.
 Run from the repo root: VAR=Unk HEXT=30 GENRUN=gate_v0unk_hext30 python analysis/numbers/bench_kernel_unk_hext30.py --n 40 --workers 1,8
 
-Benchmark the two ds42 classify backends.
+Benchmark the two priora classify backends.
 
 Reports, at the production grid resolution (n_rho, n_rhodot) = (1200, 50):
 
@@ -33,13 +33,13 @@ import warnings
 import numpy as np
 from astropy.time import Time
 
-REPO = os.environ["DS42_REPO"]
+REPO = os.environ["PRIORA_REPO"]
 sys.path.insert(0, os.path.join(REPO, "src"))
 
-from ds42.attributable import Attributable  # noqa: E402
-from ds42.backend import core_available  # noqa: E402
-from ds42.classifier import classify, classify_many  # noqa: E402
-from ds42.population import Digest2Histogram  # noqa: E402
+from priora.attributable import Attributable  # noqa: E402
+from priora.backend import core_available  # noqa: E402
+from priora.classifier import classify, classify_many  # noqa: E402
+from priora.population import Digest2Histogram  # noqa: E402
 
 GEN = os.path.join(REPO, "validation", "output", os.environ.get("GENRUN","gate_v0"), "gen.npz")
 MODEL = os.path.join(REPO, "data", "digest2.model.csv")

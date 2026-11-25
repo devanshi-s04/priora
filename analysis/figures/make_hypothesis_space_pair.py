@@ -2,11 +2,11 @@
 
 Style of option I on the figure-options page (rho on the y-axis, white background, cells below 1e-4 of the
 peak faded, orange truth star, dashed q = 1.3 AU curve), as two panels with one shared colour scale.
-The objects, grid and per-node bookkeeping come from ds42_example_figures.ipynb itself: its first six code
+The objects, grid and per-node bookkeeping come from priora_example_figures.ipynb itself: its first six code
 cells are executed here (they select gate objects by a printed rule, re-observe them from X05 and assert
 the Lambda / P(NEO) / mass bookkeeping), so this figure cannot drift from the notebook.
 Run from paper/figures/ with the Rubin-stack python:  python3 make_hypothesis_space_pair.py
-Writes ds42_hypothesis_space_pair.{pdf,png} and ds42_hypothesis_space_pair_provenance.json.
+Writes priora_hypothesis_space_pair.{pdf,png} and priora_hypothesis_space_pair_provenance.json.
 """
 import json
 import os
@@ -17,11 +17,11 @@ import numpy as np
 
 HERE = Path(__file__).resolve().parent
 os.chdir(HERE)
-nb = nbformat.read("ds42_example_figures.ipynb", 4)
+nb = nbformat.read("priora_example_figures.ipynb", 4)
 G = {}
 for src in [c.source for c in nb.cells if c.cell_type == "code"][:6]:
     src = "\n".join(l for l in src.splitlines() if not l.startswith("%config"))
-    src = src.replace('save(fig, f"ds42_{lab.lower()}_hypothesis_space"); plt.show()', "plt.close(fig)")
+    src = src.replace('save(fig, f"priora_{lab.lower()}_hypothesis_space"); plt.show()', "plt.close(fig)")
     exec(src, G)
 
 import matplotlib as mpl
@@ -34,7 +34,7 @@ from matplotlib.ticker import LogFormatterMathtext, LogLocator
 DATA, LIM, CMAP, C_NONE, q13 = G["DATA"], G["LIM"], G["CMAP"], G["C_NONE"], G["q13_branches"]
 C_NEGL, C_STAR = "#f1efe9", "#FF8A1F"
 LETTERS = os.environ.get("PANEL_LETTERS", "a,b").split(",")     # e.g. PANEL_LETTERS=a,b for a composite figure
-STEM = os.environ.get("OUT_STEM", "ds42_hypothesis_space_pair")  # change it so the paper figure is not overwritten
+STEM = os.environ.get("OUT_STEM", "priora_hypothesis_space_pair")  # change it so the paper figure is not overwritten
 NAME = {"NEO": f"({LETTERS[0]}) NEO", "MBA": f"({LETTERS[1]}) main-belt asteroid"}
 FS = 9
 CROP = {"MBA": 0.1}   # panel (b) shows rho >= 0.1 AU only, cropped in rho_dot to the cells holding probability
@@ -102,7 +102,7 @@ with mpl.rc_context(rc):
         fig.savefig(HERE / f"{STEM}.{ext}", **kw)
     plt.close(fig)
 
-prov = {"script": Path(__file__).name, "notebook": "ds42_example_figures.ipynb", "commit": G["COMMIT"],
+prov = {"script": Path(__file__).name, "notebook": "priora_example_figures.ipynb", "commit": G["COMMIT"],
         "dirty_src": G["DIRTY"], "model_sha256": G["MODEL_SHA"], "obscode": G["OBSCODE"],
         "grid": [G["N_RHO"], G["N_RHODOT"]], "rho_range": [G["RHO_MIN"], G["RHO_MAX"]],
         "h_extend_to": G["H_EXTEND_TO"], "colour_floor_rel": G["DYN"], "dens_range": list(map(float, LIM["dens"]))}

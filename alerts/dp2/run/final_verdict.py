@@ -1,4 +1,4 @@
-"""Final verdict per DP2 candidate (655 unlabelled, ds42 All P >= 0.1, 3+ detections), using the local MPCORB check.
+"""Final verdict per DP2 candidate (655 unlabelled, priora All P >= 0.1, 3+ detections), using the local MPCORB check.
 known: every detection within 10" of a known object, or a steady offset < 60" (first/last/median agree within 2": orbit error).
 mixed: some detections on a known object (median < 5") but others > 10" off: a known asteroid paired with unrelated detections.
 Then the earlier groups: strong (trail-confirmed, every test passed, field not crowded), strong but crowded, passed a test, untested,
@@ -30,4 +30,4 @@ def final(r):
 C["verdict"] = [final(r) for _, r in C.iterrows()]
 C.to_parquet(S + "candidate_verdict_final.parquet")
 print(pd.crosstab(C.verdict, C.n >= 4, margins=True).to_string())
-print(C[C.known].sort_values(["verdict", "sep_med"])[["verdict", "n", "mpc_object", "obj_class", "sep_med", "sep_max", "ds42_All"]].round(2).to_string())
+print(C[C.known].sort_values(["verdict", "sep_med"])[["verdict", "n", "mpc_object", "obj_class", "sep_med", "sep_max", "priora_All"]].round(2).to_string())

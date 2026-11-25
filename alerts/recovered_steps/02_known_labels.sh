@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # MPCORB labels for the Rubin-associated objects: data/labels_ftransfer_2026-11-02.parquet
-# Recovered verbatim from the analysis session (log line 18859); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 18859); run with 'source env.sh' first.
 set -e
-cd $DS42_ALERTS/data && ${PY:-python} - <<'EOF'
+cd $PRIORA_ALERTS/data && ${PY:-python} - <<'EOF'
 import gzip, json, pandas as pd, numpy as np
 recs=json.load(gzip.open("mpcorb_extended.json.gz"))
 rows=[]; alias={}

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # July+October known detections with labels: data/ftransfer_julyoct_labelled.parquet
-# Recovered verbatim from the analysis session (log line 18875); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 18875); run with 'source env.sh' first.
 set -e
-cd $DS42_ALERTS/data && ${PY:-python} - <<'EOF'
+cd $PRIORA_ALERTS/data && ${PY:-python} - <<'EOF'
 import pandas as pd, numpy as np
 from astropy.time import Time
 df=pd.read_parquet("ftransfer_2026-11-02_all.parquet")

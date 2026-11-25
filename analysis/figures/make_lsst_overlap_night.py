@@ -5,7 +5,7 @@ time in the night, and the known-object tracklets: two detections dim, three or 
 (b) Share of tracklets with 3+ detections against the number of visits covering their position.
 (c) Close-up of one overlap patch, tracklets as streaks of their motion.
 Sample: pure known-object tracklets, arcs >= 15 min, with a perihelion in MPCORB (as make_lsst_known_flow.py).
-Inputs ($DS42_ALERTS): score/scores_joined.parquet, tracklets/{tracklet_labels_v5.parquet, pairdets_v5.csv, trk2det_v5.csv, imgs_v5.txt}.
+Inputs ($PRIORA_ALERTS): score/scores_joined.parquet, tracklets/{tracklet_labels_v5.parquet, pairdets_v5.csv, trk2det_v5.csv, imgs_v5.txt}.
 -> rubin_overlap_night.{png,pdf}"""
 import os
 from pathlib import Path
@@ -18,7 +18,7 @@ from matplotlib.colors import BoundaryNorm, LinearSegmentedColormap
 from matplotlib.collections import LineCollection
 from matplotlib.lines import Line2D
 
-T = Path(os.environ["DS42_ALERTS"])
+T = Path(os.environ["PRIORA_ALERTS"])
 OUT = Path(__file__).resolve().parent
 NIGHT, RAD = 61227, 1.75
 FR = dict(ra=(352, 298), dec=(-33, -1))

@@ -49,8 +49,8 @@ for t in R.index:
         best["n_comoving"] = len(cands)
         if res != "not the same object": break
     rows.append(best)
-M = pd.DataFrame(rows).set_index("trkSub").join(R[["n", "ds42_All", "gal_b", "trail_confirmed", "any_flag2"]]); M.to_parquet(S / os.environ["SB_FILE"])
+M = pd.DataFrame(rows).set_index("trkSub").join(R[["n", "priora_All", "gal_b", "trail_confirmed", "any_flag2"]]); M.to_parquet(S / os.environ["SB_FILE"])
 print(M.skybot_result.value_counts().to_string())
-print(M[M.skybot_object.notna()][["n", "skybot_result", "skybot_object", "skybot_class", "sep_first", "sep_last", "rate", "skybot_rate", "dpa", "ds42_All"]].round(2).sort_values("skybot_result").to_string())
+print(M[M.skybot_object.notna()][["n", "skybot_result", "skybot_object", "skybot_class", "sep_first", "sep_last", "rate", "skybot_rate", "dpa", "priora_All"]].round(2).sort_values("skybot_result").to_string())
 for k in (3, 4):
     m = M[M.n >= k]; print(f"{k}+: checked {len(m)}, still unknown {int((~m.skybot_result.isin(['match', 'same object, orbit offset'])).sum())}")

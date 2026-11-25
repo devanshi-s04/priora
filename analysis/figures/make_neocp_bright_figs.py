@@ -1,6 +1,6 @@
 """§8 figures for the NEOCP comparison (2026-11-06), from the bright-only Unk sample (V 14-21.2; validation/output/gate_v0unk_bright212_hext30,
 digest2 NoID from validation/output/digest2_comparison_unk_bright212):
-  neocp_bright_scatter  digest2 NoID vs ds42 Unk after removing known distant objects (q >= 4.5 AU and H brighter than the MPCORB
+  neocp_bright_scatter  digest2 NoID vs priora Unk after removing known distant objects (q >= 4.5 AU and H brighter than the MPCORB
                         known-object H peak for its range: Trojan/Centaur 14.75, TNO 7.25); one column
   neocp_bright_hdist    H of the bright sample's distant digest2 >= 65 false alarms against known MPCORB objects, by q range, with the
                         peak used as the 'known' limit; full width

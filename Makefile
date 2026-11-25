@@ -1,8 +1,8 @@
-# ds42 paper: build, data, analysis and paper targets.  `make help` lists them.
+# priora paper: build, data, analysis and paper targets.  `make help` lists them.
 SHELL := /bin/bash
-export DS42_REPO     := $(CURDIR)
-export DS42_ALERTS   ?= $(CURDIR)/alerts
-export DS42_EXTERNAL ?= $(CURDIR)/data/external
+export PRIORA_REPO     := $(CURDIR)
+export PRIORA_ALERTS   ?= $(CURDIR)/alerts
+export PRIORA_EXTERNAL ?= $(CURDIR)/data/external
 export PYTHONPATH    := $(CURDIR)/src:$(CURDIR)
 export OMP_NUM_THREADS ?= 1
 export PY ?= python
@@ -13,7 +13,7 @@ DATA_URL ?=
 .PHONY: help install test model external data analysis numbers figures paper simulations alerts dp2 clean
 
 help:
-	@echo "make install      install ds42 (editable) and build the Rust kernel"
+	@echo "make install      install priora (editable) and build the Rust kernel"
 	@echo "make test         run the test suite"
 	@echo "make model        download the digest2 population model from the MPC (data/digest2.model.csv)"
 	@echo "make external     download third-party inputs: LSST cadence db, Sorcha/ASSIST ephemerides, HelioLinC, AASTeX"
@@ -45,7 +45,7 @@ data:
 # ---- the paper -------------------------------------------------------------------------------------------------------
 numbers: model
 	$(PY) analysis/numbers/check_sim_numbers.py
-	@test -f $(DS42_EXTERNAL)/opsim/baseline_v5.3.7_10yrs.db && $(PY) analysis/numbers/cadence_arcs.py || echo "skip cadence_arcs (run make external)"
+	@test -f $(PRIORA_EXTERNAL)/opsim/baseline_v5.3.7_10yrs.db && $(PY) analysis/numbers/cadence_arcs.py || echo "skip cadence_arcs (run make external)"
 
 figures: model
 	bash analysis/figures/run_all.sh

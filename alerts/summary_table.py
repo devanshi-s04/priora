@@ -14,9 +14,9 @@ for t, f in S.items():
             f = E[sel]; nn = f[~f.neo.astype(bool)]
             return [int(len(f)), int(f.neo.astype(bool).sum()), int(len(nn)), int((nn.q >= 4.5).sum())]
         out[f"{t}_{k}"] = dict(n=int(len(E)), neo=int(y.sum()), other=int(len(O)), all_tracklets=int((m.n >= k).sum()),
-            sumP_All=float(E.ds42_All.sum()), sumP_Unk=float(E.ds42_Unk.sum()),
-            auc_All=float(roc_auc_score(y, E.ds42_All)), auc_raw=float(roc_auc_score(y, E.d2_raw)),
-            d2raw=fl(E.d2_raw >= 65), d2noid=fl(E.d2_noid >= 65), ds42_01=fl(E.ds42_All >= 0.1), ds42_05=fl(E.ds42_All >= 0.5),
-            other_flag_d2raw=int((O.d2_raw >= 65).sum()), other_flag_ds42=int((O.ds42_All >= 0.5).sum()))
+            sumP_All=float(E.priora_All.sum()), sumP_Unk=float(E.priora_Unk.sum()),
+            auc_All=float(roc_auc_score(y, E.priora_All)), auc_raw=float(roc_auc_score(y, E.d2_raw)),
+            d2raw=fl(E.d2_raw >= 65), d2noid=fl(E.d2_noid >= 65), priora_01=fl(E.priora_All >= 0.1), priora_05=fl(E.priora_All >= 0.5),
+            other_flag_d2raw=int((O.d2_raw >= 65).sum()), other_flag_priora=int((O.priora_All >= 0.5).sum()))
 json.dump(out, open("summary_table.json", "w"), indent=1)
 for k, v in out.items(): print(k, v)

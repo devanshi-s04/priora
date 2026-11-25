@@ -1,8 +1,8 @@
 """Subset of one alerts test restricted to tracklets with >= NMIN detections: numbers + the same figures as the main sections.
 Usage: python3 subset_figs.py <test> <nmin>    test in {known, unk, full}
- known: $DS42_ALERTS/score/scores_joined.parquet, evaluation set = pure tracklets, page $DS42_ALERTS/page
- unk:   $DS42_ALERTS/unk/score/scores_joined.parquet, evaluation set = labelled tracklets, page unk/page
- full:  $DS42_ALERTS/full/score/scores_joined.parquet, labelled tracklets, page full/page
+ known: $PRIORA_ALERTS/score/scores_joined.parquet, evaluation set = pure tracklets, page $PRIORA_ALERTS/page
+ unk:   $PRIORA_ALERTS/unk/score/scores_joined.parquet, evaluation set = labelled tracklets, page unk/page
+ full:  $PRIORA_ALERTS/full/score/scores_joined.parquet, labelled tracklets, page full/page
 Writes <score dir>/analysis_<n>plus.json, figures into <page>/img with tag <Tag><n>plus, paper-script caches/figures
 (validation/output/lsst_<test>_{All,Unk}_<n>plus, paper/figures/*_<Tag>{All,Unk}<n>plus.*; new filenames only)."""
 import json, os, shutil, subprocess, sys
@@ -10,7 +10,7 @@ from pathlib import Path
 import numpy as np, pandas as pd
 from sklearn.metrics import roc_auc_score
 
-H = Path.home(); T = Path(os.environ["DS42_ALERTS"]); PY = sys.executable
+H = Path.home(); T = Path(os.environ["PRIORA_ALERTS"]); PY = sys.executable
 test, nmin = sys.argv[1], int(sys.argv[2])
 cfg = {"known": (T / "score", T / "page", "lsst"), "unk": (T / "unk/score", T / "unk/page", "lsstUnkLab"),
        "full": (T / "full/score", T / "full/page", "lsstFullLab")}[test]
@@ -32,25 +32,25 @@ def auc_bs(s, B=2000):
 
 out = {"test": test, "nmin": nmin, "n": len(E), "n_neo": int(y.sum()), "n_other": len(other),
        "npts": {str(k): int(v) for k, v in E.n.value_counts().sort_index().items()}}
-out["auc"] = {k: auc_bs(E[k]) for k in ("ds42_All", "ds42_Unk", "d2_raw", "d2_noid")} if 0 < y.sum() < len(y) else {}
-out["sumP"] = {k: float(E[k].sum()) for k in ("ds42_All", "ds42_Unk")}
+out["auc"] = {k: auc_bs(E[k]) for k in ("priora_All", "priora_Unk", "d2_raw", "d2_noid")} if 0 < y.sum() < len(y) else {}
+out["sumP"] = {k: float(E[k].sum()) for k in ("priora_All", "priora_Unk")}
 fl = {}
-for name, sel in (("d2_raw>=65", E.d2_raw >= 65), ("d2_noid>=65", E.d2_noid >= 65), ("ds42_All>=0.1", E.ds42_All >= 0.1),
-                  ("ds42_Unk>=0.1", E.ds42_Unk >= 0.1), ("ds42_All>=0.5", E.ds42_All >= 0.5)):
+for name, sel in (("d2_raw>=65", E.d2_raw >= 65), ("d2_noid>=65", E.d2_noid >= 65), ("priora_All>=0.1", E.priora_All >= 0.1),
+                  ("priora_Unk>=0.1", E.priora_Unk >= 0.1), ("priora_All>=0.5", E.priora_All >= 0.5)):
     f = E[sel]; nn = f[~f.neo]
     fl[name] = dict(flagged=len(f), neo=int(f.neo.sum()), non_neo=len(nn), distant=int((nn.q >= 4.5).sum()))
 out["flags"] = fl
-out["other_flagged"] = {c: int((other[c] >= (65 if c.startswith("d2") else .5)).sum()) for c in ("d2_raw", "d2_noid", "ds42_All", "ds42_Unk")}
+out["other_flagged"] = {c: int((other[c] >= (65 if c.startswith("d2") else .5)).sum()) for c in ("d2_raw", "d2_noid", "priora_All", "priora_Unk")}
 # paper-script caches
-O = Path(os.environ["DS42_REPO"]) / "validation/output"; n = len(E); idx = np.arange(n); el = np.zeros((n, 6)); el[:, 0] = E.q.values
+O = Path(os.environ["PRIORA_REPO"]) / "validation/output"; n = len(E); idx = np.arange(n); el = np.zeros((n, 6)); el[:, 0] = E.q.values
 runs = {}
 for V in ("All", "Unk"):
     r = f"lsst_{test}_{V}_{nmin}plus"; d = O / r; d.mkdir(parents=True, exist_ok=True)
-    np.savez(d / "scores.npz", index=idx, p_neo=E[f"ds42_{V}"].values); np.savez(d / "gen.npz", is_neo=E.neo.values, elements=el)
+    np.savez(d / "scores.npz", index=idx, p_neo=E[f"priora_{V}"].values); np.savez(d / "gen.npz", is_neo=E.neo.values, elements=el)
     c = O / f"lsst_{test}_d2_{nmin}plus" / r; c.mkdir(parents=True, exist_ok=True)
     np.savez(c / "digest2_scores.npz", index=idx, raw_neo=E.d2_raw.values, noid_neo=E.d2_noid.values, ok=np.ones(n, bool))
     runs[V] = r
-FIG = Path(os.environ["DS42_REPO"]) / "paper/figures"; img = PG / "img"; img.mkdir(exist_ok=True)
+FIG = Path(os.environ["PRIORA_REPO"]) / "paper/figures"; img = PG / "img"; img.mkdir(exist_ok=True)
 sfx = {V: f"_{TAG}{V}{nmin}plus" for V in ("All", "Unk")}
 for V, d2 in (("All", "raw"), ("Unk", "noid")):
     env = dict(os.environ, R_RUN=runs[V], R_CMP=f"lsst_{test}_d2_{nmin}plus/{runs[V]}", D2_SCORE=d2, OUT_SUFFIX=sfx[V],

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """COPY of output/h_extension/rescore_neocp.py (2026-11-06) with the population variant switched to Unk and only the extended config:
-the NEOCP test redone as ds42 Unk (extended, h_extend_to=30) to pair with digest2 NoID. Writes neocp_delta_all.json here.
+the NEOCP test redone as priora Unk (extended, h_extend_to=30) to pair with digest2 NoID. Writes neocp_delta_all.json here.
 Original docstring follows.
 
 Read-only with respect to ``validation/neocp_pilot.py`` and everything under
@@ -78,7 +78,7 @@ def _pair():
 
 
 def _init_worker(kind: str) -> None:
-    from ds42.population import Digest2Histogram
+    from priora.population import Digest2Histogram
 
     neo, other = Digest2Histogram.neo_other_pair(MODEL, "Unk", **CONFIGS[kind])
     _W["neo"] = neo
@@ -89,8 +89,8 @@ def _init_worker(kind: str) -> None:
 def _score_one(task: tuple) -> dict:
     from astropy.time import Time
 
-    from ds42 import Attributable, classify
-    from ds42.classifier import h_support_end
+    from priora import Attributable, classify
+    from priora.classifier import h_support_end
 
     (idx, ra, dec, ra_rate, dec_rate, jd, v_mag, lon, lat, height) = task
     att = Attributable(

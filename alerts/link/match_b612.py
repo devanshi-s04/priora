@@ -4,7 +4,7 @@ and position (< 2"). Then report which NEO candidates have submitted detections.
 import os
 import numpy as np, pandas as pd
 from astropy.time import Time
-T = os.environ["DS42_ALERTS"]
+T = os.environ["PRIORA_ALERTS"]
 X = pd.read_parquet(f"{T}/data_b612/x05_our_nights.parquet")
 X["mjd_utc"] = X.mjd
 def match(D, name, tcol, racol, decol, idcol):

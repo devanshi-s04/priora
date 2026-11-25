@@ -3,7 +3,7 @@
 What this is
 ------------
 DESIGN §4.2 asks for the one experiment that isolates *method* from *prior*:
-run the MPC's own digest2 and ds42 on **the same tracklets** with **the
+run the MPC's own digest2 and priora on **the same tracklets** with **the
 same population file**, and measure the ranking gap.  Because the WP6 harness
 generates its test population *from* that same file, the prior is not merely
 "shared" — it is correct for both codes.  Whatever ROC gap remains is the value
@@ -40,7 +40,7 @@ identically by construction.
 
 Which digest2 score
 -------------------
-ds42's v0 scoring uses the **All** variant of the model.  digest2's
+priora's v0 scoring uses the **All** variant of the model.  digest2's
 ``raw`` score is the All-population fraction; its ``noid`` (default) score
 uses the ``Unk`` (yet-undiscovered) parallel histogram — see ALGORITHM.md
 steps 5-6.  The headline comparison therefore uses ``result.raw.NEO``;
@@ -50,7 +50,7 @@ The "same inputs" caveat (DESIGN §4.2, WP4 review)
 --------------------------------------------------
 ``d2model.c:hToBin`` runs ``for (ih = 0; h >= hpart[ih] && ih < HX - 1; ++ih)``
 with ``hpart[17] = 25.5``, so **every** trial orbit with H >= 24 lands in the
-final bin: digest2's top H bin is effectively [24, inf).  ds42 truncates
+final bin: digest2's top H bin is effectively [24, inf).  priora truncates
 the model at H = 25.5 per D-4.  For a tracklet with appreciable
 admissible-region measure at implied H > 25.5 the two codes are therefore *not*
 consuming the same effective model, and the head-to-head premise is broken for
@@ -84,11 +84,11 @@ The unit tests exercise a 10-tracklet round trip and the pure-numpy analysis.
 The clamped control (WP7 addendum)
 ----------------------------------
 ``clamped`` repairs the "same inputs" caveat above instead of routing around
-it: it re-scores the *same* tracklets with a ds42 pair built with
+it: it re-scores the *same* tracklets with a priora pair built with
 ``Digest2Histogram(h_top_bin_infinite=True)``, i.e. with digest2's own
 [24, inf) top H bin, so that the premise holds for every tracklet.  It reuses
 the case's existing digest2 scores and true labels, writes
-``ds42_clamped_scores.npz`` plus three plots into the case directory, adds
+``priora_clamped_scores.npz`` plus three plots into the case directory, adds
 a ``clamped`` block to its ``summary.json``, and writes
 ``CLAMPED_ADDENDUM.md`` one level up.  See the section marked "WP7 addendum"
 below for what the resulting decomposition means.
@@ -165,7 +165,7 @@ DEFAULT_DT_MIN = 45.0
 CLEAN_MAX_FRAC = 1e-3
 BROKEN_MIN_FRAC = 1e-2
 
-#: digest2 score used as the ds42 counterpart.  'raw' == All population.
+#: digest2 score used as the priora counterpart.  'raw' == All population.
 D2_VARIANT_DEFAULT = "raw"
 D2_CLASS = "NEO"
 
@@ -303,7 +303,7 @@ _OPTIONAL_SCORE_KEYS = ("lambda_neo", "lambda_other")
 
 @dataclass
 class RunData:
-    """A WP6 run's generated catalogue joined to its ds42 scores.
+    """A WP6 run's generated catalogue joined to its priora scores.
 
     All arrays are aligned row-for-row and ordered as ``scores.npz['index']``.
     ``index`` is the row in ``gen.npz``; it is also what the emitted tracklet
@@ -314,14 +314,14 @@ class RunData:
     index: np.ndarray
     gen: dict = field(repr=False)
     scores: dict = field(repr=False)
-    #: Tracklets dropped by :func:`load_run` because ds42 produced no
+    #: Tracklets dropped by :func:`load_run` because priora produced no
     #: likelihood score for them.  Reported rather than silent, because the
     #: symmetric-drop premise of this comparison depends on the drop being
     #: understood: ``n_dropped_nonfinite`` is a nan p_neo, and
     #: ``n_dropped_policy`` is a D-19 triage assignment (p = 1.0 with both
     #: Lambdas exactly zero — a defined number with no likelihood behind it, on
     #: a class that is empirically ~100% true NEO, so keeping it would bias
-    #: ΔAUC toward ds42 by construction).
+    #: ΔAUC toward priora by construction).
     n_dropped_nonfinite: int = 0
     n_dropped_policy: int = 0
     #: Whether the score table carried the Lambda columns the policy filter
@@ -357,7 +357,7 @@ def load_run(run_dir: str, limit: int | None = None) -> RunData:
 
     The join is on ``scores.npz['index']`` (the harness scores in chunks and
     concatenates, so the row order of scores.npz is not assumed to be 0..N-1).
-    Rows whose ds42 ``p_neo`` is not finite are dropped — they cannot enter
+    Rows whose priora ``p_neo`` is not finite are dropped — they cannot enter
     a ROC on either side — and the count is reported by the caller.
     """
     gpath = os.path.join(run_dir, "gen.npz")
@@ -388,7 +388,7 @@ def load_run(run_dir: str, limit: int | None = None) -> RunData:
             )
         gen = {k: np.asarray(z[k])[idx] for k in _GEN_KEYS}
 
-    # Drop tracklets ds42 could not score with a LIKELIHOOD, which since
+    # Drop tracklets priora could not score with a LIKELIHOOD, which since
     # D-19 is two categories rather than one:
     #
     #   * non-finite p_neo — an empty admissible region, or a 0/0 whose
@@ -401,9 +401,9 @@ def load_run(run_dir: str, limit: int | None = None) -> RunData:
     # premise (documented in DIGEST2_COMPARISON.md) is a *symmetric* drop: a
     # tracklet either enters both codes' ROC or neither, so that no ΔAUC can be
     # manufactured by one side scoring tracklets the other cannot. A policy row
-    # is p = 1.0 for ds42 with no likelihood behind it, on a class that is
-    # empirically ~100% true NEO — keeping it would hand ds42 free true
-    # positives that digest2 has to earn, biasing ΔAUC in ds42's favour by
+    # is p = 1.0 for priora with no likelihood behind it, on a class that is
+    # empirically ~100% true NEO — keeping it would hand priora free true
+    # positives that digest2 has to earn, biasing ΔAUC in priora's favour by
     # construction.  Excluded here, and counted so the drop is visible.
     finite_p = np.isfinite(scores["p_neo"])
     policy_detectable = all(k in scores for k in _OPTIONAL_SCORE_KEYS)
@@ -457,7 +457,7 @@ def _tracklet_positions(
     """Two-epoch (ra_deg, dec_deg, jd_tdb) arrays of shape (n, 2).
 
     Linear propagation of the attributable: ra_rate is d(alpha)/dt (NOT
-    multiplied by cos(delta)) per ``ds42.attributable.Attributable``, so
+    multiplied by cos(delta)) per ``priora.attributable.Attributable``, so
     the propagation is a plain addition in both coordinates.
     """
     dt = float(dt_min) / 1440.0
@@ -515,7 +515,7 @@ def emit_ades_psv(
     os.makedirs(os.path.dirname(os.path.abspath(path)) or ".", exist_ok=True)
     n_obs = 0
     with open(path, "w") as fh:
-        fh.write("# WP7 synthetic tracklets from ds42 validation/self_consistency\n")
+        fh.write("# WP7 synthetic tracklets from priora validation/self_consistency\n")
         fh.write(_PSV_HEADER + "\n")
         for k in range(run.n):
             trk = designation(run.index[k])
@@ -808,7 +808,7 @@ def auc_bootstrap(
     out["delta_ci"] = [float(np.nanpercentile(d, lo)), float(np.nanpercentile(d, hi))]
     out["delta_boot_mean"] = float(np.nanmean(d))
     out["delta_boot_sd"] = float(np.nanstd(d, ddof=1))
-    # One-sided bootstrap p for "ds42 is no better than digest2".
+    # One-sided bootstrap p for "priora is no better than digest2".
     out["p_delta_le_0"] = float(np.mean(d <= 0.0))
     return out
 
@@ -823,7 +823,7 @@ def subset_masks(
     ``clean``  : measure fraction above H = 25.5 below ``clean_max`` — the two
                  codes really are consuming the same effective model here.
     ``broken`` : fraction above ``broken_min`` — digest2's [24, inf) top bin and
-                 ds42's hard truncation at 25.5 differ materially.
+                 priora's hard truncation at 25.5 differ materially.
     Tracklets between the two thresholds belong to neither subset by design;
     ``all`` keeps everything, including non-finite diagnostics.
     """
@@ -952,12 +952,12 @@ def operating_points(
     w: np.ndarray,
     d2_threshold: float = 65.0,
 ) -> dict:
-    """Triage at digest2's own NEOCP cut, and ds42 matched to it.
+    """Triage at digest2's own NEOCP cut, and priora matched to it.
 
     digest2 posts a tracklet to the NEO Confirmation Page at a score of 65.
     The comparison that matters operationally is not the AUC but what that
     threshold buys: at equal completeness, how much contamination does each
-    code carry?  ds42 is evaluated twice -- at its natural p = 0.5, and at
+    code carry?  priora is evaluated twice -- at its natural p = 0.5, and at
     whatever p reproduces digest2's completeness -- because only the second is
     an apples-to-apples contamination comparison.
     """
@@ -980,9 +980,9 @@ def operating_points(
     d2_pt = point(s_d2 >= d2_threshold, f"digest2 raw >= {d2_threshold:g}")
     out = {
         "digest2_neocp": d2_pt,
-        "ds42_p50": point(p42 >= 0.5, "ds42 p >= 0.5"),
+        "priora_p50": point(p42 >= 0.5, "priora p >= 0.5"),
     }
-    # ds42 threshold that matches digest2's completeness.
+    # priora threshold that matches digest2's completeness.
     target = d2_pt["completeness"]
     if np.isfinite(target) and 0 < target <= 1 and y.any():
         order = np.argsort(-p42, kind="mergesort")
@@ -990,9 +990,9 @@ def operating_points(
         k = int(np.searchsorted(comp, target))
         if k < order.size:
             thr = float(p42[order[k]])
-            out["ds42_matched"] = point(p42 >= thr,
-                                            f"ds42 p >= {thr:.3g}")
-            out["ds42_matched"]["threshold"] = thr
+            out["priora_matched"] = point(p42 >= thr,
+                                            f"priora p >= {thr:.3g}")
+            out["priora_matched"]["threshold"] = thr
     return out
 
 
@@ -1009,7 +1009,7 @@ def disagreement_census(
     """
     sel = np.flatnonzero(mask & d2["ok"])
     if sel.size == 0:
-        return {"n": 0, "ds42_higher": [], "digest2_higher": [], "misranked_neos": []}
+        return {"n": 0, "priora_higher": [], "digest2_higher": [], "misranked_neos": []}
 
     r42 = percentile_rank(run.p_neo[sel])
     r2 = percentile_rank(d2["raw_neo"][sel])
@@ -1064,7 +1064,7 @@ def disagreement_census(
         }
 
     n_tail = max(top_k, int(round(0.01 * sel.size)))
-    # True NEOs that digest2 ranks worst relative to ds42, and vice versa.
+    # True NEOs that digest2 ranks worst relative to priora, and vice versa.
     neo_idx = np.flatnonzero(neo_local)
     if neo_idx.size:
         neo_sorted = neo_idx[np.argsort(delta[neo_idx])[::-1]][:top_k]
@@ -1076,10 +1076,10 @@ def disagreement_census(
         "rank_spearman": float(np.corrcoef(r42, r2)[0, 1]),
         "mean_abs_delta_rank": float(np.mean(np.abs(delta))),
         "frac_delta_rank_gt_0p25": float(np.mean(np.abs(delta) > 0.25)),
-        "ds42_higher": [row(int(j)) for j in up],
+        "priora_higher": [row(int(j)) for j in up],
         "digest2_higher": [row(int(j)) for j in dn],
         "misranked_neos": [row(int(j)) for j in neo_sorted],
-        "tail_ds42_higher": tail(order[::-1][:n_tail]),
+        "tail_priora_higher": tail(order[::-1][:n_tail]),
         "tail_digest2_higher": tail(order[:n_tail]),
     }
 
@@ -1122,7 +1122,7 @@ def plot_roc(run, d2, masks, res, path):
         m = masks[name] & d2["ok"]
         y, w = run.is_neo[m], run.weight[m]
         for score, colour, lbl, key in (
-            (run.p_neo[m], _C42, "ds42 p(NEO)", "auc_a"),
+            (run.p_neo[m], _C42, "priora p(NEO)", "auc_a"),
             (d2["raw_neo"][m], _CD2, "digest2 raw NEO", "auc_b"),
         ):
             fpr, tpr = _roc(score, y, w)
@@ -1168,13 +1168,13 @@ def plot_scatter(run, d2, masks, path):
         ax.set_xscale("log")
         ax.set_xlim(1e-8, 1.3)
         ax.set_ylim(-2, 102)
-        ax.set_xlabel("ds42  p(NEO)")
+        ax.set_xlabel("priora  p(NEO)")
         if ax is axes[0]:
             ax.set_ylabel("digest2  raw NEO score")
         ax.set_title(f"{name} subset", fontsize=10)
         ax.legend(loc="upper left", fontsize=8, framealpha=0.9)
         ax.grid(alpha=0.25, lw=0.5)
-    fig.suptitle("digest2 score vs ds42 posterior, coloured by truth", fontsize=11)
+    fig.suptitle("digest2 score vs priora posterior, coloured by truth", fontsize=11)
     fig.savefig(path, dpi=130)
     plt.close(fig)
 
@@ -1184,7 +1184,7 @@ def plot_calibration(res, path):
     for ax, name in zip(axes, ("all", "clean")):
         c = res[name]["calibration"]
         for key, colour, lbl in (
-            ("ds42", _C42, "ds42 p(NEO)"),
+            ("priora", _C42, "priora p(NEO)"),
             ("digest2_raw_over_100", _CD2, "digest2 raw NEO / 100"),
         ):
             rows = c[key]["bins"]
@@ -1208,18 +1208,18 @@ def plot_calibration(res, path):
         ax.set_xlabel("mean predicted P(NEO)")
         if ax is axes[0]:
             ax.set_ylabel("observed NEO fraction")
-        ds42 = c["ds42"]
+        priora = c["priora"]
         dd2 = c["digest2_raw_over_100"]
         ax.set_title(
-            f"{name}:  predicted NEOs  ds42 {ds42['expected_positives']:.1f}"
+            f"{name}:  predicted NEOs  priora {priora['expected_positives']:.1f}"
             f"  /  digest2 {dd2['expected_positives']:.1f}"
-            f"  /  observed {ds42['observed_positives']:.1f}",
+            f"  /  observed {priora['observed_positives']:.1f}",
             fontsize=9,
         )
         ax.legend(loc="upper left", fontsize=8, framealpha=0.9)
         ax.grid(alpha=0.25, lw=0.5, which="both")
     fig.suptitle(
-        "Reliability: digest2's score treated as a probability vs ds42's posterior",
+        "Reliability: digest2's score treated as a probability vs priora's posterior",
         fontsize=11,
     )
     fig.savefig(path, dpi=130)
@@ -1259,7 +1259,7 @@ def plot_truncation(run, d2, res, path):
 
     ax = axes[1]
     if centres:
-        ax.plot(centres, a42, "o-", color=_C42, label="ds42 p(NEO)")
+        ax.plot(centres, a42, "o-", color=_C42, label="priora p(NEO)")
         ax.plot(centres, ad2, "s-", color=_CD2, label="digest2 raw NEO")
         for x, n in zip(centres, ns):
             ax.annotate(f"n={n}", (x, min(min(a42), min(ad2))), fontsize=7,
@@ -1292,7 +1292,7 @@ def analyze(
                             n_boot=n_boot, seed=seed)
         auc["auc_digest2_noid"] = auc_fast(d2["noid_neo"][m], y, w)
         cal = {
-            "ds42": calibration_stats(run.p_neo[m], y, w),
+            "priora": calibration_stats(run.p_neo[m], y, w),
             "digest2_raw_over_100": calibration_stats(
                 np.clip(d2["raw_neo"][m] / 100.0, 0.0, 1.0), y, w
             ),
@@ -1369,11 +1369,11 @@ def summary_text(summary: dict) -> str:
     A(f"parse rate         : {st['n_parsed_with_pair']}/{st['n_emitted']} "
       f"= {st['parse_rate']:.4%}   scored {st['n_matched']} "
       f"({st['score_ms_per_tracklet']:.1f} ms/tracklet, {st['workers']} threads)")
-    A(f"ds42 run       : {summary['run_dir']}  (score variant: All -> "
+    A(f"priora run       : {summary['run_dir']}  (score variant: All -> "
       f"digest2 'raw')")
     A("")
     A("-" * 78)
-    A("RANKING  (positive delta = ds42 ranks better)")
+    A("RANKING  (positive delta = priora ranks better)")
     A("-" * 78)
     for name in SUBSETS:
         s = summary["subsets"][name]
@@ -1392,7 +1392,7 @@ def summary_text(summary: dict) -> str:
     for name in SUBSETS:
         c = summary["subsets"][name]["calibration"]
         for key, lbl in (
-            ("ds42", "ds42 p(NEO)"),
+            ("priora", "priora p(NEO)"),
             ("digest2_raw_over_100", "digest2 raw/100"),
             ("digest2_noid_over_100", "digest2 noid/100"),
         ):
@@ -1411,7 +1411,7 @@ def summary_text(summary: dict) -> str:
       f"{'contam':>8s}")
     for name in SUBSETS:
         op = summary["subsets"][name].get("operating_points", {})
-        for key in ("digest2_neocp", "ds42_matched", "ds42_p50"):
+        for key in ("digest2_neocp", "priora_matched", "priora_p50"):
             d = op.get(key)
             if not d:
                 continue
@@ -1419,7 +1419,7 @@ def summary_text(summary: dict) -> str:
               f"{d['completeness']:9.1%} {d['contamination']:8.1%}")
     A("")
     A("-" * 78)
-    A("TRUNCATION SUBSET  (§2.6(b): digest2 bins H>=24 into [24,inf); ds42 cuts 25.5)")
+    A("TRUNCATION SUBSET  (§2.6(b): digest2 bins H>=24 into [24,inf); priora cuts 25.5)")
     A("-" * 78)
     t = summary["truncation_diagnostic"]
     A(f"measure fraction at H > 25.5: median {t['median']:.4f}, mean {t['mean']:.4f}, "
@@ -1439,9 +1439,9 @@ def summary_text(summary: dict) -> str:
     hdr = (f"{'index':>7s} {'NEO':>4s} {'p42':>9s} {'d2raw':>7s} {'d rank':>7s} "
            f"{'V':>6s} {'H':>6s} {'q':>6s} {'e':>5s} {'rho':>7s} {'fH>25.5':>8s}")
     for key, title in (
-        ("ds42_higher", "ds42 ranks far ABOVE digest2"),
-        ("digest2_higher", "digest2 ranks far ABOVE ds42"),
-        ("misranked_neos", "true NEOs, largest rank gap in ds42's favour"),
+        ("priora_higher", "priora ranks far ABOVE digest2"),
+        ("digest2_higher", "digest2 ranks far ABOVE priora"),
+        ("misranked_neos", "true NEOs, largest rank gap in priora's favour"),
     ):
         A("")
         A(f"  {title}:")
@@ -1471,14 +1471,14 @@ CAVEATS = [
     "updateRMSValues floors to that same 1 arcsec). Its motion-vector "
     "perturbation therefore explores a rate box that is wider than the truth "
     "warrants -- a fixed, favourable-to-neither handicap that widens both "
-    "codes' effective admissible regions differently. ds42 v0 uses a "
+    "codes' effective admissible regions differently. priora v0 uses a "
     "delta-function attributable (D-6), so it explores no rate box at all.",
     "digest2 options: repeatable=True (deterministic MC seeding), "
     "no_threshold=False (default RMS clamping), bundled MPC.config for "
     "per-site errors, all 15 classes computed. Score compared is 'raw' (All "
-    "population) to match ds42's All variant; 'noid' (Unk) is reported "
+    "population) to match priora's All variant; 'noid' (Unk) is reported "
     "alongside but is a different quantity.",
-    "The two codes use different Earth ephemerides: ds42 uses astropy's, "
+    "The two codes use different Earth ephemerides: priora uses astropy's, "
     "digest2 its internal se2000 series (~1e-4 AU). Tracklet times are written "
     "as true UTC; the TDB-UTC offset shifts the observer by ~1e-5 AU, well "
     "inside that.",
@@ -1578,7 +1578,7 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
       f"{hs['digest2_run']['score_rate']:.2%} scored |")
     A(f"| throughput | {hs['digest2_run']['score_ms_per_tracklet']:.1f} "
       f"ms/tracklet at {hs['digest2_run']['workers']} threads |")
-    A("| score compared | digest2 `raw.NEO` (All population) against ds42 "
+    A("| score compared | digest2 `raw.NEO` (All population) against priora "
       "`p_neo` (All variant). digest2's default `noid.NEO` uses the `Unk` "
       "histogram and is a different quantity; it is reported alongside. |")
     A("")
@@ -1591,7 +1591,7 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
     A("")
     dropped = [(n, s.get("n_dropped_nonfinite_p42", 0)) for n, s in cases]
     if any(d for _, d in dropped):
-        A("Rows with a non-finite ds42 `p_neo` are excluded from both sides "
+        A("Rows with a non-finite priora `p_neo` are excluded from both sides "
           "(they cannot enter a ROC on either): "
           + ", ".join(f"`{n}` {d}" for n, d in dropped if d)
           + ". These are tracklets where both component likelihoods underflow "
@@ -1601,7 +1601,7 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
 
     A("## Headline: the ranking gap on the clean subset")
     A("")
-    A("| run | subset | n | NEOs | AUC ds42 | AUC digest2 | "
+    A("| run | subset | n | NEOs | AUC priora | AUC digest2 | "
       "ΔAUC (95% CI) |")
     A("|---|---|---:|---:|---|---|---|")
     for name, s in cases:
@@ -1615,7 +1615,7 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
               f"[{d['delta_ci'][0]:+.4f}, {d['delta_ci'][1]:+.4f}] |")
     A("")
     hc = hs["subsets"]["clean"]["auc"]
-    A(f"On the clean subset of `{head}` — the DESIGN §4.2 headline — ds42 "
+    A(f"On the clean subset of `{head}` — the DESIGN §4.2 headline — priora "
       f"ranks better by **ΔAUC = {hc['delta']:+.4f}** "
       f"(95% CI [{hc['delta_ci'][0]:+.4f}, {hc['delta_ci'][1]:+.4f}], "
       f"paired label-stratified bootstrap, B = {hc['n_boot']}; bootstrap "
@@ -1646,14 +1646,14 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
     A("digest2's score is a *fraction of tagged model population*, not a "
       "posterior probability, and it does not claim to be one. Treating "
       "`raw/100` as P(NEO) and asking the calibration question WP6 asks of "
-      "ds42 makes the difference concrete rather than asserted:")
+      "priora makes the difference concrete rather than asserted:")
     A("")
     A("| run | subset | code | predicted NEOs | observed | pred/obs | Brier | ECE |")
     A("|---|---|---|---:|---:|---:|---:|---:|")
     for name, s in cases:
         for sub in ("all", "clean"):
             c = s["subsets"][sub]["calibration"]
-            for key, lbl in (("ds42", "ds42 `p_neo`"),
+            for key, lbl in (("priora", "priora `p_neo`"),
                              ("digest2_raw_over_100", "digest2 `raw`/100"),
                              ("digest2_noid_over_100", "digest2 `noid`/100")):
                 d = c[key]
@@ -1662,15 +1662,15 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
                   f"{d['ratio_expected_observed']:.2f} | {d['brier']:.3e} | "
                   f"{d['ece']:.3e} |")
     A("")
-    r42 = hs["subsets"]["all"]["calibration"]["ds42"]
+    r42 = hs["subsets"]["all"]["calibration"]["priora"]
     rd2 = hs["subsets"]["all"]["calibration"]["digest2_raw_over_100"]
-    A(f"Over the whole `{head}` run ds42's posterior predicts "
+    A(f"Over the whole `{head}` run priora's posterior predicts "
       f"{r42['expected_positives']:.1f} NEOs against "
       f"{r42['observed_positives']:.0f} observed "
       f"(ratio {r42['ratio_expected_observed']:.2f}); digest2's `raw`/100 "
       f"predicts {rd2['expected_positives']:.1f}, over by a factor of "
       f"{rd2['ratio_expected_observed']:.0f}. The reliability curves "
-      "(`calibration.png`) show the same thing bin by bin: ds42 tracks the "
+      "(`calibration.png`) show the same thing bin by bin: priora tracks the "
       "diagonal, digest2 sits an order of magnitude above it across the whole "
       "score range. This is not a defect of digest2 — it is the quantity it "
       "was designed to emit — but it is the reason a digest2 score cannot be "
@@ -1687,7 +1687,7 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
     for name, s in cases:
         for sub in ("all", "clean"):
             op = s["subsets"][sub].get("operating_points", {})
-            for key in ("digest2_neocp", "ds42_matched", "ds42_p50"):
+            for key in ("digest2_neocp", "priora_matched", "priora_p50"):
                 d = op.get(key)
                 if not d:
                     continue
@@ -1695,11 +1695,11 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
                   f"{d['completeness']:.1%} | {d['contamination']:.1%} |")
     A("")
     op = hs["subsets"]["all"].get("operating_points", {})
-    if op.get("ds42_matched"):
-        a, b = op["digest2_neocp"], op["ds42_matched"]
+    if op.get("priora_matched"):
+        a, b = op["digest2_neocp"], op["priora_matched"]
         A(f"On the full `{head}` run digest2's own NEOCP cut flags "
           f"{a['n_flagged']} tracklets to recover {a['completeness']:.0%} of "
-          f"the NEOs, at {a['contamination']:.0%} contamination. ds42 "
+          f"the NEOs, at {a['contamination']:.0%} contamination. priora "
           f"reaches the same completeness at p ≥ {b['threshold']:.3g}, flagging "
           f"{b['n_flagged']} tracklets at {b['contamination']:.0%} "
           "contamination. That factor is the practical content of the "
@@ -1710,7 +1710,7 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
     A("")
     A("`d2model.c:hToBin` runs `for (ih = 0; h >= hpart[ih] && ih < HX-1; ++ih)` "
       "with `hpart[17] = 25.5`, so every trial orbit with H ≥ 24 falls in the "
-      "last bin: digest2's top H bin is effectively [24, ∞). ds42 truncates "
+      "last bin: digest2's top H bin is effectively [24, ∞). priora truncates "
       "the model at H = 25.5 (D-4). Where a tracklet carries appreciable "
       "admissible-region measure above H = 25.5, the two codes are not reading "
       "the same effective model and the head-to-head premise fails.")
@@ -1734,17 +1734,17 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
       "percentile rank.")
     A("")
     t2 = dc.get("tail_digest2_higher") or {}
-    t42 = dc.get("tail_ds42_higher") or {}
+    t42 = dc.get("tail_priora_higher") or {}
     if t2 and t42:
         A(f"The two tails are not symmetric. The {t2['n']} tracklets digest2 "
-          f"ranks furthest above ds42 have median true "
+          f"ranks furthest above priora have median true "
           f"ρ = {t2['median_rho_true_au']:.1f} AU and median true "
           f"q = {t2['median_q_true_au']:.1f} AU "
           f"({t2['frac_q_gt_5au']:.0%} with q > 5 AU, "
           f"{t2['frac_rho_gt_10au']:.0%} beyond 10 AU) and are "
           f"{t2['frac_true_neo']:.0%} true NEOs — distant objects on which "
-          "digest2 saturates near 100 while ds42 puts them at 1e-7. "
-          f"The {t42['n']} tracklets ds42 ranks furthest above digest2 sit "
+          "digest2 saturates near 100 while priora puts them at 1e-7. "
+          f"The {t42['n']} tracklets priora ranks furthest above digest2 sit "
           f"at median ρ = {t42['median_rho_true_au']:.1f} AU, "
           f"q = {t42['median_q_true_au']:.1f} AU — ordinary main-belt "
           "tracklets, and both codes score them low in absolute terms, so the "
@@ -1758,7 +1758,7 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
           f"{doe['delta_clean']:+.4f} to "
           f"{doe['delta_clean_rho_lt_10au']:+.4f}. The remaining ~"
           f"{100 * doe['delta_clean_rho_lt_10au'] / doe['delta_clean']:.0f}% "
-          "of the gap is diffuse — it comes from ds42 resolving a "
+          "of the gap is diffuse — it comes from priora resolving a "
           "continuous posterior where digest2 can only tag bins as reachable "
           "or not.")
         A("")
@@ -1766,8 +1766,8 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
     A("The extremes:")
     A("")
     for key, title in (
-        ("ds42_higher", "ds42 ranks far above digest2"),
-        ("digest2_higher", "digest2 ranks far above ds42"),
+        ("priora_higher", "priora ranks far above digest2"),
+        ("digest2_higher", "digest2 ranks far above priora"),
     ):
         A(f"**{title}**")
         A("")
@@ -1806,10 +1806,10 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
 #
 # The head-to-head above has one uncontrolled variable: on 64.5% of the gate_v0
 # catalogue the two codes are not consuming the same effective model, because
-# digest2's ``hToBin`` clamps H >= 24 into a [24, inf) top bin while ds42
+# digest2's ``hToBin`` clamps H >= 24 into a [24, inf) top bin while priora
 # truncates at 25.5 (D-4).  ``Digest2Histogram(h_top_bin_infinite=True)``
 # reinstates digest2's clamp, so re-scoring the *same* tracklets with a clamped
-# ds42 pair makes the "same inputs" premise hold for ALL of them.  The
+# priora pair makes the "same inputs" premise hold for ALL of them.  The
 # comparison then decomposes the WP7 broken-subset gap into
 #
 #     Delta_WP7(broken)  =  Delta_clamped(broken)   +   boundary-handling term
@@ -1819,11 +1819,11 @@ def build_report(cases: list[tuple[str, dict]]) -> str:
 # predicted NEO count is the H-clamp alone versus everything else.
 #
 # This mode is a *measurement instrument*, not a proposed configuration of
-# ds42: the clamped density is non-normalizable (see population.py) and is
+# priora: the clamped density is non-normalizable (see population.py) and is
 # gate-ineligible.  Nothing here revises D-4.
 
 #: File the clamped re-score writes, next to the existing case outputs.
-CLAMPED_SCORES = "ds42_clamped_scores.npz"
+CLAMPED_SCORES = "priora_clamped_scores.npz"
 CLAMPED_CHUNK_DIR = "clamped_chunks"
 
 #: Columns of that file.  A strict subset of WP6's RECORD_FIELDS: the HPD /
@@ -1930,7 +1930,7 @@ _CW: dict = {}
 
 
 def _init_clamped_worker(model: str, variant: str, score_cfg: dict) -> None:
-    from ds42.population import Digest2Histogram
+    from priora.population import Digest2Histogram
 
     # Defence in depth: `clamped_score_config` already refuses a run scored in
     # an incompatible H mode, but this worker is also reachable directly (and
@@ -1960,7 +1960,7 @@ def _clamped_score_one(task: tuple) -> tuple:
 
     from astropy.time import Time as _Time
 
-    from ds42 import Attributable, classify
+    from priora import Attributable, classify
 
     (index, ra, dec, ra_rate, dec_rate, jd, v_mag,
      rx, ry, rz, vx, vy, vz) = task
@@ -2059,7 +2059,7 @@ def clamped_score(
 
     Consumes the WP6 catalogue exactly as ``self_consistency.score`` does — the
     same process-pool-with-initializer pattern, the same chunk-and-resume
-    discipline — but writes to ``out_dir/ds42_clamped_scores.npz`` and its
+    discipline — but writes to ``out_dir/priora_clamped_scores.npz`` and its
     own ``clamped_chunks/`` subdirectory.  It never touches ``run_dir``: the
     original ``scores.npz``, ``chunks/`` and ``score_config.json`` are inputs
     here and are left exactly as the gate produced them.
@@ -2183,7 +2183,7 @@ def clamped_score(
 
 
 def load_clamped_scores(out_dir: str, index: np.ndarray) -> dict[str, np.ndarray]:
-    """Read ``ds42_clamped_scores.npz`` and align it to ``index``.
+    """Read ``priora_clamped_scores.npz`` and align it to ``index``.
 
     Raises if any requested row is missing, rather than silently returning NaN
     for it: a partial clamped table would quietly turn the "premise holds for
@@ -2257,7 +2257,7 @@ def analyze_clamped(
         y, w = run.is_neo[m], run.weight[m]
         auc_c = auc_bootstrap(p42c[m], s_d2[m], y, w, n_boot=n_boot, seed=seed)
         auc_u = auc_bootstrap(p42[m], s_d2[m], y, w, n_boot=n_boot, seed=seed)
-        # ds42 against itself: the pure boundary-handling effect, on
+        # priora against itself: the pure boundary-handling effect, on
         # identical tracklets, with everything but the top H bin held fixed.
         auc_uc = auc_bootstrap(p42[m], p42c[m], y, w, n_boot=n_boot, seed=seed)
         out["subsets"][name] = {
@@ -2278,8 +2278,8 @@ def analyze_clamped(
                 "delta_boundary_ci": auc_uc["delta_ci"],
             },
             "calibration": {
-                "ds42_clamped": calibration_stats(p42c[m], y, w),
-                "ds42": calibration_stats(p42[m], y, w),
+                "priora_clamped": calibration_stats(p42c[m], y, w),
+                "priora": calibration_stats(p42[m], y, w),
                 "digest2_raw_over_100": calibration_stats(
                     np.clip(s_d2[m] / 100.0, 0.0, 1.0), y, w
                 ),
@@ -2358,11 +2358,11 @@ def _shift_by_truncation_bin(f: np.ndarray, dlog: np.ndarray,
 
 # -- clamped plots ---------------------------------------------------------
 
-_C42C = "#4c9f70"   # clamped ds42
+_C42C = "#4c9f70"   # clamped priora
 
 
 def plot_clamped_scatter(run, clamped, path):
-    """(d) clamped vs unclamped ds42, coloured by the §2.6(b) diagnostic."""
+    """(d) clamped vs unclamped priora, coloured by the §2.6(b) diagnostic."""
     p = np.clip(run.p_neo, 1e-12, 1.0)
     pc = np.clip(clamped["p_neo"].astype(float), 1e-12, 1.0)
     f = run.ar_frac_h_above
@@ -2383,8 +2383,8 @@ def plot_clamped_scatter(run, clamped, path):
     ax.set_yscale("log")
     ax.set_xlim(1e-12, 1.5)
     ax.set_ylim(1e-12, 1.5)
-    ax.set_xlabel("ds42 p(NEO), D-4 truncation at H = 25.5")
-    ax.set_ylabel("ds42 p(NEO), digest2-clamped [24, inf)")
+    ax.set_xlabel("priora p(NEO), D-4 truncation at H = 25.5")
+    ax.set_ylabel("priora p(NEO), digest2-clamped [24, inf)")
     ax.legend(loc="upper left", fontsize=8)
     ax.grid(alpha=0.25, lw=0.5, which="both")
     ax.set_title("Every tracklet, coloured by §2.6(b) exposure", fontsize=10)
@@ -2407,7 +2407,7 @@ def plot_clamped_scatter(run, clamped, path):
     ax.grid(alpha=0.25, lw=0.5, which="both")
     ax.set_title("The clamp moves exactly the exposed tracklets", fontsize=10)
     fig.suptitle(
-        "Clamped vs D-4 ds42 on identical tracklets and one shared model",
+        "Clamped vs D-4 priora on identical tracklets and one shared model",
         fontsize=11,
     )
     fig.savefig(path, dpi=130)
@@ -2415,21 +2415,21 @@ def plot_clamped_scatter(run, clamped, path):
 
 
 def plot_clamped_roc(run, clamped, d2, masks, res, path):
-    """(a)/(b) ROC: clamped ds42, unclamped ds42, digest2."""
+    """(a)/(b) ROC: clamped priora, unclamped priora, digest2."""
     p42c = clamped["p_neo"].astype(float)
     fig, axes = plt.subplots(1, 3, figsize=(13.5, 4.6), constrained_layout=True)
     for ax, name in zip(axes, SUBSETS):
         m = masks[name] & d2["ok"] & np.isfinite(p42c)
         y, w = run.is_neo[m], run.weight[m]
         d = res["subsets"][name]
-        # The two ds42 curves nearly coincide, so the clamped one is drawn
+        # The two priora curves nearly coincide, so the clamped one is drawn
         # last and dashed; solid-on-solid would hide it entirely.
         for score, colour, lbl, auc, style in (
-            (run.p_neo[m], _C42, "ds42 D-4",
+            (run.p_neo[m], _C42, "priora D-4",
              d["auc_unclamped_vs_digest2"]["auc_a"], "-"),
             (d2["raw_neo"][m], _CD2, "digest2 raw NEO",
              d["auc_clamped_vs_digest2"]["auc_b"], "-"),
-            (p42c[m], _C42C, "ds42 clamped",
+            (p42c[m], _C42C, "priora clamped",
              d["auc_clamped_vs_digest2"]["auc_a"], "--"),
         ):
             fpr, tpr = _roc(score, y, w)
@@ -2462,16 +2462,16 @@ def plot_clamped_roc(run, clamped, d2, masks, res, path):
 
 
 def plot_clamped_calibration(res, path):
-    """(c) reliability of clamped ds42 against D-4 ds42 and digest2."""
+    """(c) reliability of clamped priora against D-4 priora and digest2."""
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.8), constrained_layout=True)
     for ax, name in zip(axes, ("all", "broken")):
         c = res["subsets"][name]["calibration"]
         # Clamped last and dashed: it lies almost exactly on the D-4 curve
         # (that is the finding), so drawing it first would hide it.
         for key, colour, lbl, fmt in (
-            ("ds42", _C42, "ds42 D-4", "o-"),
+            ("priora", _C42, "priora D-4", "o-"),
             ("digest2_raw_over_100", _CD2, "digest2 raw NEO / 100", "o-"),
-            ("ds42_clamped", _C42C, "ds42 clamped", "s--"),
+            ("priora_clamped", _C42C, "priora clamped", "s--"),
         ):
             rows = c[key].get("bins", [])
             if not rows:
@@ -2491,7 +2491,7 @@ def plot_clamped_calibration(res, path):
         ax.set_xlabel("mean predicted P(NEO)")
         if ax is axes[0]:
             ax.set_ylabel("observed NEO fraction")
-        cc, cu, cd = (c["ds42_clamped"], c["ds42"],
+        cc, cu, cd = (c["priora_clamped"], c["priora"],
                       c["digest2_raw_over_100"])
         ax.set_title(
             f"{name}: predicted NEOs  clamped {cc['expected_positives']:.1f}"
@@ -2518,7 +2518,7 @@ CLAMPED_CAVEATS = [
     "finite total count, cannot be sampled, and is gate-ineligible (DESIGN "
     "§4.1 has no generative counterpart for it). Nothing here revises D-4.",
     "Only the UPPER half of digest2's hToBin clamp is emulated. digest2 also "
-    "puts H < 0 in bin 0; ds42 returns 0 there in both modes. Implied "
+    "puts H < 0 in bin 0; priora returns 0 there in both modes. Implied "
     "H < 0 does not occur at the geometries integrated here (rho >= 0.01 AU, "
     "V >= 14), so the omission is measurable-free and keeps the emulation a "
     "one-sided change.",
@@ -2527,7 +2527,7 @@ CLAMPED_CAVEATS = [
     "the posterior would be an artifact of the mismatch.",
     "Everything except the top H bin is held fixed: the same gen.npz, the "
     "same grid, the same G, the same model file, the same digest2 scores and "
-    "the same true labels as the WP7 run. Only ds42 is re-scored.",
+    "the same true labels as the WP7 run. Only priora is re-scored.",
     "The subsets are still cut on the UNCLAMPED §2.6(b) diagnostic, because "
     "the question is what happens to the tracklets WP7 had to set aside. The "
     "diagnostic is a property of the admissible-region geometry, not of the "
@@ -2559,7 +2559,7 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
     A("")
     A("WP7's head-to-head had one uncontrolled variable. `d2model.c:hToBin` "
       "clamps every trial orbit with H >= 24 into the final bin, so digest2's "
-      "top H bin is effectively [24, inf); ds42 truncates at 25.5 per D-4. "
+      "top H bin is effectively [24, inf); priora truncates at 25.5 per D-4. "
       "The two codes therefore consume the *same* effective model only where "
       "the admissible region carries no measure above H = 25.5 — which on "
       f"`{case}` is a minority of tracklets "
@@ -2567,7 +2567,7 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
       "above the 1e-2 'broken' threshold).")
     A("")
     A("`Digest2Histogram(h_top_bin_infinite=True)` reinstates digest2's clamp "
-      "in ds42. Re-scoring the identical tracklets with a clamped pair "
+      "in priora. Re-scoring the identical tracklets with a clamped pair "
       "makes the shared-model premise hold for **all** of them, and splits the "
       "WP7 gap in two:")
     A("")
@@ -2578,7 +2578,7 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
     A("               same faint end)")
     A("```")
     A("")
-    A(f"Only ds42 is re-scored: the true labels, the digest2 scores, the "
+    A(f"Only priora is re-scored: the true labels, the digest2 scores, the "
       f"tracklet file and the grid are the WP7 run's own. "
       f"{clamped['n_clamped']} tracklets, "
       f"{clamped['cpu_seconds'] / 3600:.2f} CPU-hours.")
@@ -2592,7 +2592,7 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
     A("With the clamp on, every tracklet is a valid head-to-head. Same paired, "
       "label-stratified bootstrap as WP7.")
     A("")
-    A("| population | AUC ds42 | AUC digest2 | ΔAUC | one-sided p(Δ≤0) |")
+    A("| population | AUC priora | AUC digest2 | ΔAUC | one-sided p(Δ≤0) |")
     A("|---|---|---|---|---|")
     for name in SUBSETS:
         d = S[name]["auc_clamped_vs_digest2"]
@@ -2602,7 +2602,7 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
           f"| **{_fmt_ci(d)}** | {d['p_delta_le_0']:.4f} |")
     A("")
     A(f"Headline: on the **full set** with genuinely identical effective "
-      f"models, ds42 outranks digest2 by ΔAUC = **{_fmt_ci(a['auc_clamped_vs_digest2'])}**.")
+      f"models, priora outranks digest2 by ΔAUC = **{_fmt_ci(a['auc_clamped_vs_digest2'])}**.")
     A("")
 
     # (b) decomposition
@@ -2625,9 +2625,9 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
     A("")
     if bd["delta_boundary_handling"] < 0:
         A("The boundary term is **negative**: D-4's truncation was costing "
-          "ds42 ranking accuracy on exactly the tracklets whose premise "
+          "priora ranking accuracy on exactly the tracklets whose premise "
           "it broke. So the WP7 broken-subset number was *conservative* — it "
-          "understated the method gap by handicapping ds42, not digest2. "
+          "understated the method gap by handicapping priora, not digest2. "
           "Repairing the premise moves the broken subset from "
           f"{bd['delta_wp7']:+.4f} to {bd['delta_clamped_method']:+.4f}, "
           "which is now comfortably clear of zero rather than straddling it. "
@@ -2637,7 +2637,7 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
           "positives.")
     else:
         A("The boundary term is non-negative: D-4's truncation was, if "
-          "anything, helping ds42's ranking on these tracklets, so the "
+          "anything, helping priora's ranking on these tracklets, so the "
           "WP7 broken-subset number was optimistic by that amount.")
     A("")
     A("Note also that this is not a large correction anywhere. The "
@@ -2645,7 +2645,7 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
       "method term on every subset, and identically zero on `clean` — which "
       "is the WP7 subset definition working as designed.")
     A("")
-    A("ds42 against *itself*, clamped vs D-4, on identical inputs — the "
+    A("priora against *itself*, clamped vs D-4, on identical inputs — the "
       "boundary-handling term measured directly, with method held fixed:")
     A("")
     A("| population | AUC D-4 | AUC clamped | Δ (D-4 − clamped) |")
@@ -2662,8 +2662,8 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
     A("|---|---|---|---|---|---|---|")
     for name in SUBSETS:
         cal = S[name]["calibration"]
-        for key, lbl in (("ds42_clamped", "ds42 clamped"),
-                         ("ds42", "ds42 D-4"),
+        for key, lbl in (("priora_clamped", "priora clamped"),
+                         ("priora", "priora D-4"),
                          ("digest2_raw_over_100", "digest2 raw/100")):
             c = cal[key]
             A(f"| `{name}` | {lbl} | {c['expected_positives']:.1f} "
@@ -2672,14 +2672,14 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
               f"| {c['max_abs_z_bin']:.2f} |")
     A("")
     ca = S["all"]["calibration"]
-    r_c = ca["ds42_clamped"]["ratio_expected_observed"]
-    r_u = ca["ds42"]["ratio_expected_observed"]
+    r_c = ca["priora_clamped"]["ratio_expected_observed"]
+    r_u = ca["priora"]["ratio_expected_observed"]
     r_2 = ca["digest2_raw_over_100"]["ratio_expected_observed"]
     span = r_2 - r_u
     closed = (r_c - r_u) / span if abs(span) > 1e-9 else float("nan")
-    A(f"digest2 over-predicts the NEO count by {r_2:.2f}x; ds42 under D-4 "
+    A(f"digest2 over-predicts the NEO count by {r_2:.2f}x; priora under D-4 "
       f"predicts {r_u:.3f}x. Adopting digest2's H-clamp — and changing "
-      f"nothing else — moves ds42 to {r_c:.4f}x, i.e. it closes "
+      f"nothing else — moves priora to {r_c:.4f}x, i.e. it closes "
       f"{100 * closed:.2f}% of the gap between the two codes' calibration. "
       "The H-clamp is therefore "
       + ("a minor contributor to" if abs(closed) < 0.25
@@ -2689,8 +2689,8 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
       "'raw' is a fraction of trial orbits, not a marginal likelihood ratio, "
       "and no amount of agreeing about the faint end makes it one).")
     A("")
-    A(f"ECE moves from {ca['ds42']['ece']:.5f} to "
-      f"{ca['ds42_clamped']['ece']:.5f} against digest2's "
+    A(f"ECE moves from {ca['priora']['ece']:.5f} to "
+      f"{ca['priora_clamped']['ece']:.5f} against digest2's "
       f"{ca['digest2_raw_over_100']['ece']:.5f}, and the clamped posterior's "
       "own calibration is untouched — which is the substantive finding here: "
       "the clamp is a change to the *prior's* faint end, and a correctly "
@@ -2699,11 +2699,11 @@ def clamped_report(case: str, summary: dict, clamped: dict) -> str:
       "predicted count.")
     A("")
     op = S["all"]["operating_points_clamped"]
-    if "ds42_matched" in op:
-        d2p, mp = op["digest2_neocp"], op["ds42_matched"]
+    if "priora_matched" in op:
+        d2p, mp = op["digest2_neocp"], op["priora_matched"]
         A(f"Operationally, at digest2's own NEOCP cut (raw >= 65: "
           f"{100 * d2p['completeness']:.1f}% complete, "
-          f"{100 * d2p['contamination']:.1f}% contaminated), clamped ds42 "
+          f"{100 * d2p['contamination']:.1f}% contaminated), clamped priora "
           f"matched to the same completeness carries "
           f"{100 * mp['contamination']:.1f}% contamination "
           f"(at p >= {mp['threshold']:.3g}) — the WP7 headline, unchanged by "
@@ -2810,7 +2810,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         n_scored_rows = int(z["index"].size)
     n_dropped = n_scored_rows - run.n if args.limit is None else 0
     print(f"[wp7] {args.run}: {run.n} tracklets, {int(run.is_neo.sum())} true NEOs"
-          + (f" ({n_dropped} dropped for non-finite ds42 p_neo)"
+          + (f" ({n_dropped} dropped for non-finite priora p_neo)"
              if n_dropped else ""))
 
     os.makedirs(args.out, exist_ok=True)
@@ -2978,7 +2978,7 @@ def cmd_report(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(
         prog="digest2_comparison",
-        description="WP7 — digest2 vs ds42 on shared inputs (DESIGN §4.2)",
+        description="WP7 — digest2 vs priora on shared inputs (DESIGN §4.2)",
     )
     sub = ap.add_subparsers(dest="cmd", required=True)
 
@@ -3014,7 +3014,7 @@ def main(argv: list[str] | None = None) -> int:
     c.add_argument("--resume", action="store_true",
                    help="reuse matching clamped chunk files")
     c.add_argument("--skip-score", action="store_true",
-                   help="reuse an existing ds42_clamped_scores.npz and "
+                   help="reuse an existing priora_clamped_scores.npz and "
                         "redo the analysis only")
     c.add_argument("--n-rho", type=int, default=None,
                    help="override the run's own grid (default: match it)")

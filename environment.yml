@@ -1,6 +1,6 @@
 # Versions used for the paper (Rubin science-pipelines environment lsst-scipipe-12.1.0, Python 3.13).
-# conda env create -f environment.yml && conda activate ds42 && make install
-name: ds42
+# conda env create -f environment.yml && conda activate priora && make install
+name: priora
 channels:
   - conda-forge
 dependencies:

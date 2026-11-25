@@ -14,7 +14,7 @@ from scipy.spatial import cKDTree
 from astropy.time import Time
 from astropy.coordinates import EarthLocation
 import astropy.units as u
-A = os.path.join(os.environ["DS42_EXTERNAL"], "ar_cache/"); M = os.path.join(os.environ["DS42_ALERTS"], "dp2/mpcorb/"); S = "score/"
+A = os.path.join(os.environ["PRIORA_EXTERNAL"], "ar_cache/"); M = os.path.join(os.environ["PRIORA_ALERTS"], "dp2/mpcorb/"); S = "score/"
 sp.furnsh(A + "naif0012.tls"); sp.furnsh(A + "de440s.bsp")
 GM = 2.9591220828559115e-04; C = 173.1446326846693; EPS = np.radians(84381.448 / 3600)
 R_ECL = np.array([[1, 0, 0], [0, np.cos(EPS), -np.sin(EPS)], [0, np.sin(EPS), np.cos(EPS)]])   # ecliptic -> equatorial

@@ -31,13 +31,13 @@ if REPO_ROOT not in sys.path:
 
 from astropy.time import Time  # noqa: E402
 
-from ds42 import transforms as T  # noqa: E402
-from ds42.attributable import (  # noqa: E402
+from priora import transforms as T  # noqa: E402
+from priora.attributable import (  # noqa: E402
     MPC_OBSCODES,
     observatory_location,
     observer_state,
 )
-from ds42.constants import K_GAUSS  # noqa: E402
+from priora.constants import K_GAUSS  # noqa: E402
 from validation import neocp_pilot as NP  # noqa: E402
 
 ARCSEC = 206264.80624709636
@@ -177,7 +177,7 @@ def test_obscode_geodetic_reproduces_builtin_table():
     """MPC parallax constants -> WGS84 -> ITRS must land back on the same site.
 
     This is the correctness guarantee for scoring at arbitrary obscodes: the
-    pilot resolves stations outside ds42's 14-entry built-in table by this
+    pilot resolves stations outside priora's 14-entry built-in table by this
     route, so it has to agree with the built-in table wherever both exist.
     """
     import astropy.units as u
@@ -940,7 +940,7 @@ def test_http_get_retries_a_transient_error(tmp_path, monkeypatch):
 
 
 def test_user_agent_identifies_the_client_and_carries_no_address():
-    assert "ds42" in NP.USER_AGENT
+    assert "priora" in NP.USER_AGENT
     assert "@" not in NP.USER_AGENT, "no e-mail address in the UA"
 
 
@@ -1044,7 +1044,7 @@ def _minimal_summary():
             "empty_admissible_region": 0, "n_masked_det_total": 5,
             "ar_frac_h_above_median": 0.02, "ar_frac_h_above_gt_1e2": 0.6,
             "ar_frac_h_above_gt_1e1": 0.1, "n_clean": 0, "n_broken": 1,
-            "ds42_seconds_median": 3.4,
+            "priora_seconds_median": 3.4,
         },
         "tracklets": {
             "n_det": {"p10": 3, "median": 4, "p90": 4},
@@ -1058,17 +1058,17 @@ def _minimal_summary():
             "obscodes": {"G96": 2}, "bands": {"G": 2},
         },
         "score_distributions": {
-            "ds42 All": {"neo": {"median": 1.0, "mean": 0.9, "p10": 0.5,
+            "priora All": {"neo": {"median": 1.0, "mean": 0.9, "p10": 0.5,
                                      "p90": 1.0},
                              "non_neo": {"median": 0.01, "mean": 0.02,
                                          "p10": 0.0, "p90": 0.05}},
         },
         "auc": {"all": {"n": 2, "n_neo": 1,
-                        "single": {"ds42 All": 0.9},
+                        "single": {"priora All": 0.9},
                         "paired": {"a_vs_b": {"delta": 0.01,
                                               "delta_ci": [0.0, 0.02],
                                               "p_delta_le_0": 0.03}}}},
-        "calibration": {"all": {"ds42 All": {
+        "calibration": {"all": {"priora All": {
             "expected_positives": 1.1, "observed_positives": 1.0,
             "ratio_expected_observed": 1.1, "brier": 0.1, "ece": 0.05,
             "bins": [{"p_mean": 0.5, "obs_frac": 0.5}],

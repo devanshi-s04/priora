@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Candidate categories: score/candidate_verdict.parquet
-# Recovered verbatim from the analysis session (log line 29202); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 29202); run with 'source env.sh' first.
 set -e
-cd $DS42_ALERTS/dp2/run/score; ${PY:-python} - <<'EOF'
+cd $PRIORA_ALERTS/dp2/run/score; ${PY:-python} - <<'EOF'
 import pandas as pd, numpy as np
 K=pd.read_parquet('template_trail_known.parquet'); kt=K.trail_ratio_med.dropna()
 print("real asteroids trail-testable", len(kt), "flagged at <0.4:", int((kt<.4).sum()), "<0.6:", int((kt<.6).sum()), "<0.7:", int((kt<.7).sum()), "quantiles", kt.quantile([.001,.01,.05]).round(2).tolist())
@@ -22,9 +22,9 @@ def cat(t,r):
     return "5 untested"
 c["cat"]=[cat(t,r) for t,r in c.iterrows()]
 print(pd.crosstab(c.cat, c.n>=4).to_string())
-s=c[c.cat.str.startswith("3")].sort_values(["n","ds42_All"],ascending=False)
+s=c[c.cat.str.startswith("3")].sort_values(["n","priora_All"],ascending=False)
 d=pd.read_parquet('unknown_3plus_dets.parquet').groupby('trkSub').MJD.min()
 s["date"]=pd.to_datetime(d.reindex(s.index)-40587,unit='D').dt.strftime('%m-%d %H:%M')
-print(s[['n','date','rate','gal_b','ds42_All','trail_ratio_med','pair_ratio']].round(2).to_string())
+print(s[['n','date','rate','gal_b','priora_All','trail_ratio_med','pair_ratio']].round(2).to_string())
 c[["cat"]].to_parquet("candidate_verdict.parquet")
 EOF

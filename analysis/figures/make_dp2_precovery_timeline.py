@@ -1,14 +1,15 @@
-"""DP2 section, small figure: known NEOs that ds42 scored highly among the DP2 unknown candidates (local MPCORB check) and that
+"""DP2 section, small figure: known NEOs that priora scored highly among the DP2 unknown candidates (local MPCORB check) and that
 Rubin never reported from those detections. One row per object: MPC observations by night (other stations; Rubin X05 submissions
-in blue), our DP2 tracklets (stars, with ds42 P), and the DP2 nights we searched (shaded). MPC histories from the MPC get-obs API
-(public designations only), saved in $DS42_ALERTS/dp2/precovery_fig/. -> dp2_precovery_timeline.{pdf,png} (new file)"""
+in blue), our DP2 tracklets (stars, with priora P), and the DP2 nights we searched (shaded). MPC histories from the MPC get-obs API
+(public designations only), saved in $PRIORA_ALERTS/dp2/precovery_fig/. -> dp2_precovery_timeline.{pdf,png} (new file)"""
 import os
 from pathlib import Path
 import numpy as np, pandas as pd, matplotlib as mpl, matplotlib.dates as mdates
 mpl.use("Agg"); import matplotlib.pyplot as plt
 from astropy.time import Time
-H = Path(os.environ["DS42_ALERTS"]) / "dp2"; OUT = Path(__file__).resolve().parent
-V = pd.read_parquet(H / "run/score/candidate_verdict_final.parquet"); V = V[V.verdict == "known NEO"]
+H = Path(os.environ["PRIORA_ALERTS"]) / "dp2"; OUT = Path(__file__).resolve().parent
+V = pd.read_parquet(H / "run/score/candidate_verdict_final.parquet").rename(columns=lambda c: c.replace("ds42_", "priora_"))  # columns written before the rename
+V = V[V.verdict == "known NEO"]
 T = pd.read_parquet(H / "run/score/unknown_3plus_dets.parquet"); first = T.groupby("trkSub").MJD.min()
 V["date"] = pd.to_datetime(Time(first.reindex(V.index).values, format="mjd", scale="tai").utc.isot)
 objs = V.groupby("mpc_object").date.min().sort_values().index.tolist()
@@ -34,9 +35,9 @@ for i, o in enumerate(objs):
     ax.scatter(v.date, [y] * len(v), marker="*", s=120, color=CS, ec=CINK, lw=0.5, zorder=4)
     first_mpc = t.min(); pre = v.date.min() < first_mpc
     lab = f"{o}" + (" (precovery)" if pre else "")
-    ax.text(X1 + pd.Timedelta(days=0.8), y, f"P = {', '.join(f'{p:.2f}' for p in v.ds42_All)}", va="center", fontsize=7.6)
+    ax.text(X1 + pd.Timedelta(days=0.8), y, f"P = {', '.join(f'{p:.2f}' for p in v.priora_All)}", va="center", fontsize=7.6)
     rows.append(dict(object=o, label=lab, y=y, first_mpc=first_mpc.date(), dp2_first=v.date.min().date(), precovery=pre, n_dp2_tracklets=len(v),
-                     X05_submitted=int((d.stn == "X05").sum()), ds42=", ".join(f"{p:.3f}" for p in v.ds42_All)))
+                     X05_submitted=int((d.stn == "X05").sum()), priora=", ".join(f"{p:.3f}" for p in v.priora_All)))
 R = pd.DataFrame(rows)
 ax.set_yticks(R.y, R.label); ax.set_ylim(-0.6, len(objs) - 0.15); ax.set_xlim(X0, X1)
 ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO)); ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))

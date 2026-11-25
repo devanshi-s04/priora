@@ -10,7 +10,7 @@ from astropy.coordinates import SkyCoord, Angle
 from astropy.time import Time
 import astropy.units as u
 from astropy.io import fits
-T = pathlib.Path(os.environ["DS42_ALERTS"]); F = T / "full_nd2"
+T = pathlib.Path(os.environ["PRIORA_ALERTS"]); F = T / "full_nd2"
 C = pd.read_csv(F / "score/candidates.csv", index_col=0)
 m = pd.read_parquet(F / "score/scores_joined.parquet")
 td = pd.read_parquet(F / "score/trk_dets.parquet"); td = td[td.trkSub.isin(C.index)].copy(); td["diaSourceId"] = td.idstring.astype("int64")
@@ -22,11 +22,11 @@ g = SkyCoord(C.ra.values * u.deg, C.dec.values * u.deg).galactic; C["gal_b"] = g
 t0 = pd.to_datetime(C.utc)
 C["same_field"] = [int((((t0 - t0.iloc[i]).abs().dt.total_seconds() / 60 <= 10) & (np.hypot((C.ra - r.ra) * np.cos(np.radians(r.dec)), C.dec - r.dec) < 2)).sum() - 1) for i, (_, r) in enumerate(C.iterrows())]
 iso = (C.gal_b.abs() >= 15) & (C.same_field == 0)
-C["tier"] = np.where(iso & (C.ds42_All >= 0.5), "A", np.where(iso, "B", "set aside"))
+C["tier"] = np.where(iso & (C.priora_All >= 0.5), "A", np.where(iso, "B", "set aside"))
 # --- old IDs (first full pull) via shared detections
 otd = pd.read_parquet(T / "full/score/trk_dets.parquet"); otd["diaSourceId"] = otd.idstring.astype("int64")
 OC = pd.read_csv(T / "full/score/candidates_annot.csv", index_col=0)
-iso_o = (OC.gal_b.abs() >= 15) & (OC.same_field == 0); OC["tier"] = np.where(iso_o & (OC.ds42_All >= 0.5), "A", np.where(iso_o, "B", "set aside"))
+iso_o = (OC.gal_b.abs() >= 15) & (OC.same_field == 0); OC["tier"] = np.where(iso_o & (OC.priora_All >= 0.5), "A", np.where(iso_o, "B", "set aside"))
 otd = otd[otd.trkSub.isin(OC.index)]
 def old_id(t):
     s = set(td[td.trkSub == t].diaSourceId); best = otd[otd.diaSourceId.isin(s)].trkSub.value_counts()
@@ -130,14 +130,14 @@ C.to_csv(F / "score/candidates_annot.csv")
 # --- hand-off CSV (one row per detection)
 td["obs_time_utc"] = Time(td.midpointMjdTai.values, format="mjd", scale="tai").utc.isot; td["mag_ab"] = 31.4 - 2.5 * np.log10(td.psfFlux)
 td["det_index_in_tracklet"] = td.groupby("trkSub").cumcount() + 1
-cols = ["tier", "n", "arc", "rate", "V", "gal_b", "same_field", "ds42_All", "ds42_Unk", "d2_raw", "d2_noid", "static_flag", "n_dets_with_template_source", "pair_motion_ratio_min",
+cols = ["tier", "n", "arc", "rate", "V", "gal_b", "same_field", "priora_All", "priora_Unk", "d2_raw", "d2_noid", "static_flag", "n_dets_with_template_source", "pair_motion_ratio_min",
         "matched_to", "rubin_mpc_submission", "skybot_nearest", "jpl_nearest", "nearest_catalogue", "nearest_sep_arcsec", "old_id", "old_tier"]
-H = td.merge(C[cols], left_on="trkSub", right_index=True).rename(columns={"trkSub": "tracklet_id", "n": "tracklet_n_detections", "midpointMjdTai": "obs_mjd_tai", "band_x": "band", "arc": "tracklet_arc_min", "rate": "tracklet_rate_deg_per_day", "V": "tracklet_V_mag", "gal_b": "galactic_b_deg", "same_field": "other_candidates_same_field_10min_2deg", "ds42_All": "ds42_P_NEO_All", "ds42_Unk": "ds42_P_NEO_Unk", "d2_raw": "digest2_raw_NEO", "d2_noid": "digest2_NoID_NEO", "nearest_catalogue": "nearest_MPCORB_object", "nearest_sep_arcsec": "nearest_MPCORB_sep_arcsec"})
-H["tier_rank"] = H.tier.map({"A": 1, "B": 2, "set aside": 3}); H = H.sort_values(["tier_rank", "ds42_P_NEO_All", "tracklet_id", "obs_mjd_tai"], ascending=[True, False, True, True]).drop(columns="tier_rank")
+H = td.merge(C[cols], left_on="trkSub", right_index=True).rename(columns={"trkSub": "tracklet_id", "n": "tracklet_n_detections", "midpointMjdTai": "obs_mjd_tai", "band_x": "band", "arc": "tracklet_arc_min", "rate": "tracklet_rate_deg_per_day", "V": "tracklet_V_mag", "gal_b": "galactic_b_deg", "same_field": "other_candidates_same_field_10min_2deg", "priora_All": "priora_P_NEO_All", "priora_Unk": "priora_P_NEO_Unk", "d2_raw": "digest2_raw_NEO", "d2_noid": "digest2_NoID_NEO", "nearest_catalogue": "nearest_MPCORB_object", "nearest_sep_arcsec": "nearest_MPCORB_sep_arcsec"})
+H["tier_rank"] = H.tier.map({"A": 1, "B": 2, "set aside": 3}); H = H.sort_values(["tier_rank", "priora_P_NEO_All", "tracklet_id", "obs_mjd_tai"], ascending=[True, False, True, True]).drop(columns="tier_rank")
 H["obs_mjd_tai"] = H.obs_mjd_tai.map(lambda x: f"{x:.8f}"); H["ra"] = H.ra.map(lambda x: f"{x:.7f}"); H["dec"] = H.dec.map(lambda x: f"{x:.7f}")
 first_cols = ["tier", "tracklet_id", "det_index_in_tracklet", "tracklet_n_detections", "diaSourceId", "visit", "detector", "diaObjectId", "nDiaSources", "obs_time_utc", "obs_mjd_tai", "ra", "dec"]
 H = H[first_cols + [c for c in H.columns if c not in first_cols and c not in ("detnum", "trk_ID", "idstring", "MJD", "RA", "Dec", "mag", "band_y")]]
 H.to_csv(T / "handoff/lsst_neo_candidates_nd2_detections.csv", index=False)
 print(pd.crosstab(C.tier, C.static_flag)); print("matched:", C.matched_to.value_counts().to_dict()); print("old tiers of new candidates:", C.old_tier.value_counts(dropna=False).to_dict())
 print("cutouts missing:", int(C.cutouts_missing.sum()))
-print(C[C.tier != "set aside"][["tier", "old_id", "old_tier", "ds42_All", "static_flag", "matched_to"]].to_string())
+print(C[C.tier != "set aside"][["tier", "old_id", "old_tier", "priora_All", "static_flag", "matched_to"]].to_string())

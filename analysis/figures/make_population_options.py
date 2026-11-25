@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np, matplotlib as mpl
 mpl.use("Agg"); import matplotlib.pyplot as plt
 REPO = Path(__file__).resolve().parents[2]; sys.path.insert(0, str(REPO / "src"))
-from ds42.population import read_digest2_model, Q_EDGES, H_EDGES
+from priora.population import read_digest2_model, Q_EDGES, H_EDGES
 mpl.rcParams.update({"font.family": "STIXGeneral", "mathtext.fontset": "stix", "font.size": 9, "axes.labelsize": 9.5,
     "xtick.labelsize": 8.5, "ytick.labelsize": 8.5, "legend.fontsize": 7.8, "axes.linewidth": 0.8, "xtick.direction": "in",
     "ytick.direction": "in", "xtick.top": True, "ytick.right": True, "savefig.bbox": "tight", "savefig.pad_inches": 0.02,

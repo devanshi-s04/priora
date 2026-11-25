@@ -35,26 +35,26 @@
 | 12.2 | NEOs faster than 1 deg/day with P<0.1 | 0 | 0 | OK | `pooled Unk` |
 | 6.1 | tracklets / NEOs | [19999, 287] | ['2e+04', '287'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.1 | tracklets with >1% of measure beyond H=30 (%) | 2 | 2.04 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M) ar_frac_h_above` |
-| 6.2 | ds42 predicted / digest2 predicted (all) | [284.0, 1349] | ['284.0', '1348.9'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.2 | priora predicted / digest2 predicted (all) | [284.0, 1349] | ['284.0', '1348.9'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.2 | digest2 / observed ratio | 4.7 | 4.70 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.2 | digest2 <10: n, predicted, observed | [17263, 290.5, 9] | ['17263.0', '290.5', '9.0'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.2 | digest2 >=10: n, predicted, observed | [2736, 1058, 278] | ['2736.0', '1058.4', '278.0'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.2 | ds42 <0.1 / >=0.1: predicted, observed | [14.1, 17, 269.9, 270] | ['14.1', '17.0', '269.9', '270.0'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.2 | ds42 P=1 tracklets, all NEOs | [237, 237] | ['237', '237'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.3 | AUC ds42 / digest2 | [0.9945, 0.9846] | ['0.99454', '0.98460'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.2 | priora <0.1 / >=0.1: predicted, observed | [14.1, 17, 269.9, 270] | ['14.1', '17.0', '269.9', '270.0'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.2 | priora P=1 tracklets, all NEOs | [237, 237] | ['237', '237'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.3 | AUC priora / digest2 | [0.9945, 0.9846] | ['0.99454', '0.98460'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.3 | Delta AUC and 95% CI | [0.0099, 0.004, 0.0176] | ['0.00994', '0.00396', '0.01757'] | OK | `validation/unk_noid/results.json M` |
 | 6.3 | non-NEO : NEO ratio (69 to 1) | 69 | 68.7 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.4 / Table 3 | digest2>=65: NEO, non-NEO, compl %, contam % | [269, 287, 93.7, 51.6] | ['269.00', '287.00', '93.73', '51.62'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.4 / Table 3 | ds42 matched cut value | 0.3 | 0.3003 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.4 / Table 3 | ds42 P>=0.30: NEO, non-NEO, contam % | [269, 11, 3.9] | ['269.00', '11.00', '3.93'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.4 / Table 3 | ds42 P>=0.5: NEO, non-NEO, compl %, contam % | [264, 3, 92.0, 1.1] | ['264.00', '3.00', '91.99', '1.12'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.3 | purity digest2>=65 / ds42 matched / ds42 P>=0.5 (%) | [48.4, 96.1, 98.9] | ['48.38', '96.07', '98.88'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.4 / Table 3 | priora matched cut value | 0.3 | 0.3003 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.4 / Table 3 | priora P>=0.30: NEO, non-NEO, contam % | [269, 11, 3.9] | ['269.00', '11.00', '3.93'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.4 / Table 3 | priora P>=0.5: NEO, non-NEO, compl %, contam % | [264, 3, 92.0, 1.1] | ['264.00', '3.00', '91.99', '1.12'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.3 | purity digest2>=65 / priora matched / priora P>=0.5 (%) | [48.4, 96.1, 98.9] | ['48.38', '96.07', '98.88'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.4 | NEOs selected by both / each only | [267, 2, 2] | ['267', '2', '2'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.5 | digest2 FPs with q>=4.5 / q>=10 | [213, 145] | ['213', '145'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 12.1 | digest2 FPs with 1.67<=q<4.5 | 58 | 58 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.5 | heliocentric distance range of q>=10 FPs (AU) | [13, 91] | ['13.0', '89.0'] | MISMATCH | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M) (R_obs + rho u)` |
-| 6.5 | max ds42 P among digest2 q>=4.5 FPs | < 0.1 | 0.094 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
-| 6.5 / 12.1 | ds42 FPs: Mars-crossers / main-belt range / q>=4.5 | [10, 1, 0] | ['10', '1', '0'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.5 | max priora P among digest2 q>=4.5 FPs | < 0.1 | 0.094 | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
+| 6.5 / 12.1 | priora FPs: Mars-crossers / main-belt range / q>=4.5 | [10, 1, 0] | ['10', '1', '0'] | OK | `validation/output/gate_v0unk_hext30 + digest2_comparison_unk (run M)` |
 | 6.5 | All/raw digest2 FPs at 1" -> 0.1", fraction q>=4.5 at 0.1" (%) | [221, 276, 73] | ['221.0', '276.0', '72.8'] | OK | `digest2_comparison_hext30{,_obserr0p1}/gate_v0_hext30/digest2_scores.npz` |
 | 7 | All sample: tracklets / NEOs | [20000, 170] | ['2e+04', '170'] | OK | `astrometric_noise_hext30/summary.json` |
 | 7 | median per-coordinate sigma (mas) | 35 | 35.32 | OK | `summary.json sigma_population` |
@@ -89,16 +89,16 @@
 | 7 | LSST v5.3.7 yr-1 arcs: median (min), frac >=15 min, frac <10 min | [23, 0.7, 0.15] | ['23.16', '0.70', '0.15'] | OK | `reproduce/numbers/cadence_arcs.py` |
 | 8 | tracklets / NEOs / non-NEOs | [499, 305, 194] | ['499', '305', '194'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
 | 8 | median detections / median arc (min) | [4, 35] | ['4.0', '35.3'] | OK | `validation/output/neocp_pilot/tracklets.json` |
-| 8 | ds42 predicted / digest2 NoID/100 predicted | [312.0, 437] | ['312.0', '436.5'] | MISMATCH | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
+| 8 | priora predicted / digest2 NoID/100 predicted | [312.0, 437] | ['312.0', '436.5'] | MISMATCH | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
 | 8 / Table 5 | digest2>=65 NEO, non-NEO, compl, contam | [300, 140, 98.4, 31.8] | ['300.00', '140.00', '98.36', '31.82'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
-| 8 / Table 5 | ds42 matched cut | 0.03 | 0.0300 | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
-| 8 / Table 5 | ds42 matched NEO, non-NEO, contam | [300, 85, 22.1] | ['300.00', '85.00', '22.08'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
-| 8 / Table 5 | ds42 P>=0.5 NEO, non-NEO, compl, contam | [286, 22, 93.8, 7.1] | ['286.00', '22.00', '93.77', '7.14'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
+| 8 / Table 5 | priora matched cut | 0.03 | 0.0300 | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
+| 8 / Table 5 | priora matched NEO, non-NEO, contam | [300, 85, 22.1] | ['300.00', '85.00', '22.08'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
+| 8 / Table 5 | priora P>=0.5 NEO, non-NEO, compl, contam | [286, 22, 93.8, 7.1] | ['286.00', '22.00', '93.77', '7.14'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
 | 8 / Table 5 | fraction of sample below digest2 65 (%) | 11.8 | 11.82 | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
-| 8 | selected tracklets: digest2 - ds42 matched | 55 | 55 | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
-| 8 | AUC ds42 Unk / digest2 NoID | [0.9663, 0.9539] | ['0.96628', '0.95395'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
+| 8 | selected tracklets: digest2 - priora matched | 55 | 55 | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
+| 8 | AUC priora Unk / digest2 NoID | [0.9663, 0.9539] | ['0.96628', '0.95395'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
 | 8 | Delta AUC and 95% CI (paired, stratified bootstrap, seed 7, 2000) | [0.0123, 0.0049, 0.0207] | ['0.0123', '0.0050', '0.0211'] | MISMATCH | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py); digest2_comparison.auc_bootstrap` |
-| 8 | ds42 P>=0.5 non-NEOs: q<2.3 / q<1.55 | [22, 17] | ['22', '17'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
+| 8 | priora P>=0.5 non-NEOs: q<2.3 / q<1.55 | [22, 17] | ['22', '17'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
 | 8 | digest2 FPs: q<1.67 of total / q>=4.5 | [91, 140, 4] | ['91', '140', '4'] | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
 | 8 | NEOCP median V (paper: 21.1, cut = +0.1 = 21.2) | 21.14 | 21.140 | OK | `validation/output/neocp_unk_ext/table5_inputs.npz (rescore_neocp_unk.py)` |
 | 2.8 | NEOCP tracklets with all measure at H>25.5 (both Lambda 0), all NEOs | [11, 11] | ['11', '11'] | OK | `validation/output/h_extension/neocp_delta_all.json (truncated)` |
@@ -107,8 +107,8 @@
 | App C | boundary tracklets keeping 7-10% of measure above H=30 | [4, 0.07, 0.1] | ['4.000', '0.068', '0.102'] | OK | `neocp_delta_all.json ar_frac_H_above_30` |
 | App C | min fraction of measure at H>=25.5 among the 11 (>= 0.986) | 0.986 | 0.9856 | OK | `neocp_delta_all.json` |
 | 8 | bright sample: tracklets / NEOs / max V | [3498, 215, 21.2] | ['3498.00', '215.00', '21.20'] | OK | `validation/output/gate_v0unk_bright212_hext30 + digest2_comparison_unk_bright212` |
-| 8 / Table 6 | V<21.2: compl, contam, distant FPs, ds42 contam | [98.1, 54.2, 143, 17.6] | ['98.14', '54.23', '143.00', '17.58'] | OK | `validation/output/gate_v0unk_bright212_hext30 + digest2_comparison_unk_bright212` |
-| 8 / Table 6 | known distant removed: compl, contam, distant FPs, ds42 contam | [98.1, 33.9, 1, 17.3] | ['98.14', '33.86', '1.00', '17.25'] | OK | `validation/output/gate_v0unk_bright212_hext30 + digest2_comparison_unk_bright212; distant-only H-peak removal` |
+| 8 / Table 6 | V<21.2: compl, contam, distant FPs, priora contam | [98.1, 54.2, 143, 17.6] | ['98.14', '54.23', '143.00', '17.58'] | OK | `validation/output/gate_v0unk_bright212_hext30 + digest2_comparison_unk_bright212` |
+| 8 / Table 6 | known distant removed: compl, contam, distant FPs, priora contam | [98.1, 33.9, 1, 17.3] | ['98.14', '33.86', '1.00', '17.25'] | OK | `validation/output/gate_v0unk_bright212_hext30 + digest2_comparison_unk_bright212; distant-only H-peak removal` |
 | 8 / Fig 9 | distant FPs brighter than the known peak (142 of 143) | [142, 143] | ['142', '143'] | OK | `validation/output/gate_v0unk_bright212_hext30 + digest2_comparison_unk_bright212` |
 | 8 / Fig 9 | median H of distant FPs: 4.5-10 AU / >=10 AU | [11.5, 2.8] | ['11.47', '2.76'] | OK | `validation/output/gate_v0unk_bright212_hext30 + digest2_comparison_unk_bright212` |
 | 8 | known/model in brightest complete bins: min, max (14-30%) | [0.14, 0.3] | ['0.143', '0.302'] | OK | `validation/d2_far_known/bright_numbers.json (bright_test.py): TNO H 0-8, Trojan/Centaur H 8-10 and 11-14` |

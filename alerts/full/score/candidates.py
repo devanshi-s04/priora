@@ -1,11 +1,11 @@
-"""Unknown-alert NEO candidates: tracklets with 3+ detections, no catalogue match (status unmatched), ds42 All P >= 0.1.
+"""Unknown-alert NEO candidates: tracklets with 3+ detections, no catalogue match (status unmatched), priora All P >= 0.1.
 Cross-checks: nearest catalogue object to any detection (match/stage2_all.parquet, any separation) and Rubin (X05)
 lines in the MPC Isolated Tracklet File (data_unk/mpc/itf.txt.gz) within 5 arcsec and 5 s. -> candidates.csv"""
 import gzip, numpy as np, pandas as pd
 from astropy.time import Time
 m = pd.read_parquet("scores_joined.parquet")
-m["V"] = pd.read_csv("ds42_All.csv").set_index("object_id").V
-C = m[(m.status == "unmatched") & (m.n >= 3) & (m.ds42_All >= 0.1)].copy()
+m["V"] = pd.read_csv("priora_All.csv").set_index("object_id").V
+C = m[(m.status == "unmatched") & (m.n >= 3) & (m.priora_All >= 0.1)].copy()
 td = pd.read_parquet("trk_dets.parquet"); td = td[td.trkSub.isin(C.index)]
 first = td.sort_values("MJD").groupby("trkSub").first()
 C["mjd_tai"] = first.MJD; C["ra"] = first.RA; C["dec"] = first.Dec
@@ -36,8 +36,8 @@ for _, r in td.iterrows():
         sep = np.hypot((k.ra - r.RA) * np.cos(np.radians(r.Dec)), k.dec - r.Dec) * 3600
         if (sep < 5).any(): hit.setdefault(r.trkSub, set()).add(k.trksub[sep < 5].iloc[0])
 C["itf_trksub"] = [",".join(sorted(hit.get(t, []))) for t in C.index]
-C = C.sort_values("ds42_All", ascending=False)
-cols = ["night", "utc", "ra", "dec", "n", "arc", "rate", "V", "ds42_All", "ds42_Unk", "d2_raw", "d2_noid", "nearest_catalogue", "nearest_sep_arcsec", "itf_trksub"]
+C = C.sort_values("priora_All", ascending=False)
+cols = ["night", "utc", "ra", "dec", "n", "arc", "rate", "V", "priora_All", "priora_Unk", "d2_raw", "d2_noid", "nearest_catalogue", "nearest_sep_arcsec", "itf_trksub"]
 C[cols].to_csv("candidates.csv")
-print(len(C), "candidates;", (C.ds42_All >= 0.5).sum(), "at P>=0.5; ITF hits", (C.itf_trksub != "").sum(), "; ITF X05 2026 lines", len(I))
+print(len(C), "candidates;", (C.priora_All >= 0.5).sum(), "at P>=0.5; ITF hits", (C.itf_trksub != "").sum(), "; ITF X05 2026 lines", len(I))
 pd.set_option("display.width", 250); print(C[cols].round(3).to_string())

@@ -6,14 +6,14 @@ catalogue was frozen)."""
 import os
 import numpy as np, pandas as pd
 from pathlib import Path
-O = Path(os.environ["DS42_REPO"]) / "validation/output"
+O = Path(os.environ["PRIORA_REPO"]) / "validation/output"
 m = pd.read_parquet("scores_joined.parquet"); lab = pd.read_parquet("../data/labels_ftransfer_2026-11-02.parquet").set_index("packed")
 P = m[m.pure].copy(); P["yr"] = P.obj.map(lab.unpacked).str.extract(r"^(\d{4}) ")[0].astype(float)
 for tag, S in (("", P), ("_post2011", P[P.yr >= 2012])):
     n = len(S); idx = np.arange(n); el = np.zeros((n, 6)); el[:, 0] = S.q.values
     for V in ("All", "Unk"):
         d = O / f"lsst_alerts_{V}{tag}"; d.mkdir(parents=True, exist_ok=True)
-        np.savez(d / "scores.npz", index=idx, p_neo=S[f"ds42_{V}"].values)
+        np.savez(d / "scores.npz", index=idx, p_neo=S[f"priora_{V}"].values)
         np.savez(d / "gen.npz", is_neo=S.neo.values, elements=el)
         c = O / f"lsst_alerts_d2{tag}" / f"lsst_alerts_{V}{tag}"; c.mkdir(parents=True, exist_ok=True)
         np.savez(c / "digest2_scores.npz", index=idx, raw_neo=S.d2_raw.values, noid_neo=S.d2_noid.values, ok=np.ones(n, bool))

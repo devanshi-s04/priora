@@ -1,5 +1,5 @@
 """SkyBoT (IMCCE) cone search, 120" around each DP2 candidate's first detection, observatory X05 (user approved SkyBoT only, no JPL).
-Candidates: all 4+ and the unflagged 3+ (unlabelled, ds42 All P >= 0.1). Failed requests are retried and never cached as 'no match'.
+Candidates: all 4+ and the unflagged 3+ (unlabelled, priora All P >= 0.1). Failed requests are retried and never cached as 'no match'.
 -> ../skybot/skybot_<trkSub>.json, score/skybot_candidates.parquet"""
 import json, math, time
 from pathlib import Path
@@ -32,5 +32,5 @@ def skybot(t, r):
                 skybot_V=b["VMag (mag)"], skybot_rate=math.hypot(b["dRA (arcsec/h)"], b["dDEC (arcsec/h)"]) * 24 / 3600,
                 skybot_class=b.get("Class"), skybot_err=b.get("Err (arcsec)"))
 R = pd.DataFrame([skybot(t, r) for t, r in c.iterrows()]).set_index("trkSub")
-R = R.join(c[["n", "rate", "ds42_All", "gal_b", "trail_confirmed", "any_flag2"]]); R.to_parquet(S / "skybot_candidates.parquet")
+R = R.join(c[["n", "rate", "priora_All", "gal_b", "trail_confirmed", "any_flag2"]]); R.to_parquet(S / "skybot_candidates.parquet")
 print(R.skybot_status.value_counts().to_dict(), "queried", len(R))

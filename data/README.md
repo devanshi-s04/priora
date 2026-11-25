@@ -4,7 +4,7 @@ Nothing in this folder is versioned. Every input comes from a `make` target or f
 
 | Path | Target | What it is |
 |---|---|---|
-| `digest2.model.csv` | `make model` | digest2 population model (MPC), the absolute population ds42 integrates over |
+| `digest2.model.csv` | `make model` | digest2 population model (MPC), the absolute population priora integrates over |
 | `external/opsim/baseline_v5.3.7_10yrs.db` | `make external` | LSST baseline v5.3.7 cadence simulation (Rubin sim-data, SLAC) |
 | `external/ar_cache/` | `make external` | Sorcha 1.1.1 / ASSIST ephemeris files (`sorcha bootstrap`) |
 | `external/heliolinx`, `external/heliolinx-aux` | `make external` | HelioLinC at commits `e979817` and `03e3411` (make_tracklets, heliolinc_omp, link_purify) |

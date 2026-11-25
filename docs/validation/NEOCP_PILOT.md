@@ -7,9 +7,9 @@
 - **499 real NEOCP discovery tracklets** rebuilt from MPC astrometry and labelled by mature orbits: **305 NEO / 194 non-NEO** (q < 1.3 AU, D-2). 499 of 500 drawn objects survived the pipeline.
 - **v0 did not crash, hang, or fabricate — but it does refuse.** 11 tracklets (2.2%), **100% of them true NEOs**, return `p_neo = nan`: their entire admissible region implies H > 25.5, so both hard-truncated components are zero everywhere and the posterior is 0/0 (DESIGN §2.6, D-4). These are the close, fast, small objects the NEOCP exists for. Scoring with digest2's own [24, inf) top H bin recovers 11 of them and changes nothing else (median |Δp| 2e-06).
 - **Calibration survived the prior mismatch**, which was the surprise: predicted/observed NEOs 1.01 (ECE 2.2e-02) against digest2 `raw`/100 at 1.38 (ECE 2.3e-01). The NEOCP cut is a function of the observables alone, so it is exactly the ε(A, V) that DESIGN §2.4 shows cancels in the posterior.
-- **Ranking**: AUC 0.9756 (ds42 All) vs 0.9724 (digest2 raw), ΔAUC +0.0042 [-0.0011, +0.0107], P(Δ ≤ 0) = 0.070 — the same sign and magnitude as WP7's synthetic +0.007, not resolved at this sample size, **and censored against digest2** (the sample is what digest2 already accepted).
+- **Ranking**: AUC 0.9756 (priora All) vs 0.9724 (digest2 raw), ΔAUC +0.0042 [-0.0011, +0.0107], P(Δ ≤ 0) = 0.070 — the same sign and magnitude as WP7's synthetic +0.007, not resolved at this sample size, **and censored against digest2** (the sample is what digest2 already accepted).
 - **D-10, All vs Unk: keep `All`.** ΔAUC(All - Unk) = +0.0104 [+0.0039, +0.0187], P(Δ ≤ 0) = 0.000; digest2's own `raw` beats its `noid` on the same tracklets. The `Unk` tables subtract a known-object catalogue frozen at the model's 2011 vintage, which inflates P(NEO) for main-belt-like tracklets rather than deflating it.
-- **Operationally**, inside this already-filtered sample: digest2's own cut (`raw >= 65`) flags 402 tracklets at 98.3% completeness and 28.1% contamination; ds42 matches that completeness at 21.7% contamination, and at its natural p >= 0.5 gives 93.5% completeness at 5.8%.
+- **Operationally**, inside this already-filtered sample: digest2's own cut (`raw >= 65`) flags 402 tracklets at 98.3% completeness and 28.1% contamination; priora matches that completeness at 21.7% contamination, and at its natural p >= 0.5 gives 93.5% completeness at 5.8%.
 - **Two data-handling landmines** that no synthetic test could have found: the MPC's ADES export uses **two-character band codes** (`Pw`, `Ao`, `Lr`, `Vj`) that digest2's offset table does not know (593 affected detections, ~0.7 mag each if missed), and **JPL SBDB returns display-rounded elements**, so boundary Amors arrive as exactly `q = 1.3` and get mislabelled. Both are handled and both are documented below.
 - **One bug in a shared validation helper** (`digest2_comparison.auc_bootstrap`) that this sample's label balance exposed; reported, not patched — see the Ranking section.
 
@@ -106,7 +106,7 @@ Provenance flags: 252 tracklets have an *earlier* observation at some other stat
 | fraction with that > 1e-1 | 0.443 |
 | clean / broken subset sizes | 5 / 485 |
 | `p_neo` exactly 1.0 / exactly 0.0 | 170 / 0 |
-| median ds42 CPU per tracklet [s] | 2.62 |
+| median priora CPU per tracklet [s] | 2.62 |
 | digest2 tracklets it declined to score | 0 |
 
 Nothing raised, nothing hung, nothing produced a wrong-looking number silently — but v0 does have one **hard refusal mode**, and real NEOCP data walks straight into it.
@@ -125,12 +125,12 @@ Their signature is exactly the DESIGN §2.6 corner made physical: median sky rat
 
 | score | label | median | mean | p10 | p90 |
 |---|---|---:|---:|---:|---:|
-| ds42 All | neo | 1 | 0.9245 | 0.751 | 1 |
-| ds42 All | non_neo | 0.0248 | 0.1227 | 0.001628 | 0.4629 |
-| ds42 Unk | neo | 1 | 0.9235 | 0.6838 | 1 |
-| ds42 Unk | non_neo | 0.01913 | 0.1519 | 0.001614 | 0.6405 |
-| ds42 All H-clamped | neo | 1 | 0.9275 | 0.7649 | 1 |
-| ds42 All H-clamped | non_neo | 0.02481 | 0.123 | 0.00163 | 0.4632 |
+| priora All | neo | 1 | 0.9245 | 0.751 | 1 |
+| priora All | non_neo | 0.0248 | 0.1227 | 0.001628 | 0.4629 |
+| priora Unk | neo | 1 | 0.9235 | 0.6838 | 1 |
+| priora Unk | non_neo | 0.01913 | 0.1519 | 0.001614 | 0.6405 |
+| priora All H-clamped | neo | 1 | 0.9275 | 0.7649 | 1 |
+| priora All H-clamped | non_neo | 0.02481 | 0.123 | 0.00163 | 0.4632 |
 | digest2 raw (All) | neo | 100 | 97.72 | 97.38 | 100 |
 | digest2 raw (All) | non_neo | 68.58 | 63.28 | 25.76 | 92.16 |
 | digest2 noid (Unk) | neo | 100 | 97.67 | 97.51 | 100 |
@@ -140,7 +140,7 @@ Their signature is exactly the DESIGN §2.6 corner made physical: median sky rat
 
 ## Ranking (ROC/AUC) — with the censoring caveat above
 
-| subset | n | NEOs | ds42 All | ds42 Unk | ds42 All H-clamped | digest2 raw (All) | digest2 noid (Unk) |
+| subset | n | NEOs | priora All | priora Unk | priora All H-clamped | digest2 raw (All) | digest2 noid (Unk) |
 |---|---:|---:|---:|---:|---:|---:|---:|
 | all | 499 | 305 | 0.9756 | 0.9652 | 0.9765 | 0.9724 | 0.9539 |
 | broken | 485 | 298 | 0.9774 | 0.9662 | 0.9782 | 0.9749 | 0.9563 |
@@ -149,16 +149,16 @@ Paired, label-stratified bootstrap on the differences (`neocp_pilot.paired_auc_b
 
 | subset | comparison | ΔAUC [95% CI] | P(Δ ≤ 0) |
 |---|---|---|---:|
-| all | ds42 All vs ds42 Unk | +0.0104 [+0.0039, +0.0187] | 0.000 |
-| all | ds42 All clamped vs digest2 raw | +0.0041 [-0.0013, +0.0104] | 0.069 |
-| all | ds42 All clamped vs All | +0.0000 [-0.0001, +0.0001] | 0.606 |
-| all | ds42 All vs digest2 raw | +0.0042 [-0.0011, +0.0107] | 0.070 |
-| all | ds42 Unk vs digest2 noid | +0.0128 [+0.0052, +0.0217] | 0.000 |
-| broken | ds42 All vs ds42 Unk | +0.0112 [+0.0044, +0.0200] | 0.000 |
-| broken | ds42 All clamped vs digest2 raw | +0.0033 [-0.0016, +0.0094] | 0.113 |
-| broken | ds42 All clamped vs All | +0.0000 [-0.0001, +0.0001] | 0.597 |
-| broken | ds42 All vs digest2 raw | +0.0035 [-0.0016, +0.0096] | 0.104 |
-| broken | ds42 Unk vs digest2 noid | +0.0115 [+0.0039, +0.0202] | 0.000 |
+| all | priora All vs priora Unk | +0.0104 [+0.0039, +0.0187] | 0.000 |
+| all | priora All clamped vs digest2 raw | +0.0041 [-0.0013, +0.0104] | 0.069 |
+| all | priora All clamped vs All | +0.0000 [-0.0001, +0.0001] | 0.606 |
+| all | priora All vs digest2 raw | +0.0042 [-0.0011, +0.0107] | 0.070 |
+| all | priora Unk vs digest2 noid | +0.0128 [+0.0052, +0.0217] | 0.000 |
+| broken | priora All vs priora Unk | +0.0112 [+0.0044, +0.0200] | 0.000 |
+| broken | priora All clamped vs digest2 raw | +0.0033 [-0.0016, +0.0094] | 0.113 |
+| broken | priora All clamped vs All | +0.0000 [-0.0001, +0.0001] | 0.597 |
+| broken | priora All vs digest2 raw | +0.0035 [-0.0016, +0.0096] | 0.104 |
+| broken | priora Unk vs digest2 noid | +0.0115 [+0.0039, +0.0202] | 0.000 |
 
 > **Bug found in `validation/digest2_comparison.py:auc_bootstrap`, reported not patched** (that file is outside this task's ownership). Its resample builds `take = concatenate((integers(0, n_pos, n_pos), integers(0, n_neg, n_neg)))` and applies it to `concatenate((pos, neg))` **without offsetting the negative half by `n_pos`**, so the negative indices address the positive block. When `n_pos >= n_neg` — which is this sample, 305 NEOs against 194 non-NEOs, because the NEOCP is already digest2-filtered — every resample is 100% positives, every bootstrap AUC is NaN, the CI comes back `[nan, nan]` and `p_delta_le_0` silently reports `0.000` (because `NaN <= 0` is `False`). In WP6/WP7's regime (185 NEOs in 2x10^4) the sign is the other way and the effect is small but nonzero: the negative half is drawn from a block that is `n_pos/n_neg` ~ 0.9% positives, so those published intervals come from a slightly wrong resampling distribution. The numbers above use this module's own corrected implementation; `DIGEST2_COMPARISON.md`'s CIs should be regenerated once the shared helper is fixed.
 
@@ -170,15 +170,15 @@ Paired, label-stratified bootstrap on the differences (`neocp_pilot.paired_auc_b
 
 | subset | score | predicted NEOs | observed | pred/obs | Brier | ECE |
 |---|---|---:|---:|---:|---:|---:|
-| all | ds42 All | 295.6 | 294.0 | 1.01 | 5.365e-02 | 2.232e-02 |
-| all | ds42 Unk | 301.0 | 294.0 | 1.02 | 6.751e-02 | 3.808e-02 |
-| all | ds42 All H-clamped | 306.7 | 305.0 | 1.01 | 5.244e-02 | 2.205e-02 |
+| all | priora All | 295.6 | 294.0 | 1.01 | 5.365e-02 | 2.232e-02 |
+| all | priora Unk | 301.0 | 294.0 | 1.02 | 6.751e-02 | 3.808e-02 |
+| all | priora All H-clamped | 306.7 | 305.0 | 1.01 | 5.244e-02 | 2.205e-02 |
 | all | digest2 raw/100 | 420.8 | 305.0 | 1.38 | 1.854e-01 | 2.321e-01 |
 | all | digest2 noid/100 | 436.5 | 305.0 | 1.43 | 2.309e-01 | 2.635e-01 |
 
 ![calibration](calibration.png)
 
-**How to read this — and the pilot's most interesting result.** The expectation going in was that calibration *had* to degrade here: the sample is a digest2-selected slice of the sky, and v0's prior is a 2011 population model. It did not. ds42's posterior predicts 295.6 NEOs against 294.0 observed (ratio 1.01, ECE 2.23e-02), while digest2's `raw`/100 predicts 420.8 against the same truth (ratio 1.38, ECE 2.32e-01).
+**How to read this — and the pilot's most interesting result.** The expectation going in was that calibration *had* to degrade here: the sample is a digest2-selected slice of the sky, and v0's prior is a 2011 population model. It did not. priora's posterior predicts 295.6 NEOs against 294.0 observed (ratio 1.01, ECE 2.23e-02), while digest2's `raw`/100 predicts 420.8 against the same truth (ratio 1.38, ECE 2.32e-01).
 
 The reason the posterior survives the selection is worth stating precisely, because it is the DESIGN §2.4 argument doing real work for the first time. §2.4 requires the selection to be a function ε(A, V) of the **observables** — then it multiplies both Λ_NEO and Λ_other and cancels in the ratio. The NEOCP cut is `digest2_score(A, V) >= 65`: digest2 is a deterministic function of the tracklet, so the cut is *exactly* of that form. Conditioning on "digest2 said yes" therefore changes **which** (A, V) we see, not P(NEO | A, V) — and a calibrated posterior stays calibrated on the selected subsample. Ranking is a different matter: censoring removes digest2's own false negatives from the sample, and no cancellation argument repairs a ROC computed on a set chosen by one of the two contestants (caveat 1).
 
@@ -190,9 +190,9 @@ NEOCP candidates are by construction *undiscovered* objects, which is exactly th
 
 | variant | pred/obs | ECE | Brier | AUC (all) |
 |---|---:|---:|---:|---:|
-| ds42 All | 1.01 | 2.232e-02 | 5.365e-02 | 0.9756 |
-| ds42 Unk | 1.02 | 3.808e-02 | 6.751e-02 | 0.9652 |
-| ds42 All H-clamped | 1.01 | 2.205e-02 | 5.244e-02 | 0.9765 |
+| priora All | 1.01 | 2.232e-02 | 5.365e-02 | 0.9756 |
+| priora Unk | 1.02 | 3.808e-02 | 6.751e-02 | 0.9652 |
+| priora All H-clamped | 1.01 | 2.205e-02 | 5.244e-02 | 0.9765 |
 
 **The answer is All, and it is not close.** ΔAUC(All - Unk) = +0.0104 [+0.0039, +0.0187], bootstrap P(Δ ≤ 0) = 0.000 — and digest2 shows the same ordering on its own two scores (`raw` 0.9724 vs `noid` 0.9539), so this is a property of the model file rather than of either method. That contradicts the a-priori argument, and the reason is instructive: the `Unk` tables are *total minus known*, where "known" is the discovered catalogue **frozen at the model's 2011 vintage**. Subtracting it removes a large share of the bright main belt and almost none of the NEOs, which inflates P(NEO) for exactly the main-belt-like tracklets that make up this sample's negatives. The premise — "a NEOCP candidate is undiscovered, so use the undiscovered population" — needs the *current* known catalogue to hold; with a 15-year-stale one it does the opposite of what it intends. **Recommendation for D-10: keep `All` as the v0 default, and treat `Unk` as usable only with a contemporaneous known-object subtraction.**
 
@@ -205,16 +205,16 @@ NEOCP candidates are by construction *undiscovered* objects, which is exactly th
 | subset | pair | operating point | flagged | completeness | contamination |
 |---|---|---|---:|---:|---:|
 | all | All/raw | digest2 raw >= 65 | 402 | 98.3% | 28.1% |
-| all | All/raw | ds42 p >= 0.5 | 292 | 93.5% | 5.8% |
-| all | All/raw | ds42 p >= 0.0403 | 369 | 98.3% | 21.7% |
+| all | All/raw | priora p >= 0.5 | 292 | 93.5% | 5.8% |
+| all | All/raw | priora p >= 0.0403 | 369 | 98.3% | 21.7% |
 | all | Unk/noid | digest2 raw >= 65 | 429 | 98.3% | 32.6% |
-| all | Unk/noid | ds42 p >= 0.5 | 297 | 93.5% | 7.4% |
-| all | Unk/noid | ds42 p >= 0.03 | 374 | 98.3% | 22.7% |
+| all | Unk/noid | priora p >= 0.5 | 297 | 93.5% | 7.4% |
+| all | Unk/noid | priora p >= 0.03 | 374 | 98.3% | 22.7% |
 | all | All-clamped/raw | digest2 raw >= 65 | 413 | 98.4% | 27.4% |
-| all | All-clamped/raw | ds42 p >= 0.5 | 303 | 93.8% | 5.6% |
-| all | All-clamped/raw | ds42 p >= 0.0403 | 380 | 98.4% | 21.1% |
+| all | All-clamped/raw | priora p >= 0.5 | 303 | 93.8% | 5.6% |
+| all | All-clamped/raw | priora p >= 0.0403 | 380 | 98.4% | 21.1% |
 
-The WP7 synthetic result was a ~10x contamination reduction at matched completeness. Here it is much smaller — 28.1% -> 21.7% at matched 98.3% completeness — and that shrinkage is the censoring at work rather than a weaker method: the easy non-NEOs that made up most of WP7's false-positive budget were never posted to the NEOCP, so they are not in this sample to remove. The operationally useful number is the other row: ds42 at its own p >= 0.5 flags 292 tracklets, 93.5% complete at 5.8% contamination — a ~5x contamination reduction for 4.8% of completeness, and unlike a digest2 score that threshold can be *chosen* against a stated contamination budget.
+The WP7 synthetic result was a ~10x contamination reduction at matched completeness. Here it is much smaller — 28.1% -> 21.7% at matched 98.3% completeness — and that shrinkage is the censoring at work rather than a weaker method: the easy non-NEOs that made up most of WP7's false-positive budget were never posted to the NEOCP, so they are not in this sample to remove. The operationally useful number is the other row: priora at its own p >= 0.5 flags 292 tracklets, 93.5% complete at 5.8% contamination — a ~5x contamination reduction for 4.8% of completeness, and unlike a digest2 score that threshold can be *chosen* against a stated contamination budget.
 
 ## Behaviour by true perihelion distance
 
@@ -227,11 +227,11 @@ The WP7 synthetic result was a ~10x contamination reduction at matched completen
 
 ## Disagreement census
 
-Percentile-rank correlation between ds42 (All) and digest2 (raw): **0.973**; 0.6% of tracklets differ by more than a quarter of the sample in rank. That is far tighter than WP7's 0.558 on synthetic tracklets, for a mechanical reason: the NEOCP cut has already removed the population where the two codes diverge most (WP7's distant-object tail), so what is left is mostly the region where both agree.
+Percentile-rank correlation between priora (All) and digest2 (raw): **0.973**; 0.6% of tracklets differ by more than a quarter of the sample in rank. That is far tighter than WP7's 0.558 on synthetic tracklets, for a mechanical reason: the NEOCP cut has already removed the population where the two codes diverge most (WP7's distant-object tail), so what is left is mostly the region where both agree.
 
-The residual tails still carry WP7's signature. The tracklets digest2 ranks furthest above ds42 are dominated by **slow, distant** objects — Hilda/Trojan/Centaur-like, q ~ 4.6-5.0 AU, rates ~0.1 deg/day — which digest2 saturates near 75-80 and ds42 puts at 1e-4, exactly the failure mode WP7 identified. In the other tail ds42 sits above digest2 on Mars-crossers and high-e inner-belt objects, where both codes are low in absolute terms and the rank gap costs little. Note also the tracklets where both saturate (p = 1.0 and raw = 100): they appear in these tables only because saturation ties are broken by rank, and carry no information.
+The residual tails still carry WP7's signature. The tracklets digest2 ranks furthest above priora are dominated by **slow, distant** objects — Hilda/Trojan/Centaur-like, q ~ 4.6-5.0 AU, rates ~0.1 deg/day — which digest2 saturates near 75-80 and priora puts at 1e-4, exactly the failure mode WP7 identified. In the other tail priora sits above digest2 on Mars-crossers and high-e inner-belt objects, where both codes are low in absolute terms and the rank gap costs little. Note also the tracklets where both saturate (p = 1.0 and raw = 100): they appear in these tables only because saturation ties are broken by rank, and carry no information.
 
-**digest2 ranks far above ds42**
+**digest2 ranks far above priora**
 
 | designation | true NEO | p_neo (42) | raw (d2) | Δrank | V | q | e | i | rate [°/d] | n | stn |
 |---|:--:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
@@ -246,7 +246,7 @@ The residual tails still carry WP7's signature. The tracklets digest2 ranks furt
 | 2020 SQ3 | yes | 1.000e+00 | 100.0 | -0.163 | 20.54 | 0.990 | 0.076 | 18.3 | 6.92 | 4 | G96 |
 | 2019 TM6 | yes | 1.000e+00 | 100.0 | -0.163 | 21.74 | 0.875 | 0.611 | 7.9 | 1.23 | 7 | G96 |
 
-**ds42 ranks far above digest2**
+**priora ranks far above digest2**
 
 | designation | true NEO | p_neo (42) | raw (d2) | Δrank | V | q | e | i | rate [°/d] | n | stn |
 |---|:--:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---|
@@ -263,7 +263,7 @@ The residual tails still carry WP7's signature. The tracklets digest2 ranks furt
 
 ## Truncation diagnostic (DESIGN §2.6(b))
 
-Median admissible-region measure fraction with implied H > 25.5: **0.0784**; 97.2% of tracklets exceed 1e-2 and 44.3% exceed 1e-1. The WP7 "clean" subset (< 1e-3, where digest2's [24, inf) top H bin and ds42's hard truncation at 25.5 really do read the same effective model) holds **5** of 499 tracklets here, against 22% of the synthetic gate catalogue. That is a finding rather than an inconvenience: real NEOCP discovery tracklets are faint and fast, so the implied-H range they sweep routinely runs past the model's support, and the DESIGN §4.2 "same inputs" premise is broken for nearly all of them. The WP7 clamped control (`DIGEST2_COMPARISON_CLAMPED.md`) is the mechanism that repairs the premise, and it is run here as a third ds42 pass: with digest2's top H bin on both sides no tracklet is scored against a different effective model, and the ranking barely moves (ΔAUC(clamped - All) = +0.0000 [-0.0001, +0.0001]) — the clamp's value here is that it *scores at all* the 2% of candidates the truncated pair refuses, not that it re-ranks anything.
+Median admissible-region measure fraction with implied H > 25.5: **0.0784**; 97.2% of tracklets exceed 1e-2 and 44.3% exceed 1e-1. The WP7 "clean" subset (< 1e-3, where digest2's [24, inf) top H bin and priora's hard truncation at 25.5 really do read the same effective model) holds **5** of 499 tracklets here, against 22% of the synthetic gate catalogue. That is a finding rather than an inconvenience: real NEOCP discovery tracklets are faint and fast, so the implied-H range they sweep routinely runs past the model's support, and the DESIGN §4.2 "same inputs" premise is broken for nearly all of them. The WP7 clamped control (`DIGEST2_COMPARISON_CLAMPED.md`) is the mechanism that repairs the premise, and it is run here as a third priora pass: with digest2's top H bin on both sides no tracklet is scored against a different effective model, and the ranking barely moves (ΔAUC(clamped - All) = +0.0000 [-0.0001, +0.0001]) — the clamp's value here is that it *scores at all* the 2% of candidates the truncated pair refuses, not that it re-ranks anything.
 
 ![truncation](truncation.png)
 
@@ -272,8 +272,8 @@ Median admissible-region measure fraction with implied H > 25.5: **0.0784**; 97.
 - **Delta-function attributable** [D-6]: v0 ignores the fitted attributable's covariance. Real discovery tracklets here are much shorter than the 45-minute arcs of the ASTROMETRIC_NOISE study (median arc 0.59 h), and rate error scales as 1/dt, so the "covariance marginalisation is not urgent" conclusion of that study does **not** transfer to this regime. This is the single largest untested assumption in the pilot.
 - **Unweighted linear fit** of alpha(t), delta(t): ADES per-observation uncertainties are reported inconsistently across this archive, so weighting a 3-point fit by sporadic sigmas would make the estimator depend on which observer happened to report them.
 - **Photometry**: median of the band->V converted magnitudes over the tracklet, using digest2's own offset table verbatim (`digest2/observation.py:_BAND_CORRECTIONS`). No colour or taxonomy coupling [D-5]; the PSV handed to digest2 carries the already-converted V with band `V`, so digest2's conversion is a no-op and both codes consume the identical magnitude.
-- **Observatory geolocation**: MPC parallax constants -> ITRS -> WGS84 geodetic, then passed to `classify(lon_deg=..., lat_deg=..., height_m=...)`. The unit tests check this reproduces every entry of `ds42.attributable.MPC_OBSCODES` to sub-metre.
-- **Times** are UTC as published; ds42 converts to TDB internally.
+- **Observatory geolocation**: MPC parallax constants -> ITRS -> WGS84 geodetic, then passed to `classify(lon_deg=..., lat_deg=..., height_m=...)`. The unit tests check this reproduces every entry of `priora.attributable.MPC_OBSCODES` to sub-metre.
+- **Times** are UTC as published; priora converts to TDB internally.
 - **No light-time correction** anywhere, matching v0's convention.
 - **The discovery tracklet is a reconstruction**, not a record of what digest2 saw at NEOCP time: the MPC back-fills the NEOCP `trksub` onto every observation once linked, so the tracklet is identified by (discovery station, earliest night inside the NEOCP-exit window). Astrometry may also have been re-reduced since.
 - **The labels are today's orbits.** An object designated as a main-belter on a 3-night arc in 2019 has had 7 years of follow-up; its q is reliable, but it is not the q anybody knew at triage time.
@@ -281,7 +281,7 @@ Median admissible-region measure fraction with implied H > 25.5: **0.0784**; 97.
 ## Reproduce
 
 ```
-DS42_BACKEND=python python -m validation.neocp_pilot all --n 500 --workers 90
+PRIORA_BACKEND=python python -m validation.neocp_pilot all --n 500 --workers 90
 ```
 
 `fetch` is the only networked stage and it caches every byte under `raw/`; `build`, `score` and `analyze` re-run offline.

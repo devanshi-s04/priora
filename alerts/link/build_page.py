@@ -3,7 +3,7 @@ and known-object database checks (JPL sb_ident, IMCCE SkyBoT) for the 73 full-pu
 import os
 import json, numpy as np, pandas as pd
 from pathlib import Path
-T = Path(os.environ["DS42_ALERTS"]); L = T / "link"
+T = Path(os.environ["PRIORA_ALERTS"]); L = T / "link"
 EK = json.loads((L / "eval_known.json").read_text()); EF = json.loads((L / "eval_full.json").read_text())
 lab = pd.read_parquet(T / "data/labels_ftransfer_2026-11-02.parquet").set_index("packed")
 pdk = pd.read_csv(T / "tracklets/pairdets_v5.csv")
@@ -45,7 +45,7 @@ head = old.split("</style>")[0].replace("<title>LSST Alerts Test</title>", "<tit
 head += ".cand td,.cand th{padding:6px 9px}.cand tr.hi td{background:color-mix(in srgb,var(--neo) 10%,transparent)}.cand td:last-child{white-space:normal;min-width:16em;text-align:left}\n</style>\n"
 body = f'''<main>
 <header>
-  <p class="kicker">ds42 paper · real-data test · follow-up of the NEO candidates · 2026-11-03</p>
+  <p class="kicker">priora paper · real-data test · follow-up of the NEO candidates · 2026-11-03</p>
   <h1>LSST candidate linking</h1>
   <p class="lede">Can the NEO candidates from the <a href="https://claude.ai/artifact/3iBdZafWdmyPz9fZtkNyLz">full unknown pull</a> be confirmed? Two checks: HelioLinC multi-night linking across the July nights, and the known-object databases at JPL and IMCCE. Part of the <a href="https://claude.ai/artifact/XndqoKKVFWJTqxAZhjXvAH">LSST alerts tests overview</a>.</p>
 </header>
@@ -119,9 +119,9 @@ body = f'''<main>
   <ul>
     <li><b>Rubin submitted only {n_x05} observations from our nights</b> ({len(B6)} named tracklets, plus {n_notrk} observations without a tracklet name), all from July; none from October 29–30. Most come from exposures that are not in the alert stream, so they cannot match an alert.</li>
     <li>{int(B6.provid.notna().sum())} of those tracklets now have designations; {int((B6.status == "I").sum())} are unlinked tracklets in the Isolated Tracklet File (status I), submitted 2026-09-09 to 09-11.</li>
-    <li><b>N0003116 is Rubin tracklet RL021CV</b>, one of those unlinked submissions: three of its four detections match exactly. It is a set-aside candidate (4 detections, 2.38 °/day, ds42 P = 1.00, digest2 100) and stays on the list.</li>
-    <li>Three more unlinked Rubin tracklets (RL021CX, RL021CY, RL021Ce) are in our data only as 2-detection tracklets, so they are not on the 3+ list; ds42 and digest2 give each P = 1.0 and 100 (1.4–2.7 °/day).</li>
-    <li>Designated objects found in our unknown set: the Apollo NEO 2026 OL3 (q 0.75 AU; ds42 P = 1.00, digest2 100), comet P/2026 N2 (ds42 P = 0.0001, digest2 1.5) and the distant object 2026 FP35 (q 41 AU).</li>
+    <li><b>N0003116 is Rubin tracklet RL021CV</b>, one of those unlinked submissions: three of its four detections match exactly. It is a set-aside candidate (4 detections, 2.38 °/day, priora P = 1.00, digest2 100) and stays on the list.</li>
+    <li>Three more unlinked Rubin tracklets (RL021CX, RL021CY, RL021Ce) are in our data only as 2-detection tracklets, so they are not on the 3+ list; priora and digest2 give each P = 1.0 and 100 (1.4–2.7 °/day).</li>
+    <li>Designated objects found in our unknown set: the Apollo NEO 2026 OL3 (q 0.75 AU; priora P = 1.00, digest2 100), comet P/2026 N2 (priora P = 0.0001, digest2 1.5) and the distant object 2026 FP35 (q 41 AU).</li>
   </ul>
 </section>
 
@@ -132,7 +132,7 @@ body = f'''<main>
     <li><b>Precovery and recovery outside these nights:</b> Rubin nights after July 13 (the next monthly bulk file or a Fink transfer for July 14–31) and other surveys, searched along each candidate's range of possible orbits.</li>
     <li><b>Rubin's MPC submissions</b> (B612 clone), above.</li>
   </ul>
-  <p class="src">Work directory: $DS42_ALERTS/link (prep.py, run_hl.sh, fix_sum.py, eval_links.py, check_known_dbs.py, build_page.py). HelioLinC fix: heliolinc_omp writes 31 summary columns but link_purify reads 32 (orbit_incl); fix_sum.py inserts it.</p>
+  <p class="src">Work directory: $PRIORA_ALERTS/link (prep.py, run_hl.sh, fix_sum.py, eval_links.py, check_known_dbs.py, build_page.py). HelioLinC fix: heliolinc_omp writes 31 summary columns but link_purify reads 32 (orbit_incl); fix_sum.py inserts it.</p>
 </section>
 </main>
 '''

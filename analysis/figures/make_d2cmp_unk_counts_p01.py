@@ -1,4 +1,4 @@
-"""Fig 4 variant: predicted vs observed NEO counts for ds42 and digest2 (NoID / 100) on the Unk 20k sample
+"""Fig 4 variant: predicted vs observed NEO counts for priora and digest2 (NoID / 100) on the Unk 20k sample
 (gate_v0unk_hext30 + digest2_comparison_unk, run M), showing only the bins with P >= 0.1 and no per-bin tracklet counts.
 Same bins, errors and styling as make_d2cmp_hext30.py. New files only: d2cmp_unk_counts_p01.{pdf,png}. Run from paper/figures."""
 import sys, os
@@ -21,7 +21,7 @@ with np.load(RUN / "scores.npz") as z, np.load(RUN / "gen.npz") as g, np.load(CM
 good = np.isfinite(p42) & ok2 & np.isfinite(s2)
 p42, s2, y = p42[good], s2[good], y[good]
 pd2 = np.clip(s2 / 100.0, 0.0, 1.0)
-print("n", p42.size, "NEOs", y.sum(), "| all bins: ds42 pred", round(p42.sum(), 1), "d2 pred", round(pd2.sum(), 1))
+print("n", p42.size, "NEOs", y.sum(), "| all bins: priora pred", round(p42.sum(), 1), "d2 pred", round(pd2.sum(), 1))
 def rows(p):
     ms = [(p >= lo) & (p < hi) for lo, hi in zip(EDGES[:-1], EDGES[1:])] + [p == 1.0]
     return [(float(p[m].sum()), int(y[m].sum()), float(np.sqrt((p[m] * (1 - p[m])).sum())), int(m.sum())) for m in ms]

@@ -1,5 +1,5 @@
 """Step 3 input: HelioLinC maxvel-5 tracklets with arc >= 15 min -> one ADES PSV both codes score (trkSub = Nnnnnnnn = row
-in meta.parquet). Native Rubin band kept; ds42 and digest2 convert to V with the same digest2 table. TAI -> UTC via astropy."""
+in meta.parquet). Native Rubin band kept; priora and digest2 convert to V with the same digest2 table. TAI -> UTC via astropy."""
 import numpy as np, pandas as pd
 from astropy.time import Time
 T = "../tracklets/"

@@ -6,7 +6,7 @@ import pathlib, re, time, numpy as np, pandas as pd
 from astropy.io import fits
 from alerce.core import Alerce
 exec(open("template_test.py").read().split("rows = []")[0])          # reuse snr()
-T = os.path.join(os.environ["DS42_ALERTS"], "full")
+T = os.path.join(os.environ["PRIORA_ALERTS"], "full")
 m = pd.read_parquet(f"{T}/score/scores_joined.parquet"); L = m[(m.status == "labelled") & (m.n >= 3)]
 L = L.sample(60, random_state=20261103)
 td = pd.read_parquet(f"{T}/score/trk_dets.parquet"); td = td[td.trkSub.isin(L.index)]

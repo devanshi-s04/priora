@@ -281,7 +281,7 @@
  },
  {
   "section": "6.2",
-  "quantity": "ds42 predicted / digest2 predicted (all)",
+  "quantity": "priora predicted / digest2 predicted (all)",
   "paper": "[284.0, 1349]",
   "computed": "['284.0', '1348.9']",
   "status": "OK",
@@ -313,7 +313,7 @@
  },
  {
   "section": "6.2",
-  "quantity": "ds42 <0.1 / >=0.1: predicted, observed",
+  "quantity": "priora <0.1 / >=0.1: predicted, observed",
   "paper": "[14.1, 17, 269.9, 270]",
   "computed": "['14.1', '17.0', '269.9', '270.0']",
   "status": "OK",
@@ -321,7 +321,7 @@
  },
  {
   "section": "6.2",
-  "quantity": "ds42 P=1 tracklets, all NEOs",
+  "quantity": "priora P=1 tracklets, all NEOs",
   "paper": "[237, 237]",
   "computed": "['237', '237']",
   "status": "OK",
@@ -329,7 +329,7 @@
  },
  {
   "section": "6.3",
-  "quantity": "AUC ds42 / digest2",
+  "quantity": "AUC priora / digest2",
   "paper": "[0.9945, 0.9846]",
   "computed": "['0.99454', '0.98460']",
   "status": "OK",
@@ -361,7 +361,7 @@
  },
  {
   "section": "6.4 / Table 3",
-  "quantity": "ds42 matched cut value",
+  "quantity": "priora matched cut value",
   "paper": "0.3",
   "computed": "0.3003",
   "status": "OK",
@@ -369,7 +369,7 @@
  },
  {
   "section": "6.4 / Table 3",
-  "quantity": "ds42 P>=0.30: NEO, non-NEO, contam %",
+  "quantity": "priora P>=0.30: NEO, non-NEO, contam %",
   "paper": "[269, 11, 3.9]",
   "computed": "['269.00', '11.00', '3.93']",
   "status": "OK",
@@ -377,7 +377,7 @@
  },
  {
   "section": "6.4 / Table 3",
-  "quantity": "ds42 P>=0.5: NEO, non-NEO, compl %, contam %",
+  "quantity": "priora P>=0.5: NEO, non-NEO, compl %, contam %",
   "paper": "[264, 3, 92.0, 1.1]",
   "computed": "['264.00', '3.00', '91.99', '1.12']",
   "status": "OK",
@@ -385,7 +385,7 @@
  },
  {
   "section": "6.3",
-  "quantity": "purity digest2>=65 / ds42 matched / ds42 P>=0.5 (%)",
+  "quantity": "purity digest2>=65 / priora matched / priora P>=0.5 (%)",
   "paper": "[48.4, 96.1, 98.9]",
   "computed": "['48.38', '96.07', '98.88']",
   "status": "OK",
@@ -425,7 +425,7 @@
  },
  {
   "section": "6.5",
-  "quantity": "max ds42 P among digest2 q>=4.5 FPs",
+  "quantity": "max priora P among digest2 q>=4.5 FPs",
   "paper": "< 0.1",
   "computed": "0.094",
   "status": "OK",
@@ -433,7 +433,7 @@
  },
  {
   "section": "6.5 / 12.1",
-  "quantity": "ds42 FPs: Mars-crossers / main-belt range / q>=4.5",
+  "quantity": "priora FPs: Mars-crossers / main-belt range / q>=4.5",
   "paper": "[10, 1, 0]",
   "computed": "['10', '1', '0']",
   "status": "OK",
@@ -713,7 +713,7 @@
  },
  {
   "section": "8",
-  "quantity": "ds42 predicted / digest2 NoID/100 predicted",
+  "quantity": "priora predicted / digest2 NoID/100 predicted",
   "paper": "[312.0, 437]",
   "computed": "['312.0', '436.5']",
   "status": "MISMATCH",
@@ -729,7 +729,7 @@
  },
  {
   "section": "8 / Table 5",
-  "quantity": "ds42 matched cut",
+  "quantity": "priora matched cut",
   "paper": "0.03",
   "computed": "0.0300",
   "status": "OK",
@@ -737,7 +737,7 @@
  },
  {
   "section": "8 / Table 5",
-  "quantity": "ds42 matched NEO, non-NEO, contam",
+  "quantity": "priora matched NEO, non-NEO, contam",
   "paper": "[300, 85, 22.1]",
   "computed": "['300.00', '85.00', '22.08']",
   "status": "OK",
@@ -745,7 +745,7 @@
  },
  {
   "section": "8 / Table 5",
-  "quantity": "ds42 P>=0.5 NEO, non-NEO, compl, contam",
+  "quantity": "priora P>=0.5 NEO, non-NEO, compl, contam",
   "paper": "[286, 22, 93.8, 7.1]",
   "computed": "['286.00', '22.00', '93.77', '7.14']",
   "status": "OK",
@@ -761,7 +761,7 @@
  },
  {
   "section": "8",
-  "quantity": "selected tracklets: digest2 - ds42 matched",
+  "quantity": "selected tracklets: digest2 - priora matched",
   "paper": "55",
   "computed": "55",
   "status": "OK",
@@ -769,7 +769,7 @@
  },
  {
   "section": "8",
-  "quantity": "AUC ds42 Unk / digest2 NoID",
+  "quantity": "AUC priora Unk / digest2 NoID",
   "paper": "[0.9663, 0.9539]",
   "computed": "['0.96628', '0.95395']",
   "status": "OK",
@@ -785,7 +785,7 @@
  },
  {
   "section": "8",
-  "quantity": "ds42 P>=0.5 non-NEOs: q<2.3 / q<1.55",
+  "quantity": "priora P>=0.5 non-NEOs: q<2.3 / q<1.55",
   "paper": "[22, 17]",
   "computed": "['22', '17']",
   "status": "OK",
@@ -857,7 +857,7 @@
  },
  {
   "section": "8 / Table 6",
-  "quantity": "V<21.2: compl, contam, distant FPs, ds42 contam",
+  "quantity": "V<21.2: compl, contam, distant FPs, priora contam",
   "paper": "[98.1, 54.2, 143, 17.6]",
   "computed": "['98.14', '54.23', '143.00', '17.58']",
   "status": "OK",
@@ -865,7 +865,7 @@
  },
  {
   "section": "8 / Table 6",
-  "quantity": "known distant removed: compl, contam, distant FPs, ds42 contam",
+  "quantity": "known distant removed: compl, contam, distant FPs, priora contam",
   "paper": "[98.1, 33.9, 1, 17.3]",
   "computed": "['98.14', '33.86', '1.00', '17.25']",
   "status": "OK",

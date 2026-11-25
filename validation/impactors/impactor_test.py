@@ -1,21 +1,21 @@
-"""Imminent impactors: are Earth-impacting NEOs, observed ~2 weeks before impact, classified as NEOs by ds42?
+"""Imminent impactors: are Earth-impacting NEOs, observed ~2 weeks before impact, classified as NEOs by priora?
 
 Simulation (Sun-only two-body; Earth's and the Moon's gravity ignored, which is a small effect at >0.05 AU):
-  * impact epoch uniform in 2026; Earth's heliocentric state from ds42.attributable.observer_state (geocentre);
+  * impact epoch uniform in 2026; Earth's heliocentric state from priora.attributable.observer_state (geocentre);
   * relative speed at infinity v_inf uniform in [5, 30] km/s, direction isotropic: heliocentric velocity at impact
     = V_earth + v_inf, position = R_earth; heliocentric-unbound draws are discarded;
   * propagated back by DT_DAYS (default 14) and observed from the geocentre twice, 45 min apart (rates by difference,
     no light time), as in the self-consistency test;
   * H uniform in [18, 30]; V from the H,G (G = 0.15) phase function; kept if 14 <= V < 24;
   * solar elongation recorded (a real survey cannot look within ~60 deg of the Sun).
-Scored with ds42 Unk, extended to H = 30, default grid. Output: impactors_<dt>d.npz and a printed summary.
+Scored with priora Unk, extended to H = 30, default grid. Output: impactors_<dt>d.npz and a printed summary.
 Run from the repo root: PYTHONPATH=src python validation/impactors/impactor_test.py [dt_days] [n]"""
 import sys, numpy as np, warnings
 from astropy.time import Time
 from scipy.integrate import solve_ivp
-from ds42.attributable import Attributable, observer_state
-from ds42.classifier import classify_many
-from ds42.population import Digest2Histogram
+from priora.attributable import Attributable, observer_state
+from priora.classifier import classify_many
+from priora.population import Digest2Histogram
 warnings.simplefilter("ignore")
 MU = 2.959122082855911e-4; KMS = 86400 / 1.495978707e8          # AU^3/d^2; km/s -> AU/d
 DT = float(sys.argv[1]) if len(sys.argv) > 1 else 14.0; N = int(sys.argv[2]) if len(sys.argv) > 2 else 3000

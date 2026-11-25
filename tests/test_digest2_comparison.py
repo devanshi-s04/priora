@@ -315,7 +315,7 @@ def test_analyze_end_to_end_on_ten_tracklets(tmp_path):
         s = res["subsets"][name]
         assert s["n"] >= 0
         assert set(s["calibration"]) == {
-            "ds42", "digest2_raw_over_100", "digest2_noid_over_100"
+            "priora", "digest2_raw_over_100", "digest2_noid_over_100"
         }
     # summary_text must render (it is the committed artifact's body)
     summary = {
@@ -467,7 +467,7 @@ def test_operating_points_match_completeness_and_score_contamination():
     w = np.ones(n)
     op = d2c.operating_points(p42, s_d2, y, w)
 
-    a, m, p50 = op["digest2_neocp"], op["ds42_matched"], op["ds42_p50"]
+    a, m, p50 = op["digest2_neocp"], op["priora_matched"], op["priora_p50"]
     assert a["label"].startswith("digest2 raw >= 65")
     # The matched point reproduces digest2's completeness (to one tracklet).
     assert m["completeness"] >= a["completeness"]
@@ -520,25 +520,25 @@ def test_disagreement_census_finds_the_planted_swap(tmp_path):
     cen = d2c.disagreement_census(run, d2, np.ones(n, dtype=bool), top_k=3)
     assert cen["n"] == n
     assert cen["rank_spearman"] < -0.99
-    assert len(cen["ds42_higher"]) == 3
+    assert len(cen["priora_higher"]) == 3
     assert len(cen["digest2_higher"]) == 3
-    assert cen["ds42_higher"][0]["delta_rank"] > 0
+    assert cen["priora_higher"][0]["delta_rank"] > 0
     assert cen["digest2_higher"][0]["delta_rank"] < 0
     assert cen["frac_delta_rank_gt_0p25"] > 0.5
-    for r in cen["ds42_higher"]:
+    for r in cen["priora_higher"]:
         assert set(r) >= {"index", "is_neo", "p_neo_42", "d2_raw_neo",
                           "delta_rank", "v_mag", "H_true", "q_true",
                           "ar_frac_h_above"}
     # Rows join back to gen.npz correctly.
-    top = cen["ds42_higher"][0]
+    top = cen["priora_higher"][0]
     k = int(np.flatnonzero(run.index == top["index"])[0])
     assert top["p_neo_42"] == pytest.approx(run.p_neo[k])
     assert top["is_neo"] == bool(run.is_neo[k])
 
     # Tail diagnostics describe the two ends, not the whole population.
-    assert cen["tail_ds42_higher"]["median_delta_rank"] > 0
+    assert cen["tail_priora_higher"]["median_delta_rank"] > 0
     assert cen["tail_digest2_higher"]["median_delta_rank"] < 0
-    for t in (cen["tail_ds42_higher"], cen["tail_digest2_higher"]):
+    for t in (cen["tail_priora_higher"], cen["tail_digest2_higher"]):
         assert t["n"] >= 3
         assert set(t) >= {"median_rho_true_au", "median_q_true_au",
                           "frac_q_gt_5au", "frac_rho_gt_10au", "frac_true_neo"}
@@ -546,7 +546,7 @@ def test_disagreement_census_finds_the_planted_swap(tmp_path):
 
     # Empty selection is handled, not crashed on.
     empty = d2c.disagreement_census(run, d2, np.zeros(n, dtype=bool))
-    assert empty["n"] == 0 and empty["ds42_higher"] == []
+    assert empty["n"] == 0 and empty["priora_higher"] == []
 
 
 def test_analyze_without_digest2_uses_injected_scores(tmp_path):
@@ -735,11 +735,11 @@ def test_analyze_clamped_subsets_and_decomposition(tmp_path):
             dec["delta_clamped_method"] + dec["delta_boundary_handling"]
         )
         assert set(s["calibration"]) == {
-            "ds42_clamped", "ds42", "digest2_raw_over_100"
+            "priora_clamped", "priora", "digest2_raw_over_100"
         }
         assert s["auc_clamped_vs_digest2"]["auc_b"] == pytest.approx(
             s["auc_unclamped_vs_digest2"]["auc_b"]
-        )  # digest2's AUC does not depend on which ds42 it is paired with
+        )  # digest2's AUC does not depend on which priora it is paired with
 
     # On the clean subset the shift is ~0, so clamped == unclamped ranking.
     clean = res["subsets"]["clean"]
@@ -853,8 +853,8 @@ def test_clamped_rescore_end_to_end_on_ten_tracklets(tmp_path):
                       resume=True, verbose=False)
 
     # The unclamped pass on the same grid: same geometry, density-only change.
-    from ds42 import Attributable, classify
-    from ds42.population import Digest2Histogram
+    from priora import Attributable, classify
+    from priora.population import Digest2Histogram
     from astropy.time import Time
 
     neo, oth = Digest2Histogram.neo_other_pair(MODEL)

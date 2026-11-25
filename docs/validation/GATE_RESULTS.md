@@ -45,7 +45,7 @@ review's exploratory runs did not persist under the corrected statistics.
    admissible-region measure at implied H > 25.5; 64.5% of tracklets above 1%,
    2.5% above 10%. The Mars-crosser corner {q > 1.3, H > 25.5} carries zero posterior
    mass by construction in v0. This is the population WP7 must handle (digest2 clamps
-   H ≥ 24; ds42 truncates at 25.5).
+   H ≥ 24; priora truncates at 25.5).
 
 ## N = 10⁵ calibration run: **OVERALL PASS**
 

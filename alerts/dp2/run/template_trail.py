@@ -40,8 +40,8 @@ lab = um[um.label == "labelled"].index
 for name, col in (("template", "template_static"), ("trail", "trail_fake")):
     print(f"unknown labelled real ({len(lab):,}): {name} flags {int(U.loc[lab, col].sum())}")
 print("measured/expected trail on known fast movers: quantiles", K.trail_ratio_med.quantile([.01, .05, .5, .95]).round(2).tolist())
-c = U.loc[C.index].join(C[["pair_ratio", "gal_b", "ds42_All"]])
+c = U.loc[C.index].join(C[["pair_ratio", "gal_b", "priora_All"]])
 c["pair_static"] = c.pair_ratio < 0.5
 c["any_flag"] = c.pair_static | c.template_static | c.trail_fake
-print(f"\ncandidates {len(c)}: pair {int(c.pair_static.sum())}, template {int(c.template_static.sum())}, trail {int(c.trail_fake.sum())} (testable {int(c.trail_ratio_med.notna().sum())}); any {int(c.any_flag.sum())}; clean {int((~c.any_flag).sum())}; clean & |b|>=15 {int(((~c.any_flag) & (c.gal_b.abs() >= 15)).sum())}; clean & P>=0.5 {int(((~c.any_flag) & (c.ds42_All >= .5)).sum())}")
+print(f"\ncandidates {len(c)}: pair {int(c.pair_static.sum())}, template {int(c.template_static.sum())}, trail {int(c.trail_fake.sum())} (testable {int(c.trail_ratio_med.notna().sum())}); any {int(c.any_flag.sum())}; clean {int((~c.any_flag).sum())}; clean & |b|>=15 {int(((~c.any_flag) & (c.gal_b.abs() >= 15)).sum())}; clean & P>=0.5 {int(((~c.any_flag) & (c.priora_All >= .5)).sum())}")
 c.to_parquet("score/unknown3_candidates_flags.parquet")

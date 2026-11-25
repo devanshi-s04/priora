@@ -2,10 +2,10 @@
 with a motion comparison; Rubin's own MPC submissions (B612 export, exposure-midpoint match); HelioLinC linking.
 -> candidate_matches.csv"""
 import json, os, numpy as np, pandas as pd
-T = os.environ["DS42_ALERTS"]
+T = os.environ["PRIORA_ALERTS"]
 C = pd.read_csv(f"{T}/full/score/candidates_annot.csv", index_col=0)
 iso = (C.gal_b.abs() >= 15) & (C.same_field == 0)
-C["tier"] = np.where(iso & (C.ds42_All >= 0.5), "A", np.where(iso, "B", "set aside"))
+C["tier"] = np.where(iso & (C.priora_All >= 0.5), "A", np.where(iso, "B", "set aside"))
 S = pd.read_csv("dbcheck_summary.csv", index_col=0)
 td = pd.read_parquet(f"{T}/full/score/trk_dets.parquet").sort_values("MJD")
 B = pd.read_csv("b612_mid_matches.csv", dtype={"diaSourceId": "string"}).dropna(subset=["diaSourceId"])

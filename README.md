@@ -1,9 +1,9 @@
-# ds42
+# priora
 
 **A Bayesian approach to prioritizing the follow-up of near-Earth objects.**
 Code, analysis scripts and paper source for Singh, Jurić & Ivezić 
 
-Given a single-night tracklet (two or more detections), ds42 gives the posterior probability that the object is
+Given a single-night tracklet (two or more detections), priora gives the posterior probability that the object is
 a near-Earth object (NEO). It integrates an absolute population model over the tracklet's admissible region.
 Because it uses the population's absolute numbers, the score is a calibrated probability, not a ranking.
 The classifier runs in Rust with a Python reference implementation, and takes the same ADES/MPC-80 input as digest2.
@@ -11,8 +11,8 @@ The classifier runs in Rust with a Python reference implementation, and takes th
 Everything in the paper can be regenerated from this repository:
 
 ```bash
-conda env create -f environment.yml && conda activate ds42
-make install        # ds42 (editable) + Rust kernel
+conda env create -f environment.yml && conda activate priora
+make install        # priora (editable) + Rust kernel
 make model          # digest2 population model from the MPC
 make data           # stored simulation / NEOCP outputs (Zenodo), or: make simulations  (many hours)
 make analysis       # every figure in paper/figures and a check of every number in the paper
@@ -27,7 +27,7 @@ script and output that produce it.
 
 | Path | Contents |
 |---|---|
-| `src/ds42`, `rust/` | the classifier (Python package, Rust kernel with the closed-form Jacobian) |
+| `src/priora`, `rust/` | the classifier (Python package, Rust kernel with the closed-form Jacobian) |
 | `tests/` | unit and regression tests (`make test`) |
 | `docs/` | design notes, decisions, implementation and population-model notes; validation write-ups |
 | `validation/` | simulation, digest2 comparison, astrometric noise, NEOCP and impactor pipelines (Secs. 5–8, 10) |

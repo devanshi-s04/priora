@@ -24,9 +24,9 @@ if REPO_ROOT not in sys.path:
 
 from validation import self_consistency as sc  # noqa: E402
 
-from ds42.attributable import observer_state  # noqa: E402
-from ds42.population import Digest2Histogram  # noqa: E402
-from ds42.transforms import observables_from_elements  # noqa: E402
+from priora.attributable import observer_state  # noqa: E402
+from priora.population import Digest2Histogram  # noqa: E402
+from priora.transforms import observables_from_elements  # noqa: E402
 
 MODEL = os.path.join(REPO_ROOT, "data", "digest2.model.csv")
 
@@ -407,7 +407,7 @@ def test_bare_neo_fraction_flag_defaults_to_0p1():
 
 def test_score_config_defaults_track_the_classifier():
     """The harness must not pin a grid the classifier has moved off."""
-    from ds42.classifier import N_RHO_DEFAULT, N_RHODOT_DEFAULT
+    from priora.classifier import N_RHO_DEFAULT, N_RHODOT_DEFAULT
 
     cfg = sc.ScoreConfig()
     assert (cfg.n_rho, cfg.n_rhodot) == (N_RHO_DEFAULT, N_RHODOT_DEFAULT)
@@ -1137,10 +1137,10 @@ def _forge_policy_run(tmp_path, name, n=12, n_policy=3, seed=71):
 def test_digest2_comparison_drops_policy_rows_from_the_keep_filter(tmp_path):
     """MAJOR 5: the symmetric-drop contract of DIGEST2_COMPARISON.md.
 
-    A policy row is p = 1.0 for ds42 with no likelihood behind it, on a
+    A policy row is p = 1.0 for priora with no likelihood behind it, on a
     class that is empirically ~100% true NEO.  Keeping it in `load_run` would
-    hand ds42 free true positives that digest2 has to earn, biasing dAUC in
-    ds42's favour by construction — and silently, because the row looks
+    hand priora free true positives that digest2 has to earn, biasing dAUC in
+    priora's favour by construction — and silently, because the row looks
     like an ordinary saturated score.
     """
     from validation import digest2_comparison as dc
@@ -1254,15 +1254,15 @@ def test_neocp_pilot_detects_the_h_wall_without_relying_on_nan(tmp_path):
     from validation import neocp_pilot as pilot
 
     store = {
-        "ds42_all_n_nodes": np.array([100, 100, 0, 100], dtype=np.int64),
-        "ds42_all_lambda_neo": np.array([0.0, 1.0, 0.0, 0.0]),
-        "ds42_all_lambda_other": np.array([0.0, 2.0, 0.0, 3.0]),
+        "priora_all_n_nodes": np.array([100, 100, 0, 100], dtype=np.int64),
+        "priora_all_lambda_neo": np.array([0.0, 1.0, 0.0, 0.0]),
+        "priora_all_lambda_other": np.array([0.0, 2.0, 0.0, 3.0]),
     }
     # the detector is a closure inside analyze(); reproduce its definition here
     # against the same columns, which is what the test is really pinning.
-    wall = ((store["ds42_all_n_nodes"] > 0)
-            & (store["ds42_all_lambda_neo"] == 0.0)
-            & (store["ds42_all_lambda_other"] == 0.0))
+    wall = ((store["priora_all_n_nodes"] > 0)
+            & (store["priora_all_lambda_neo"] == 0.0)
+            & (store["priora_all_lambda_other"] == 0.0))
     assert list(wall) == [True, False, False, False]
     # index 2 has an empty region (not the wall); index 3 has Lambda_other > 0.
     for p_neo, label in ((np.array([np.nan, 0.3, np.nan, 0.0]), "pre-D-19"),

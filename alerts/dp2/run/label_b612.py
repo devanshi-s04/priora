@@ -28,7 +28,7 @@ for kind in ("known", "unknown"):
             out.append((kind, dn.diaSourceId.values[k], xn.desig.values[j], xn.status.values[j], xn.trksub.values[j], sep.min(), (dn.mjd_utc.values[k] - xn.mjd.values[j]) * 86400))
         print(kind, n, "submissions", len(xn), "matched so far", len(out), flush=True)
 R = pd.DataFrame(out, columns=["set", "diaSourceId", "desig", "status", "trksub", "sep_arcsec", "dt_s"]).sort_values("sep_arcsec").drop_duplicates("diaSourceId")
-J = json.load(gzip.open(os.path.join(os.environ["DS42_ALERTS"], "data/mpcorb_extended.json.gz")))
+J = json.load(gzip.open(os.path.join(os.environ["PRIORA_ALERTS"], "data/mpcorb_extended.json.gz")))
 q = {}
 for o in J:
     for key in (o.get("Principal_desig"), (o.get("Number") or "").strip("()")):

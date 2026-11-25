@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Adds same-field neighbour counts to score/candidate_verdict.parquet
-# Recovered verbatim from the analysis session (log line 29216); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 29216); run with 'source env.sh' first.
 set -e
-cd $DS42_ALERTS/dp2/run/score; ${PY:-python} - <<'EOF'
+cd $PRIORA_ALERTS/dp2/run/score; ${PY:-python} - <<'EOF'
 import pandas as pd, numpy as np
 v=pd.read_parquet('candidate_verdict.parquet'); c=pd.read_parquet('unknown3_candidates_flags.parquet'); u=pd.read_parquet('unknown3_joined.parquet')
 d=pd.read_parquet('unknown_3plus_dets.parquet').sort_values('MJD').groupby('trkSub').first()
@@ -16,7 +16,7 @@ x["neighbours"]=[crowd(r) for _,r in x.iterrows()]
 s=x[x.cat.str.startswith(("3","4","5"))]
 for k in ("3","4","5"):
     t=s[s.cat.str.startswith(k)]; print(k, len(t), "isolated (0-1 neighbours):", int((t.neighbours<=1).sum()), "crowded (>=2):", int((t.neighbours>=2).sum()), "| 4+ isolated:", int(((t.neighbours<=1)&(t.n>=4)).sum()))
-st=x[x.cat.str.startswith("3")&(x.neighbours<=1)].join(c[['gal_b','ds42_All','trail_ratio_med','rate']]).sort_values(['n','ds42_All'],ascending=False)
-print(st[['n','neighbours','rate','gal_b','ds42_All','trail_ratio_med']].round(2).to_string())
+st=x[x.cat.str.startswith("3")&(x.neighbours<=1)].join(c[['gal_b','priora_All','trail_ratio_med','rate']]).sort_values(['n','priora_All'],ascending=False)
+print(st[['n','neighbours','rate','gal_b','priora_All','trail_ratio_med']].round(2).to_string())
 x.to_parquet('candidate_verdict.parquet')
 EOF

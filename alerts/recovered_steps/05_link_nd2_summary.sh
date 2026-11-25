@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Multi-night linking summary: link_nd2/summary.csv
-# Recovered verbatim from the analysis session (log line 27177); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 27177); run with 'source env.sh' first.
 set -e
-cd $DS42_ALERTS/link_nd2 && cat run.log && ${PY:-python} - <<'EOF'
+cd $PRIORA_ALERTS/link_nd2 && cat run.log && ${PY:-python} - <<'EOF'
 import pandas as pd, numpy as np
-T="$DS42_ALERTS"
+T="$PRIORA_ALERTS"
 meta=pd.read_parquet(f"{T}/full_nd2/score/meta.parquet").reset_index().set_index("trkSub")
 t2d=pd.read_csv(f"{T}/full_nd2/tracklets/trk2det_full.csv"); t2d.columns=["trk_ID","detnum"]
 C=pd.read_csv(f"{T}/full_nd2/score/candidates_annot.csv",index_col=0)

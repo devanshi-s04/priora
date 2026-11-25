@@ -67,7 +67,7 @@ def _init_worker(model_path, variant, cfg, gen_path, pair_kw=None):
     os.environ.setdefault("OMP_NUM_THREADS", "1")
     os.environ.setdefault("OPENBLAS_NUM_THREADS", "1")
     os.environ.setdefault("MKL_NUM_THREADS", "1")
-    from ds42.population import Digest2Histogram
+    from priora.population import Digest2Histogram
 
     warnings.simplefilter("ignore", RuntimeWarning)
     g = np.load(gen_path)
@@ -91,8 +91,8 @@ def _init_worker(model_path, variant, cfg, gen_path, pair_kw=None):
 def _score_python(k: int):
     from astropy.time import Time
 
-    from ds42.attributable import Attributable
-    from ds42.classifier import classify
+    from priora.attributable import Attributable
+    from priora.classifier import classify
 
     g = _W["gen"]
     cfg = _W["cfg"]
@@ -173,13 +173,13 @@ def main() -> int:
 
     from astropy.time import Time
 
-    from ds42.attributable import Attributable
-    from ds42.backend import core_available
-    from ds42.classifier import classify_many
-    from ds42.population import Digest2Histogram
+    from priora.attributable import Attributable
+    from priora.backend import core_available
+    from priora.classifier import classify_many
+    from priora.population import Digest2Histogram
 
     if not core_available():
-        print("ds42._core is not built; run rust/build.sh", file=sys.stderr)
+        print("priora._core is not built; run rust/build.sh", file=sys.stderr)
         return 2
 
     gen_path = os.path.join(args.gate, "gen.npz")
@@ -482,7 +482,7 @@ def main() -> int:
 
     lines = []
     L = lines.append
-    L("ds42 backend A/B — Rust core kernel vs the stored gate_v0 scores")
+    L("priora backend A/B — Rust core kernel vs the stored gate_v0 scores")
     L("=" * 72)
     L(f"tracklets                 : {summary['n_tracklets']}")
     L(f"grid                      : ({cfg['n_rho']}, {cfg['n_rhodot']}), "

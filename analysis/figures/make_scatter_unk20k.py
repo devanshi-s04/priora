@@ -1,8 +1,8 @@
-"""Single-panel digest2 vs ds42 scatter on the 20k undiscovered-population (Unk) sample.
+"""Single-panel digest2 vs priora scatter on the 20k undiscovered-population (Unk) sample.
 
 Same style as panel (a) of make_d2cmp_jacobian.py (Figure 4), one panel, no Jacobian-off comparison.
 Inputs (no re-scoring):
-  validation/output/gate_v0unk_hext30/          ds42 scores + truth, Unk prior, h_extend_to = 30
+  validation/output/gate_v0unk_hext30/          priora scores + truth, Unk prior, h_extend_to = 30
   validation/output/digest2_comparison_unk/     digest2 scores on the same tracklets (NoID used)
 Outputs (new filenames): d2cmp_scatter_unk20k.{pdf,png}, d2cmp_scatter_unk20k_provenance.json
 Run from paper/figures/:  python3 make_scatter_unk20k.py
@@ -33,7 +33,7 @@ mpl.rcParams.update({
 
 with np.load(RUN / "scores.npz") as z, np.load(RUN / "gen.npz") as g, np.load(CMP / "digest2_scores.npz") as d:
     idx = z["index"]
-    keep = np.isin(idx, d["index"])                       # digest2 cache omits ds42's undefined tracklets
+    keep = np.isin(idx, d["index"])                       # digest2 cache omits priora's undefined tracklets
     assert np.array_equal(d["index"], idx[keep]), "digest2 cache does not match the run"
     p42 = z["p_neo"][keep].astype(float)
     s2 = d["noid_neo"].astype(float); ok2 = d["ok"].astype(bool)
@@ -64,7 +64,7 @@ plt.close(fig)
 # numbers for the caption / text
 fa = ~y & (s2 >= THRESH)
 compl_d2 = float((s2[y] >= THRESH).mean())
-t = float(np.quantile(p42[y], 1 - compl_d2))                     # ds42 threshold at digest2's completeness
+t = float(np.quantile(p42[y], 1 - compl_d2))                     # priora threshold at digest2's completeness
 fa42 = ~y & (p42 >= t)
 sha = lambda f: hashlib.sha256(Path(f).read_bytes()).hexdigest()
 prov = {
@@ -76,9 +76,9 @@ prov = {
     "digest2_ge65": dict(flagged=int((s2 >= THRESH).sum()), completeness=compl_d2, false_alarms=int(fa.sum()),
                          false_alarms_q_ge_4p5=int((fa & (q >= 4.5)).sum()),
                          false_alarms_with_P_ge_0p1=int((fa & (p42 >= P10)).sum())),
-    "ds42_at_same_completeness": dict(threshold=t, flagged=int((p42 >= t).sum()), completeness=float((p42[y] >= t).mean()),
+    "priora_at_same_completeness": dict(threshold=t, flagged=int((p42 >= t).sum()), completeness=float((p42[y] >= t).mean()),
                                       false_alarms=int(fa42.sum()), false_alarms_q_ge_4p5=int((fa42 & (q >= 4.5)).sum())),
-    "ds42_P_ge_0p5": dict(flagged=int((p42 >= .5).sum()), completeness=float((p42[y] >= .5).mean()),
+    "priora_P_ge_0p5": dict(flagged=int((p42 >= .5).sum()), completeness=float((p42[y] >= .5).mean()),
                           false_alarms=int((~y & (p42 >= .5)).sum())),
 }
 (OUT / "d2cmp_scatter_unk20k_provenance.json").write_text(json.dumps(prov, indent=1))

@@ -1,4 +1,4 @@
-# Astrometric noise vs. ds42 v0's delta-function attributable
+# Astrometric noise vs. priora v0's delta-function attributable
 
 *Does D-6 (the exact-attributable assumption) cost anything at Rubin-level astrometric noise, or is v1's covariance marginalization urgent?  Harness: `validation/astrometric_noise.py`.  Noiseless reference: the stored `gate_v0` scores — nothing was re-scored on that side.*
 
@@ -123,7 +123,7 @@ Averaged over the MC realizations on the 500-tracklet subsample (which is *enric
 
 ## The operating point (WP7's matched-completeness cut)
 
-`validation/DIGEST2_COMPARISON.md` sets the reference: digest2's own NEOCP cut (raw ≥ 65) recovers 88.1% of the true NEOs on `gate_v0`, and ds42 matches that completeness at 6.3% contamination. Three readings, of which the third is the operationally honest one — a threshold is chosen once, on a study like WP7's, and then deployed against noisy data:
+`validation/DIGEST2_COMPARISON.md` sets the reference: digest2's own NEOCP cut (raw ≥ 65) recovers 88.1% of the true NEOs on `gate_v0`, and priora matches that completeness at 6.3% contamination. Three readings, of which the third is the operationally honest one — a threshold is chosen once, on a study like WP7's, and then deployed against noisy data:
 
 | reading | threshold | flagged | completeness | contamination |
 |---|---:|---:|---:|---:|
@@ -230,4 +230,4 @@ The conclusion is scoped by the arc, not by the astrometry. The rate error scale
 OMP_NUM_THREADS=1 python3 -m validation.astrometric_noise run --workers 32
 ```
 
-Seed 20260902; source catalogue `/home/mjuric/ds42/validation/output/gate_v0` (read-only). Every stage is resumable and a pure function of its inputs.
+Seed 20260902; source catalogue `/home/mjuric/priora/validation/output/gate_v0` (read-only). Every stage is resumable and a pure function of its inputs.

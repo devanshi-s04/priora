@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Counts for the DP2 page and paper: dp2/page/numbers_dp2.json
-# Recovered verbatim from the analysis session (log line 27498); run with 'source ds42_paper/env.sh' first.
+# Recovered verbatim from the analysis session (log line 27498); run with 'source env.sh' first.
 set -e
-mkdir -p $DS42_ALERTS/dp2/page/img && cd $DS42_ALERTS/dp2/run && ${PY:-python} - <<'EOF'
+mkdir -p $PRIORA_ALERTS/dp2/page/img && cd $PRIORA_ALERTS/dp2/run && ${PY:-python} - <<'EOF'
 import json, pandas as pd
 k = json.load(open("score/known_analysis.json")); u = json.load(open("score/unknown3_analysis.json"))
 c = pd.read_parquet("score/unknown3_candidates_flags.parquet")

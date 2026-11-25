@@ -21,7 +21,7 @@ def pair_flag(td):
             if pred >= 0.5: flags.append(meas < 0.25 * pred); ratios.append(meas / pred)
         out[k] = (any(flags), min(ratios) if ratios else np.nan)
     return out
-T = os.environ["DS42_ALERTS"]
+T = os.environ["PRIORA_ALERTS"]
 # full pull: candidates + labelled
 m = pd.read_parquet(f"{T}/full/score/scores_joined.parquet")
 td = pd.read_parquet(f"{T}/full/score/trk_dets.parquet"); td["diaSourceId"] = td.idstring.astype("int64")
@@ -49,7 +49,7 @@ for grp, G in A.groupby("group"):
     print(f"{grp}: tracklets {len(G):,} (3+: {len(G3):,}) | pair-static {int(G.pair_static.sum())} ({G.pair_static.mean():.2%}); 3+: {int(G3.pair_static.sum())}"
           + ("" if grp.startswith("known") else f" | any det on object with history {int((G.n_dets_on_object_with_history > 0).sum())} ({(G.n_dets_on_object_with_history > 0).mean():.2%})")
           + f" | NEOs flagged by pair test {int((G.neo & G.pair_static).sum())} of {int(G.neo.sum())}")
-c = A[A.group == "candidate"].join(C[["ds42_All"]]); 
-iso = (C.gal_b.abs() >= 15) & (C.same_field == 0); tier = pd.Series(np.where(iso & (C.ds42_All >= 0.5), "A", np.where(iso, "B", "set aside")), index=C.index)
+c = A[A.group == "candidate"].join(C[["priora_All"]]); 
+iso = (C.gal_b.abs() >= 15) & (C.same_field == 0); tier = pd.Series(np.where(iso & (C.priora_All >= 0.5), "A", np.where(iso, "B", "set aside")), index=C.index)
 c["tier"] = tier
 pd.set_option("display.width", 200); print(c[["tier", "n", "pair_static", "min_motion_ratio", "n_dets_on_object_with_history"]].sort_values(["tier", "pair_static"]).round(3).to_string())

@@ -1,9 +1,9 @@
 """Score scatter variants for the test page, so both axes use the same kind of scale:
-  scatter_loglog_lsstAll:  ds42 P(NEO) and digest2 score, both log (digest2 0.05-100)
-  scatter_lin100_lsstAll:  ds42 100 x P(NEO) and digest2 score, both linear 0-100
-  scatter_logx_lsstAll:    ds42 log, digest2 linear (the paper's Figure 4 axes)
-All get a dashed line at ds42 P = 0.1 (10%); files end in _p10 so the earlier versions stay.
-Each has digest2 raw (a) and NoID (b) panels. Pure tracklets, ds42 All prior. Style and colours from make_d2cmp_hext30.py."""
+  scatter_loglog_lsstAll:  priora P(NEO) and digest2 score, both log (digest2 0.05-100)
+  scatter_lin100_lsstAll:  priora 100 x P(NEO) and digest2 score, both linear 0-100
+  scatter_logx_lsstAll:    priora log, digest2 linear (the paper's Figure 4 axes)
+All get a dashed line at priora P = 0.1 (10%); files end in _p10 so the earlier versions stay.
+Each has digest2 raw (a) and NoID (b) panels. Pure tracklets, priora All prior. Style and colours from make_d2cmp_hext30.py."""
 import numpy as np, pandas as pd, matplotlib as mpl
 mpl.use("Agg"); import matplotlib.pyplot as plt
 C42, CD2, CINK, CSUB, COTH, COUT = "#2a78d6", "#eb6834", "#0b0b0b", "#52514e", "#9a9993", "#6b3fa0"
@@ -13,7 +13,7 @@ mpl.rcParams.update({"font.family": "STIXGeneral", "mathtext.fontset": "stix", "
 import os
 SRC = os.environ.get("SRC", "scores_joined.parquet"); OUTDIR = os.environ.get("OUTDIR", "../page/img"); TAG = os.environ.get("TAG", "lsstAll")
 P = pd.read_parquet(SRC); P = P[P.pure]
-y = P.neo.values; q = P.q.values; p = P.ds42_All.values
+y = P.neo.values; q = P.q.values; p = P.priora_All.values
 inner, outer = ~y & (q < 4.5), ~y & (q >= 4.5)
 for mode in ("loglog", "lin100", "logx"):
     fig, axs = plt.subplots(1, 2, figsize=(6.9, 3.1), layout="constrained", sharey=True)
@@ -24,12 +24,12 @@ for mode in ("loglog", "lin100", "logx"):
         ax.scatter(x[y], s[y], s=9, alpha=0.95, color=CD2, lw=0, label="NEO")
         ax.axhline(65, color=CINK, lw=0.9, ls="--")
         if mode == "loglog":
-            ax.set(xscale="log", yscale="log", xlim=(1e-7, 1.6), ylim=(0.05, 130), xlabel="ds42 $P(\\mathrm{NEO})$")
+            ax.set(xscale="log", yscale="log", xlim=(1e-7, 1.6), ylim=(0.05, 130), xlabel="priora $P(\\mathrm{NEO})$")
             ax.set_yticks([0.1, 1, 10, 65, 100], ["0.1", "1", "10", "65", "100"])
         elif mode == "logx":
-            ax.set(xscale="log", xlim=(1e-7, 1.6), ylim=(-2, 102), xlabel="ds42 $P(\\mathrm{NEO})$")
+            ax.set(xscale="log", xlim=(1e-7, 1.6), ylim=(-2, 102), xlabel="priora $P(\\mathrm{NEO})$")
         else:
-            ax.set(xlim=(-2, 102), ylim=(-2, 102), xlabel="ds42 $100\\times P(\\mathrm{NEO})$")
+            ax.set(xlim=(-2, 102), ylim=(-2, 102), xlabel="priora $100\\times P(\\mathrm{NEO})$")
             ax.axvline(50, color=CSUB, lw=0.8, ls=":")
         x10 = 0.1 if mode != "lin100" else 10.0
         ax.axvline(x10, color=CINK, lw=0.9, ls="--")

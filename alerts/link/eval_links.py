@@ -5,7 +5,7 @@ NEO candidates (tiers from full/score/candidates_annot.csv), and uncatalogued li
 -> eval_known.json, eval_full.json, linkages_full.parquet, candidate_links.csv"""
 import os
 import json, numpy as np, pandas as pd
-T = os.environ["DS42_ALERTS"]
+T = os.environ["PRIORA_ALERTS"]
 def rd(p):
     d = pd.read_csv(p); d.columns = [c.lstrip("#") for c in d.columns]; return d
 def load(P, L, pairdets):
@@ -52,7 +52,7 @@ meta = pd.read_parquet(f"{T}/full/score/meta.parquet").reset_index().set_index("
 t2d = rd(f"{T}/full/tracklets/trk2det_full.csv")
 C = pd.read_csv(f"{T}/full/score/candidates_annot.csv", index_col=0)
 C["iso"] = (C.gal_b.abs() >= 15) & (C.same_field == 0)
-C["tier"] = np.where(C.iso & (C.ds42_All >= 0.5), "A", np.where(C.iso, "B", "set aside"))
+C["tier"] = np.where(C.iso & (C.priora_All >= 0.5), "A", np.where(C.iso, "B", "set aside"))
 C["trk_ID"] = meta.loc[C.index, "trk_ID"].values
 cand_det = t2d[t2d.trk_ID.isin(C.trk_ID)].merge(C.reset_index()[["trkSub", "trk_ID", "tier"]], on="trk_ID")
 ef, allL = {}, []

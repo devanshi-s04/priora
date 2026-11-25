@@ -18,10 +18,10 @@
     58,
     213
    ],
-   "ds42_cut": 0.30029333360664623,
-   "ds42_flagged": 280,
-   "ds42_contam": 0.039285714285714285,
-   "ds42_fa_q": [
+   "priora_cut": 0.30029333360664623,
+   "priora_flagged": 280,
+   "priora_contam": 0.039285714285714285,
+   "priora_fa_q": [
     10,
     1,
     0
@@ -41,10 +41,10 @@
     25,
     23
    ],
-   "ds42_cut": 0.6627244181145572,
-   "ds42_flagged": 53,
-   "ds42_contam": 0.0,
-   "ds42_fa_q": [
+   "priora_cut": 0.6627244181145572,
+   "priora_flagged": 53,
+   "priora_contam": 0.0,
+   "priora_fa_q": [
     0,
     0,
     0
@@ -64,10 +64,10 @@
     1,
     0
    ],
-   "ds42_cut": 1.0,
-   "ds42_flagged": 15,
-   "ds42_contam": 0.0,
-   "ds42_fa_q": [
+   "priora_cut": 1.0,
+   "priora_flagged": 15,
+   "priora_contam": 0.0,
+   "priora_fa_q": [
     0,
     0,
     0
@@ -93,10 +93,10 @@
     31,
     173
    ],
-   "ds42_cut": 0.21385495515799588,
-   "ds42_flagged": 158,
-   "ds42_contam": 0.06329113924050633,
-   "ds42_fa_q": [
+   "priora_cut": 0.21385495515799588,
+   "priora_flagged": 158,
+   "priora_contam": 0.06329113924050633,
+   "priora_fa_q": [
     9,
     1,
     0
@@ -116,10 +116,10 @@
     10,
     20
    ],
-   "ds42_cut": 0.36717089613774023,
-   "ds42_flagged": 30,
-   "ds42_contam": 0.1,
-   "ds42_fa_q": [
+   "priora_cut": 0.36717089613774023,
+   "priora_flagged": 30,
+   "priora_contam": 0.1,
+   "priora_fa_q": [
     3,
     0,
     0
@@ -139,10 +139,10 @@
     0,
     0
    ],
-   "ds42_cut": 1.0,
-   "ds42_flagged": 4,
-   "ds42_contam": 0.0,
-   "ds42_fa_q": [
+   "priora_cut": 1.0,
+   "priora_flagged": 4,
+   "priora_contam": 0.0,
+   "priora_fa_q": [
     0,
     0,
     0
@@ -168,10 +168,10 @@
     58,
     213
    ],
-   "ds42_cut": 0.30029333360664623,
-   "ds42_flagged": 280,
-   "ds42_contam": 0.039285714285714285,
-   "ds42_fa_q": [
+   "priora_cut": 0.30029333360664623,
+   "priora_flagged": 280,
+   "priora_contam": 0.039285714285714285,
+   "priora_fa_q": [
     10,
     1,
     0
@@ -191,10 +191,10 @@
     25,
     23
    ],
-   "ds42_cut": 0.6627244181145572,
-   "ds42_flagged": 53,
-   "ds42_contam": 0.0,
-   "ds42_fa_q": [
+   "priora_cut": 0.6627244181145572,
+   "priora_flagged": 53,
+   "priora_contam": 0.0,
+   "priora_fa_q": [
     0,
     0,
     0
@@ -214,10 +214,10 @@
     1,
     0
    ],
-   "ds42_cut": 1.0,
-   "ds42_flagged": 15,
-   "ds42_contam": 0.0,
-   "ds42_fa_q": [
+   "priora_cut": 1.0,
+   "priora_flagged": 15,
+   "priora_contam": 0.0,
+   "priora_fa_q": [
     0,
     0,
     0
@@ -243,10 +243,10 @@
     80,
     143
    ],
-   "ds42_cut": 0.03621542467366378,
-   "ds42_flagged": 256,
-   "ds42_contam": 0.17578125,
-   "ds42_fa_q": [
+   "priora_cut": 0.03621542467366378,
+   "priora_flagged": 256,
+   "priora_contam": 0.17578125,
+   "priora_fa_q": [
     20,
     24,
     1
@@ -266,10 +266,10 @@
     80,
     143
    ],
-   "ds42_cut": 0.03621542467366378,
-   "ds42_flagged": 256,
-   "ds42_contam": 0.17578125,
-   "ds42_fa_q": [
+   "priora_cut": 0.03621542467366378,
+   "priora_flagged": 256,
+   "priora_contam": 0.17578125,
+   "priora_fa_q": [
     20,
     24,
     1
@@ -289,10 +289,10 @@
     2,
     1
    ],
-   "ds42_cut": 1.0,
-   "ds42_flagged": 59,
-   "ds42_contam": 0.0,
-   "ds42_fa_q": [
+   "priora_cut": 1.0,
+   "priora_flagged": 59,
+   "priora_contam": 0.0,
+   "priora_fa_q": [
     0,
     0,
     0

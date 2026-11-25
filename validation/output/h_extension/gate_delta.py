@@ -44,9 +44,9 @@ if REPO not in sys.path:
 
 from astropy.time import Time  # noqa: E402
 
-from digest42.attributable import Attributable  # noqa: E402
-from digest42.classifier import classify_many  # noqa: E402
-from digest42.population import Digest2Histogram  # noqa: E402
+from priora.attributable import Attributable  # noqa: E402
+from priora.classifier import classify_many  # noqa: E402
+from priora.population import Digest2Histogram  # noqa: E402
 
 GATE_DIR = os.path.join(REPO, "validation", "output", "gate_v0")
 MODEL = os.path.join(REPO, "data", "digest2.model.csv")

@@ -132,7 +132,7 @@ save(fig, "calibration_hext30_reliability_linear" + CAL_SFX)
 # --- Figs 2-4 data ----------------------------------------------------------------------------------------------
 with np.load(RUN / "scores.npz") as z, np.load(RUN / "gen.npz") as g, np.load(CMP / "digest2_scores.npz") as d:
     idx = z["index"]
-    keep = np.isin(idx, d["index"])                      # the Unk digest2 cache omits ds42's undefined tracklets
+    keep = np.isin(idx, d["index"])                      # the Unk digest2 cache omits priora's undefined tracklets
     assert np.array_equal(d["index"], idx[keep]), "digest2 cache does not match the run"
     idx = idx[keep]
     p42 = z["p_neo"][keep].astype(float)
@@ -204,9 +204,9 @@ prov = {"digest2_score": D2_SCORE,
     "cal_runs": CAL_RUNS, "run": str(RUN.relative_to(REPO)), "digest2_cache": str(CMP.relative_to(REPO)),
     "model_sha256": hashlib.sha256((REPO / "data/digest2.model.csv").read_bytes()).hexdigest(),
     "fig1_bins": RC, "auc": {k: auc[k] for k in ("auc_a", "auc_b", "delta", "delta_ci")},
-    "fig3_bins": {"ds42": R42, "digest2": RD2}, "fig4_quadrants_at_p0.1": quad,
+    "fig3_bins": {"priora": R42, "digest2": RD2}, "fig4_quadrants_at_p0.1": quad,
 }
 (OUT / f"linear_hext30_provenance{SFX}.json").write_text(json.dumps(prov, indent=1, default=float))
-for name, rows in (("fig1", RC), ("ds42", R42), ("digest2", RD2)):
+for name, rows in (("fig1", RC), ("priora", R42), ("digest2", RD2)):
     print(name, "  ".join(f"[{r['lo']:.1f},{r['hi']:.1f}] n={r['n']} {r['obs']}/{r['exp']:.1f}" for r in rows))
 print(json.dumps({"auc": prov["auc"], "quad": quad}, indent=1, default=float))

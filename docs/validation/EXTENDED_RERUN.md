@@ -38,15 +38,15 @@ grid (1200, 50), ρ ∈ [0.01, 100] AU, model sha256 `2b9d9d2a…`, variant All.
   `rand_r`. The build reproduces the archived digest2 scores on 2000 `gate_v0` tracklets with a max difference of
   exactly 0.
 
-| catalogue | ds42 AUC | digest2 raw AUC | ΔAUC [95%] | P(Δ ≤ 0) | pred/obs ds42 | pred/obs digest2 raw/100 |
+| catalogue | priora AUC | digest2 raw AUC | ΔAUC [95%] | P(Δ ≤ 0) | pred/obs priora | pred/obs digest2 raw/100 |
 |---|---|---|---|---|---|---|
 | gate_v0_hext30 (all, 170 NEOs) | 0.9877 | 0.9713 | **+0.0164 [+0.0047, +0.0316]** | 0.001 | 0.98 | 6.36 |
 | enriched_f01_hext30 (all) | 0.9859 | 0.9646 | +0.0214 [+0.0100, +0.0349] | 0.000 | 0.99 | 7.10 |
 
 - **Operating point** on gate_v0_hext30:
   - digest2 raw ≥ 65 flags 369, with completeness 87.1% and contamination 59.9%;
-  - ds42 at the same completeness (p ≥ 0.214) flags 158, with 6.3% contamination;
-  - ds42 at p ≥ 0.5 flags 145, with 82.9% / 2.8%.
+  - priora at the same completeness (p ≥ 0.214) flags 158, with 6.3% contamination;
+  - priora at p ≥ 0.5 flags 145, with 82.9% / 2.8%.
 - **Clamped (D-14) control:** not run. The harness refuses it for extended runs (`clamped_score_config`), and
   correctly: with the extension the two codes' effective models differ only at H ≥ 30, where 1.0% of tracklets have
   more than 1e-2 of their measure.
@@ -62,7 +62,7 @@ grid (1200, 50), ρ ∈ [0.01, 100] AU, model sha256 `2b9d9d2a…`, variant All.
 - **Ranking:**
   - AUC moves from 0.98767 to 0.98727;
   - ΔAUC = −0.00040 [−0.00075, −0.00010]. This CI *excludes* zero (the report's "consistent with zero" is wrong
-    here), but the shift is 40× smaller than the ds42-over-digest2 gap.
+    here), but the shift is 40× smaller than the priora-over-digest2 gap.
 - **Per-tracklet scores:** |ΔP| p50 / p90 / p99 = 5.1e-6 / 6.9e-5 / 6.8e-4.
 - **Thresholds:** 1 crossing in the full catalogue: one NEO at 0.7 (P 0.703 → 0.698); none at 0.1 / 0.3 / 0.5.
   The report's bottom line says "zero"; its own threshold table shows the one.
@@ -102,14 +102,14 @@ grid (1200, 50), ρ ∈ [0.01, 100] AU, model sha256 `2b9d9d2a…`, variant All.
 - **Extended, all 499 scored (0 non-finite, 0 policy):**
   - predicted 306.7 vs observed 305, pred/obs 1.006;
   - digest2 raw/100 predicts 420.8, a ratio of 1.38.
-- **ΔAUC (ds42 extended − digest2 raw)** = +0.0041 [−0.0010, +0.0104], P(Δ ≤ 0) = 0.066
+- **ΔAUC (priora extended − digest2 raw)** = +0.0041 [−0.0010, +0.0104], P(Δ ≤ 0) = 0.066
   (`neocp_pilot.paired_auc_bootstrap`, n_boot 4000).
 - **Operating points, extended, all 499** (recomputed 2026-10-15 from `neocp_delta_all.json` + `scores.npz`; NEOCP_PILOT.md's
   "all" rows dropped the 11 unscored NEOs):
   - digest2 raw ≥ 65: 413 flagged, 98.4% complete, 27.4% contamination (113 FA: 80 with q < 1.67, 30 at 1.67–4.5, 3 ≥ 4.5 AU);
-  - ds42 p ≥ 0.0403 (matched): 380 flagged, 98.4%, 21.1%;
-  - ds42 p ≥ 0.5: 303 flagged, 93.8%, 5.6% (17 FA, all q 1.30–2.22; 15 below 1.55 AU).
-  - AUC ds42 0.9765, digest2 0.9724. The 11 formerly unscored tracklets (all NEOs) score P = 1 exactly.
+  - priora p ≥ 0.0403 (matched): 380 flagged, 98.4%, 21.1%;
+  - priora p ≥ 0.5: 303 flagged, 93.8%, 5.6% (17 FA, all q 1.30–2.22; 15 below 1.55 AU).
+  - AUC priora 0.9765, digest2 0.9724. The 11 formerly unscored tracklets (all NEOs) score P = 1 exactly.
 - On real data, extended ≈ clamped: median |Δp| 0 and max 8.6e-6 (H_EXTENSION.md).
 
 ## §6 check: is digest2's outer-Solar-System false-alarm excess an artefact of its assumed astrometric error?
@@ -125,14 +125,14 @@ grid (1200, 50), ρ ∈ [0.01, 100] AU, model sha256 `2b9d9d2a…`, variant All.
 - Mechanism: a copied MPC.config passed via `$DIGEST2_CONFIG`, so no code change.
 - Output: `validation/output/digest2_comparison_hext30_obserr0p1/`.
 
-| digest2 error | flagged (raw ≥ 65) | NEOs | false alarms | FA with q < 1.67 | 1.67–4.5 | 4.5–10 | ≥ 10 AU | ΔAUC (ds42 − d2) | pred/obs d2 |
+| digest2 error | flagged (raw ≥ 65) | NEOs | false alarms | FA with q < 1.67 | 1.67–4.5 | 4.5–10 | ≥ 10 AU | ΔAUC (priora − d2) | pred/obs d2 |
 |---|---|---|---|---|---|---|---|---|---|
 | 1.0″ (default) | 369 | 148 | 221 | 17 | 31 | 50 | 123 | +0.0164 [+0.0047, +0.0316] | 6.36 |
 | 0.1″ (Rubin) | 427 | 151 | 276 | 25 | 50 | 117 | 84 | +0.0140 [+0.0028, +0.0288] | 8.29 |
 
-- ds42 at digest2's completeness: 10 false alarms at 1.0″ (9 of them Mars-crossers just outside q = 1.3). At 0.1″
+- priora at digest2's completeness: 10 false alarms at 1.0″ (9 of them Mars-crossers just outside q = 1.3). At 0.1″
   the matched cut is lower, since digest2 catches 88.8%: p ≥ 0.084 gives 26 false alarms, 14.7% contamination.
 - **Verdict:** tighter errors make digest2's false alarms *more* numerous, and q ≥ 4.5 AU objects are still 73% of
   them (78% at 1.0″). The excess is a property of digest2's scoring, not of the error setting.
 - The specific mechanism (e.g. no ρ⁴ change of measure, so nearby solutions are over-weighted) is **not tested**:
-  ds42 has no switch to turn its Jacobian off. Do not state it as established.
+  priora has no switch to turn its Jacobian off. Do not state it as established.
