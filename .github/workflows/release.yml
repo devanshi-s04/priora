@@ -1,0 +1,467 @@
+name: Release
+
+# Publishing priora to PyPI.  Two artifact kinds, built by two tools, for the
+# reasons written down in pyproject.toml and RELEASING.md:
+#
+#   * one **sdist**, built by setuptools -- the whole source, Rust crate
+#     included, but installing it compiles nothing and yields the numpy
+#     reference implementation.  That is the fallback for every platform below
+#     that has no wheel: `pip install priora` works there and
+#     `backend="auto"` degrades to "python", which is exactly the runtime
+#     contract priora already has.
+#   * one **wheel per platform**, built by `maturin build` over the
+#     `[tool.maturin]` table -- the same Python package plus the compiled
+#     `priora._core`.  abi3-py311 means one wheel covers CPython >= 3.11, so
+#     the matrix is per platform, not per platform x interpreter.
+#
+# Triggers:
+#   * a **pushed vX.Y.Z tag**: builds, smoke-tests, then publishes to PyPI via
+#     Trusted Publishing (OIDC, no API token).  The version IS the tag
+#     (setuptools-scm); `version-check` fails fast if the checkout does not
+#     resolve to exactly the tag.
+#   * **workflow_dispatch**: the same build and smoke test with no publish
+#     step at all, so a release can be rehearsed and the artifacts inspected
+#     from the run page.  There is no TestPyPI leg by maintainer decision.
+
+on:
+  # Pushing a version tag IS the release action: `git tag v0.1.0 && git push
+  # --tags` builds, smoke-tests, and publishes to PyPI with no further clicks.
+  # (A GitHub Release object can still be created afterward for notes; it does
+  # not re-trigger this workflow, so there is no double-publish path.)
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Never cancel a release in flight; a half-uploaded index is worse than a
+  # queued run.
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONUNBUFFERED: "1"
+  # matplotlib is a diagnostics-only dependency of the package; no display on a
+  # runner (see ci.yml).
+  MPLBACKEND: Agg
+  # Pinned deliberately: the wheel's platform tag and its stripped contents are
+  # properties of the maturin version, so it is part of the release recipe.
+  MATURIN_VERSION: v1.15.0
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # The git tag is the single source of truth (setuptools-scm).  This job
+  # resolves it, asserts nothing in the tree carries a competing static version
+  # (pyproject, __init__, the crate), and re-checks the packaging invariants.
+  # It runs first and everything else needs it, so a mismatch costs one
+  # 20-second job instead of a yanked release.
+  # ---------------------------------------------------------------------------
+  version-check:
+    name: version consistency
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # setuptools-scm resolves the version from tags
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Install setuptools-scm
+        run: python -m pip install "setuptools-scm>=8"
+
+      - name: scm version == tag; no static versions anywhere; abi3 floor == requires-python
+        id: check
+        env:
+          # Never interpolate a tag name straight into a shell script.
+          # Empty on workflow_dispatch (branch ref) -> tag check is skipped.
+          RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          python - <<'PY'
+          import os, re, sys, tomllib
+
+          fail = []
+
+          with open("pyproject.toml", "rb") as fh:
+              pp = tomllib.load(fh)
+          # setuptools-scm is the single source of truth (the git tag).
+          if "version" in pp.get("project", {}):
+              fail.append("pyproject.toml carries a static [project].version; "
+                          "the version is setuptools-scm-derived (dynamic)")
+          if "version" not in pp["project"].get("dynamic", []):
+              fail.append("[project].dynamic must include 'version'")
+          import subprocess
+          version = subprocess.run(
+              [sys.executable, "-m", "setuptools_scm"],
+              capture_output=True, text=True, check=True).stdout.strip()
+          print(f"setuptools-scm   resolved version    {version}")
+
+          src = open("src/priora/__init__.py", encoding="utf-8").read()
+          if re.search(r'^__version__\s*=\s*"\d', src, re.M):
+              fail.append("src/priora/__init__.py hardcodes __version__; it "
+                          "must read importlib.metadata")
+
+          # The crate is version-less (publish = false): the package version
+          # lives in the git tag, and the crate is an implementation detail.
+          with open("rust/Cargo.toml", "rb") as fh:
+              crate = tomllib.load(fh)
+          if "version" in crate.get("package", {}):
+              fail.append("rust/Cargo.toml must not carry a [package] version")
+          if crate.get("package", {}).get("publish", True):
+              fail.append("rust/Cargo.toml must set publish = false")
+
+          # The packaging invariants the wheel depends on.  Losing module-name
+          # would silently publish the extension as a top-level `priora_core`
+          # module that `priora.backend` never looks for.
+          mat = pp.get("tool", {}).get("maturin", {})
+          print(f"[tool.maturin]   module-name         {mat.get('module-name')}")
+          print(f"[tool.maturin]   python-source       {mat.get('python-source')}")
+          if mat.get("module-name") != "priora._core":
+              fail.append("[tool.maturin] module-name must be 'priora._core'")
+          if mat.get("python-source") != "src":
+              fail.append("[tool.maturin] python-source must be 'src'")
+          where = pp["tool"]["setuptools"]["packages"]["find"]["where"]
+          if where != [mat.get("python-source")]:
+              fail.append(f"setuptools packages.find where={where} disagrees with "
+                          f"[tool.maturin] python-source")
+
+          # One wheel per platform is only true while the crate asks for abi3,
+          # and the floor it asks for has to be the floor we advertise.
+          feats = crate["dependencies"]["pyo3"].get("features", [])
+          abi3 = [f for f in feats if f.startswith("abi3-py")]
+          print(f"rust/Cargo.toml  pyo3 features       {feats}")
+          if len(abi3) != 1:
+              fail.append(f"expected exactly one abi3-pyXY pyo3 feature, got {abi3}")
+          else:
+              floor = abi3[0].removeprefix("abi3-py")          # e.g. "311"
+              want = f">={floor[0]}.{floor[1:]}"                # e.g. ">=3.11"
+              print(f"pyproject.toml   requires-python     "
+                    f"{pp['project']['requires-python']} (abi3 implies {want})")
+              if pp["project"]["requires-python"].replace(" ", "") != want:
+                  fail.append(f"requires-python must be {want!r} to match "
+                              f"pyo3's {abi3[0]}")
+
+          tag = os.environ.get("RELEASE_TAG", "")
+          if tag:
+              print(f"pushed tag                           {tag}")
+              # On an exact, clean tag checkout setuptools-scm resolves to the
+              # tag itself; a dev/local suffix here means the tag is not what
+              # is being built.
+              if tag != f"v{version}":
+                  fail.append(f"pushed tag {tag!r} but setuptools-scm resolved "
+                              f"{version!r}; the checkout is not exactly the tag")
+              if "+" in version or ".dev" in version:
+                  fail.append(f"resolved version {version!r} is not a clean "
+                              f"release version")
+          else:
+              print(f"not a tag push: rehearsal build at {version}")
+
+          if fail:
+              for f in fail:
+                  print(f"::error::{f}")
+              sys.exit(1)
+          with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+              fh.write(f"version={version}\n")
+          print(f"OK: priora {version}")
+          PY
+
+  # ---------------------------------------------------------------------------
+  # sdist.  Built by the repository's own PEP 517 backend (setuptools), so this
+  # is literally what `pip download --no-binary` gives, and installed here into
+  # a clean venv with cargo removed from PATH to prove the claim that the
+  # extension is optional at install time.
+  # ---------------------------------------------------------------------------
+  sdist:
+    name: build sdist
+    needs: version-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0   # setuptools-scm derives the sdist version from git
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Install the build frontend
+        run: python -m pip install --upgrade pip build twine
+
+      - name: python -m build --sdist
+        run: python -m build --sdist --outdir dist
+
+      - name: Check the sdist contents
+        run: python .github/scripts/check_sdist.py dist --version "${{ needs.version-check.outputs.version }}"
+
+      - name: twine check --strict
+        run: python -m twine check --strict dist/*
+
+      # The point of this step: install with no Rust toolchain reachable.  PATH
+      # is cut down to the system directories (the runner's cargo lives in
+      # ~/.cargo/bin and its rustup shims in the tool cache), and pip is invoked
+      # by absolute path.  If the sdist ever grows a build-time Rust dependency,
+      # this fails here rather than for a user on an unsupported platform.
+      - name: Install the sdist in a clean venv, no Rust on PATH
+        run: |
+          set -euo pipefail
+          python -m venv "$RUNNER_TEMP/venv-sdist"
+          env -u CARGO -u CARGO_HOME -u RUSTUP_HOME PATH=/usr/bin:/bin \
+            "$RUNNER_TEMP/venv-sdist/bin/pip" install --no-cache-dir dist/*.tar.gz
+          "$RUNNER_TEMP/venv-sdist/bin/pip" list
+
+      - name: The sdist install degrades to the numpy reference
+        working-directory: ${{ runner.temp }}
+        run: |
+          "$RUNNER_TEMP/venv-sdist/bin/python" \
+            "$GITHUB_WORKSPACE/.github/scripts/smoke_classify.py" python
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Wheels.  maturin is driven as a CLI here, never as the PEP 517 backend --
+  # `[tool.maturin]` in pyproject.toml is all the configuration it needs, and
+  # the repository keeps setuptools as its build backend (see pyproject.toml).
+  #
+  # Platform coverage shipped: manylinux2014 x86_64, macOS arm64, Windows x64.
+  # RELEASING.md documents how to add the rest (linux aarch64/musl, macOS
+  # x86_64); every entry added here needs nothing but a matrix row.
+  # ---------------------------------------------------------------------------
+  wheels:
+    name: wheel (${{ matrix.name }})
+    needs: version-check
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x86_64
+            runner: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            # The build runs in quay.io/pypa/manylinux2014_x86_64 (glibc 2.17),
+            # which is also the oldest glibc we intend to support.  Naming the
+            # version rather than `auto` turns a future container change into a
+            # failure instead of a silently narrower wheel.
+            manylinux: "2_17"
+            # setup-python has no effect inside the container, so name the
+            # interpreter the manylinux image provides.
+            interpreter: python3.11
+            plat-tag: manylinux2014_x86_64
+          - name: macos-arm64
+            runner: macos-14
+            target: aarch64-apple-darwin
+            interpreter: python
+            plat-tag: macosx
+          - name: windows-x64
+            runner: windows-latest
+            target: x86_64-pc-windows-msvc
+            interpreter: python
+            plat-tag: win_amd64
+    steps:
+      - uses: actions/checkout@v7
+
+      # Not used by the containerized linux build; it is what `-i python`
+      # resolves to on macOS and Windows.  3.11 is the abi3 floor, so the wheel
+      # is built by the oldest interpreter it claims to support.
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      # maturin cannot run setuptools-scm, so the resolved version (from
+      # version-check, i.e. from the tag) is stamped into the workspace
+      # pyproject as a static [project].version before the build.  The stamp
+      # exists only in the runner's workspace; the repository never carries a
+      # static version.  The `metadata` job diffs the sdist's and every wheel's
+      # METADATA afterwards, so a stamping bug cannot ship silently.
+      - name: Stamp the resolved version for maturin
+        shell: python
+        env:
+          VERSION: ${{ needs.version-check.outputs.version }}
+        run: |
+          import os, re
+          from pathlib import Path
+          v = os.environ["VERSION"]
+          assert re.fullmatch(r"[0-9A-Za-z_.+-]+", v), f"suspicious version {v!r}"
+          p = Path("pyproject.toml")
+          t = p.read_text()
+          t2, n = re.subn(r'^dynamic = \["version"\]$',
+                          f'version = "{v}"', t, flags=re.M)
+          assert n == 1, "expected exactly one dynamic-version line to stamp"
+          p.write_text(t2)
+          print(f"stamped version = {v}")
+
+      - name: maturin build
+        uses: PyO3/maturin-action@e83996d129638aa358a18fbd1dfb82f0b0fb5d3b # v1.51.0
+        with:
+          maturin-version: ${{ env.MATURIN_VERSION }}
+          command: build
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          rust-toolchain: stable
+          # --locked: rust/Cargo.lock is committed, so the release is built from
+          # the exact dependency set that CI tested.
+          args: --release --locked --out dist --interpreter ${{ matrix.interpreter }}
+
+      - name: Check the wheel contents
+        run: >
+          python .github/scripts/check_wheel.py dist
+          --version "${{ needs.version-check.outputs.version }}"
+          --plat-tag "${{ matrix.plat-tag }}"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist-wheel-${{ matrix.name }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  # ---------------------------------------------------------------------------
+  # Smoke test.  Installs the *built linux wheel* (the only platform this repo
+  # can execute) into a clean venv and exercises it from outside the checkout,
+  # on both ends of the abi3 range -- 3.11 is what the wheel was built with and
+  # 3.13 is the interpreter development happens on, so this is also the test of
+  # the "one wheel serves 3.11+" claim.
+  # ---------------------------------------------------------------------------
+  smoke-test:
+    name: smoke test the linux wheel (py${{ matrix.python-version }})
+    needs: wheels
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.13"]
+    steps:
+      # For tests/ and .github/scripts/; the package itself comes from the
+      # wheel.  The repository uses a src/ layout, so no import can fall
+      # through to the working tree, and the steps below run in $RUNNER_TEMP
+      # anyway.
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist-wheel-linux-x86_64
+          path: wheelhouse
+
+      - name: Install the wheel in a clean venv
+        run: |
+          set -euo pipefail
+          ls -l wheelhouse
+          python -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/pip" install --upgrade pip
+          "$RUNNER_TEMP/venv/bin/pip" install wheelhouse/*.whl pytest
+          "$RUNNER_TEMP/venv/bin/pip" list
+
+      - name: Import the extension and A/B the two backends
+        working-directory: ${{ runner.temp }}
+        env:
+          PRIORA_BACKEND: rust
+        run: |
+          "$RUNNER_TEMP/venv/bin/python" \
+            "$GITHUB_WORKSPACE/.github/scripts/smoke_classify.py" rust
+
+      # A fast subset of the suite, run against the installed wheel from a
+      # directory that contains nothing but the copied test files -- no
+      # pyproject.toml, no src/, no conftest.py, so pytest cannot pick up the
+      # repository as rootdir and `import priora` can only resolve to the
+      # wheel.  The full suite is CI's job, on both backends (ci.yml).
+      - name: pytest subset from the installed wheel (PRIORA_BACKEND=rust)
+        env:
+          PRIORA_BACKEND: rust
+        run: |
+          set -euo pipefail
+          d="$RUNNER_TEMP/wheel-tests"
+          mkdir -p "$d"
+          cp tests/test_imports.py tests/test_ranging.py tests/test_transforms.py "$d/"
+          cd "$d"
+          "$RUNNER_TEMP/venv/bin/python" -m pytest -q -rs -p no:cacheprovider \
+            test_imports.py test_ranging.py test_transforms.py
+
+  # ---------------------------------------------------------------------------
+  # The one hazard of building the sdist and the wheels with two different tools
+  # is that they could describe different distributions under one version.  Both
+  # read the same [project] table, so they cannot -- and this job is what makes
+  # that a checked fact.  It is cheap and runs on dispatch too.
+  # ---------------------------------------------------------------------------
+  metadata:
+    name: sdist and wheels agree
+    needs: [sdist, wheels]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
+      - run: python .github/scripts/check_metadata.py dist
+
+  # ---------------------------------------------------------------------------
+  # Publish.  Trusted Publishing only: the job presents a short-lived OIDC
+  # token, so there is no API token anywhere in this repository or its secrets.
+  # `id-token: write` is scoped to this job alone, and the `pypi` environment
+  # name is part of what pypi.org matches against -- see RELEASING.md before
+  # renaming either this file or that environment.
+  #
+  # No publish step runs for workflow_dispatch: a dispatch is a build-and-verify
+  # rehearsal whose artifacts stay on the run page.
+  # ---------------------------------------------------------------------------
+  publish-pypi:
+    name: publish to PyPI
+    if: github.ref_type == 'tag'
+    needs: [version-check, sdist, wheels, smoke-test, metadata]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: pypi
+      url: https://pypi.org/p/priora
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: dist-*
+          merge-multiple: true
+          path: dist
+
+      - name: What is about to be uploaded
+        run: |
+          set -euo pipefail
+          ls -l dist
+          test -f "dist/priora-${{ needs.version-check.outputs.version }}.tar.gz"
+          n="$(find dist -maxdepth 1 -name '*.whl' | wc -l)"
+          echo "$n wheels + 1 sdist"
+          # One per row of the `wheels` matrix -- bump this when the matrix
+          # grows, so a dropped platform cannot be published quietly.
+          test "$n" -eq 3
+
+      - name: pypi.org
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+        with:
+          print-hash: true
+          # No skip-existing: re-uploading a version that already exists on
+          # PyPI must fail loudly rather than look like a successful release.

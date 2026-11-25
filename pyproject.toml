@@ -48,6 +48,7 @@ description = "Bayesian NEO tracklet classification by ranging over topocentric 
 readme = "README.md"
 requires-python = ">=3.11"
 license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 authors = [
     { name = "Devanshi Singh", email = "ds2004@uw.edu" },
     { name = "Mario Juric", email = "mjuric@uw.edu" },

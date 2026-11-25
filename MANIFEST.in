@@ -30,3 +30,8 @@ prune rust/target
 prune data
 prune validation
 prune paper
+prune alerts
+prune analysis
+prune tools
+prune .github
+exclude env.sh Makefile environment.yml
